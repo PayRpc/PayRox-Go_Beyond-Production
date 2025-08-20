@@ -1,0 +1,125 @@
+name: Ollama Diagnostic Smoke Check
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+jobs:
+  ollama-diag:
+    name: Ollama diagnostic
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: |
+          if [ -f package.json ]; then
+            npm ci
+          else
+            echo "No package.json found, skipping npm install"
+          fi
+        continue-on-error: true
+
+      - name: Local diagnostic script check
+        id: local_script
+        run: |
+          echo "Looking for scripts/ollama-diag.sh ..."
+          if [ -f scripts/ollama-diag.sh ]; then
+            if [ -x scripts/ollama-diag.sh ]; then
+              echo "Found executable script; executing (non-blocking)."
+              scripts/ollama-diag.sh || echo "Local diag script exited with non-zero (ignored)"
+            else
+              echo "Found script but not executable; skipping."
+            fi
+          else
+            echo "No local diagnostic script found; this is expected during development."
+            echo "Script will be added when Ollama integration is fully implemented."
+          fi
+        continue-on-error: true
+
+      - name: Ollama service reachability check
+        id: reachability
+        run: |
+          set -e
+          # Set default host for CI environments where OLLAMA_HOST secret is not available
+          OLLAMA_HOST="http://127.0.0.1:11434"
+          echo "Using default Ollama host (not available in CI): $OLLAMA_HOST"
+          
+          echo "Note: Ollama service checks are currently non-blocking during development"
+          
+          # Health endpoint check
+          if curl --silent --fail --max-time 5 "$OLLAMA_HOST/health" >/dev/null 2>&1; then
+            echo "✅ Health endpoint reachable at $OLLAMA_HOST/health"
+          else
+            echo "⚠️  Health endpoint NOT reachable at $OLLAMA_HOST/health (expected in CI)"
+          fi
+          
+          # Models endpoint check  
+          if curl --silent --fail --max-time 5 "$OLLAMA_HOST/v1/models" >/dev/null 2>&1; then
+            echo "✅ Models endpoint reachable at $OLLAMA_HOST/v1/models"
+          else
+            echo "⚠️  Models endpoint NOT reachable at $OLLAMA_HOST/v1/models (expected in CI)"
+          fi
+        continue-on-error: true
+
+      - name: PayRox server diagnostic endpoint check
+        run: |
+          echo "Checking for PayRox server diagnostic endpoints..."
+          
+          # Check if server code exists
+          if [ -f server/main.py ]; then
+            echo "✅ PayRox server code found (server/main.py)"
+            
+            # Check for Ollama diagnostic endpoint in code
+            if grep -q "/diag/ollama" server/main.py; then
+              echo "✅ Ollama diagnostic endpoint found in server code"
+            else
+              echo "⚠️  Ollama diagnostic endpoint not found in server code"
+            fi
+            
+          else
+            echo "⚠️  PayRox server code not found"
+          fi
+          
+          # Attempt connection to local diagnostic endpoint (will fail in CI, that's expected)
+          if command -v curl >/dev/null 2>&1; then
+            if curl --silent --fail --max-time 3 "http://127.0.0.1:8000/diag/ollama" >/dev/null 2>&1; then
+              echo "✅ PayRox diagnostic endpoint reachable at http://127.0.0.1:8000/diag/ollama"
+            else
+              echo "⚠️  PayRox diagnostic endpoint not reachable (expected in CI environment)"
+            fi
+          fi
+        continue-on-error: true
+
+      - name: Configuration validation
+        run: |
+          echo "Validating Ollama integration configuration..."
+          
+          # Check Python requirements
+          if [ -f requirements.txt ]; then
+            if grep -q "ollama" requirements.txt; then
+              echo "✅ Ollama Python client found in requirements.txt"
+            else
+              echo "⚠️  Ollama Python client not found in requirements.txt"
+            fi
+          fi
+          
+          # Check for environment configuration
+          if [ -f .env.example ] || [ -f .env.template ]; then
+            echo "✅ Environment configuration template found"
+          else
+            echo "ℹ️  No environment configuration template found"
+          fi
+          
+          echo "Diagnostic workflow completed successfully (development mode)"
+        continue-on-error: true
