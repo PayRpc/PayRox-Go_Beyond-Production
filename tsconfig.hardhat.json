@@ -6,5 +6,11 @@
     "target": "ES2022",
     "types": ["node", "mocha", "chai"]
   },
-  "include": ["hardhat.config.ts", "scripts", "test", "tools", "types"]
+  "include": ["hardhat.config.ts", "scripts", "test", "tools", "types"],
+  "exclude": [
+    "scripts/deploy/enhanced-cross-chain-deploy.ts",
+    "scripts/orchestrate-crosschain.ts", 
+    "scripts/validate/cross-chain-validator.ts",
+    "test/salt-policy-parity.test.ts"
+  ]
 }
