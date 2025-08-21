@@ -1,0 +1,60 @@
+{
+  "root": true,
+  "extends": [
+    "standard-with-typescript",
+    "prettier"
+  ],
+  "parserOptions": {
+    "project": ["./tsconfig.json", "./tsconfig.hardhat.json"]
+  },
+  "env": {
+    "node": true,
+    "es2022": true,
+    "mocha": true
+  },
+  "rules": {
+    "@typescript-eslint/explicit-function-return-type": "off",
+    "@typescript-eslint/explicit-module-boundary-types": "off",
+    "@typescript-eslint/no-explicit-any": "off",
+    "@typescript-eslint/no-non-null-assertion": "off",
+    "@typescript-eslint/prefer-nullish-coalescing": "off",
+    "prettier/prettier": "error",
+    "@typescript-eslint/strict-boolean-expressions": "off"
+  },
+  "overrides": [
+    {
+      "files": ["scripts/**/*.js", "*.js"],
+      "env": {
+        "node": true
+      },
+      "extends": [
+        "standard",
+        "prettier"
+      ],
+      "rules": {
+        "prettier/prettier": "error"
+      }
+    },
+    {
+      "files": ["test/**/*", "tests/**/*", "**/*.test.*"],
+      "env": {
+        "mocha": true,
+        "node": true
+      },
+      "rules": {
+        "@typescript-eslint/no-explicit-any": "off",
+        "@typescript-eslint/no-unused-expressions": "off"
+      }
+    }
+  ],
+  "ignorePatterns": [
+    "node_modules/",
+    "dist/",
+    "build/",
+    "artifacts/",
+    "cache/",
+    "typechain-types/",
+    "coverage/",
+    "*.min.js"
+  ]
+}

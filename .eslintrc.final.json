@@ -1,0 +1,63 @@
+{
+  "root": true,
+  "env": {
+    "node": true,
+    "es2022": true,
+    "mocha": true,
+    "jest": true
+  },
+  "ignorePatterns": [
+    "node_modules/",
+    "dist/",
+    "artifacts/",
+    "cache/",
+    "typechain-types/",
+    "coverage/",
+    "*.d.ts",
+    "hardhat.config.ts",
+    "**/*.config.js",
+    "**/*.config.ts",
+    ".payrox/",
+    "deployable-modules/SecurityFacet/artifacts/"
+  ],
+  "rules": {
+    "no-unused-vars": "off",
+    "@typescript-eslint/no-unused-vars": "off",
+    "@typescript-eslint/no-explicit-any": "off",
+    "@typescript-eslint/no-non-null-assertion": "off",
+    "@typescript-eslint/ban-ts-comment": "off",
+    "@typescript-eslint/no-var-requires": "off",
+    "prefer-const": "off",
+    "no-console": "off",
+    "no-undef": "off",
+    "no-empty": "off",
+    "no-inner-declarations": "off",
+    "prettier/prettier": "off"
+  },
+  "overrides": [
+    {
+      "files": ["*.js"],
+      "env": {
+        "node": true,
+        "commonjs": true
+      },
+      "rules": {
+        "@typescript-eslint/no-var-requires": "off",
+        "@typescript-eslint/no-require-imports": "off"
+      }
+    },
+    {
+      "files": ["scripts/**/*.js", "tools/**/*.js"],
+      "rules": {
+        "no-process-exit": "off",
+        "@typescript-eslint/no-var-requires": "off"
+      }
+    },
+    {
+      "files": ["deployable-modules/**/*.ts"],
+      "rules": {
+        "@typescript-eslint/no-unused-vars": "off"
+      }
+    }
+  ]
+}

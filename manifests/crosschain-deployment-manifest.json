@@ -1,0 +1,30 @@
+{
+  "version": "1.0.0",
+  "description": "PayRox Cross-Chain Deployment Manifest",
+  "networks": ["sepolia", "base-sepolia", "arbitrum-sepolia"],
+  "salt": {
+    "policy": "chain-agnostic",
+    "baseValue": "PayRoxCrossChain.v1"
+  },
+  "governance": {
+    "owner": "0x0000000000000000000000000000000000000000",
+    "roles": {
+      "DEPLOYER_ROLE": ["0x0000000000000000000000000000000000000000"],
+      "MANIFEST_ROLE": ["0x0000000000000000000000000000000000000000"]
+    }
+  },
+  "components": [
+    {
+      "name": "DeterministicChunkFactory",
+      "contractName": "DeterministicChunkFactory",
+      "initParams": [],
+      "dependencies": []
+    },
+    {
+      "name": "DeterministicDeploymentManager",
+      "contractName": "DeterministicDeploymentManager",
+      "initParams": [],
+      "dependencies": ["DeterministicChunkFactory"]
+    }
+  ]
+}

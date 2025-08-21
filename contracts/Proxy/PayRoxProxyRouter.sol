@@ -55,6 +55,7 @@ contract PayRoxProxyRouter {
     // ─────────────────────────────────────────────────────────────────────────────
     error AlreadyInitialized();
     error NotOwner();
+    error NotGovernor();
     error NotPendingOwner();
     error InvalidNewOwner();
     error Paused();
@@ -73,6 +74,7 @@ contract PayRoxProxyRouter {
     // ─────────────────────────────────────────────────────────────────────────────
     uint256 public constant MAX_BATCH_SIZE = 50; // Anti-DoS guard
     bytes32 private constant ROUTER_SLOT = keccak256("payrox.proxy.router.v1");
+    bytes32 private constant INIT_SALT = keccak256("payrox.router.init.2024.production"); // Front-run protection
 
     // ─────────────────────────────────────────────────────────────────────────────
     // Namespaced storage (hashed slot to avoid collision with diamond storage)
@@ -122,7 +124,7 @@ contract PayRoxProxyRouter {
     }
 
     modifier onlyGovernor() {
-        if (!_isGov(msg.sender)) revert NotOwner();
+        if (!_isGov(msg.sender)) revert NotGovernor();
         _;
     }
 
@@ -149,14 +151,17 @@ contract PayRoxProxyRouter {
     /// @param dispatcher_ Address of the ManifestDispatcher to route to.
     /// @param expectedCodehash EXTCODEHASH(dispatcher_) to enforce; set 0x0 to disable checking.
     /// @param strictCodehash_ If true, each call checks dispatcher codehash before delegatecall.
+    /// @param initSalt Must match INIT_SALT constant to prevent unauthorized initialization.
     function initializeProxyRouter(
         address owner_,
         address dispatcher_,
         bytes32 expectedCodehash,
-        bool strictCodehash_
+        bool strictCodehash_,
+        bytes32 initSalt
     ) external {
         RouterStorage storage s = _s();
         if (s.owner != address(0)) revert AlreadyInitialized();
+        if (initSalt != INIT_SALT) revert NotOwner(); // Reuse existing error for unauthorized access
         if (dispatcher_ == address(0)) revert DispatcherZero();
 
         _validateDispatcherCompatibility(dispatcher_);
@@ -233,7 +238,9 @@ contract PayRoxProxyRouter {
 
     /// @notice Forbid/allow a batch of selectors (hot kill-switch). Allowed even when frozen.
     function setForbiddenSelectors(bytes4[] calldata selectors, bool forbidden) external onlyGovernor {
-        RouterStorage storage s = _s();
+    // Soft safety cap to avoid pathological gas usage / event size
+    if (selectors.length > 1000) revert BatchTooLarge(selectors.length, 1000);
+    RouterStorage storage s = _s();
         for (uint256 i = 0; i < selectors.length; i++) {
             s.forbidden[selectors[i]] = forbidden;
         }
@@ -250,6 +257,7 @@ contract PayRoxProxyRouter {
     /// @param l2Messenger_ Address of L2 cross-domain messenger (e.g., 0x4200...0007 on OP-Stack)
     /// @param l1Governor_ Address of L1 governor that can send messages through messenger
     function setL2Governor(address l2Messenger_, address l1Governor_) external onlyOwner notFrozen {
+        if (l2Messenger_ == address(0) || l1Governor_ == address(0)) revert InvalidNewOwner();
         RouterStorage storage s = _s();
         s.l2Messenger = l2Messenger_;
         s.l1Governor = l1Governor_;
