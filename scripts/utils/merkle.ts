@@ -39,7 +39,7 @@ function proofForIndex (levels: string[][], leafIndex: number): string[] {
     const nodes = levels[level]
     const isRight = idx % 2 === 1
     const sibling = isRight ? idx - 1 : idx + 1
-    if (sibling < nodes.length) proof.push(nodes?.[sibling])
+    if (sibling < nodes?.length) proof.push(nodes?.[sibling])
     idx = Math.floor(idx / 2)
   }
   return proof

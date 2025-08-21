@@ -16,7 +16,7 @@ async function main () {
 
   // Connect to factory
   const Factory = await ethers.getContractFactory('DeterministicChunkFactory')
-  const _factory = Factory.attach(_FACTORY_ADDRESS)
+  const factory = Factory.attach(FACTORY_ADDRESS)
 
   // Grant roles to dispatcher (commented out due to interface limitations)
   console.log('Granting OPERATOR_ROLE to dispatcher...')

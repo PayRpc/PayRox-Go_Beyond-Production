@@ -292,7 +292,7 @@ class DiamondDeployer {
       network: (await hre.ethers.provider.getNetwork()).name,
       block: await hre.ethers.provider.getBlockNumber(),
       timestamp: Math.floor(Date.now() / 1000),
-      deployer: (await hre?.ethers.getSigners())[0].address,
+      deployer: (await hre?.ethers?.getSigners())[0].address,
       salt: this.config.salt
     }
 

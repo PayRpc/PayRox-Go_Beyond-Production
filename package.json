@@ -19,6 +19,8 @@
     "error:fix:advanced:dry": "node tools/error-fixer-advanced.cjs --dry-run",
     "error:fix:specialized": "node tools/error-fixer-specialized.cjs",
     "error:fix:specialized:dry": "node tools/error-fixer-specialized.cjs --dry-run",
+    "error:fix:nullsafety": "node tools/error-fixer-nullsafety.cjs",
+    "error:fix:nullsafety:dry": "node tools/error-fixer-nullsafety.cjs --dry-run",
     "deps:sync": "node tools/dependency-sync-fixer.cjs",
     "lint:zero-issue": "npx eslint . --config-lookup-name=\"zero-issue\" --rule=\"@typescript-eslint/ban-ts-comment: off\" --rule=\"no-empty: off\" --rule=\"node/no-path-concat: off\" --rule=\"no-inner-declarations: off\"",
     "format": "prettier --write \"**/*.{ts,js,json,md,sol}\"",

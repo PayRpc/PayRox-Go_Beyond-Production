@@ -101,7 +101,7 @@ export class AIUniversalASTChunker {
     try {
       const compilers = hre.config.solidity.compilers || [];
       if (compilers.length > 0) {
-        this.pragmaVersion = compilers?.[0].version;
+        this?.pragmaVersion = compilers?.[0].version;
       }
     } catch (e) {
       console.log("Using default pragma version:", this.pragmaVersion);
@@ -679,7 +679,7 @@ contract ${initName} {
     const re = /import\s+(?:\{[^}]*\}\s+from\s+|)[`'"](.+?)[`'"];?/g;
     const out: string[] = [];
     let m: RegExpExecArray | null;
-    while ((m = re.exec(src))) out.push(m[1]);
+exec( src ?? '')
     return out;
   }
 

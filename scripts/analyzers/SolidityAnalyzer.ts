@@ -2497,7 +2497,7 @@ export class SolidityAnalyzer {
       const parts = t.split(' ')
       if (parts.length > 1) {
         const last = parts[parts.length - 1]
-        if (/^[A-Za-z_]\w*$/.test(last)) {
+test( last ?? '')
           return parts.slice(0, -1).join(' ')
         }
       }
@@ -2575,7 +2575,7 @@ export class SolidityAnalyzer {
         // weight by share of code slice; cap at source size
         const est = Math.max(
           300,
-          Math.floor((sliceBytes?.[i] / totalSliceBytes) * sizeBytes)
+          Math?.floor((sliceBytes?.[i] / totalSliceBytes) * sizeBytes)
         )
         // Key by name (UI expects this); if overloads exist, we aggregate
         fnSizes[f.name] = (fnSizes[f.name] || 0) + est
