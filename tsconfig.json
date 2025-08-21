@@ -2,19 +2,18 @@
   "compilerOptions": {
     "target": "ES2022",
     "lib": ["ES2022"],
-  "module": "CommonJS",
+    "module": "CommonJS",
     "moduleResolution": "node",
     "declaration": true,
     "strict": true,
+    "noUncheckedIndexedAccess": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-  // Allow iterating Map/Set when emitting downleveled code for older runtimes.
-  "downlevelIteration": true,
+    // downlevelIteration not required for ES2022 target
+    "downlevelIteration": false,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
     "outDir": "./dist",
     "rootDir": "./",
     "noImplicitAny": true,
@@ -25,6 +24,7 @@
     // Only use standard DefinitelyTyped packages; do not treat ./types as a typeRoots package,
     // otherwise TS will try to load '@openzeppelin', 'contracts', 'factories' as ambient libs.
     "typeRoots": ["./node_modules/@types"],
+  "types": ["node", "mocha", "jest"],
     "baseUrl": "./",
     "paths": {
       "@/*": ["./src/*"],
@@ -32,7 +32,7 @@
       "@scripts/*": ["./scripts/*"],
       "@test/*": ["./test/*"],
       "@contracts/*": ["./contracts/*"],
-      "@typechain/*": ["./typechain-types/*"] // Aligns with ARTIFACTS_PATHS.TYPECHAIN_ROOT
+      "@typechain/*": ["./typechain-types/*"]
     }
   },
   "include": [
@@ -46,7 +46,7 @@
     "./typechain-types/**/*", // Aligns with ARTIFACTS_PATHS.TYPECHAIN_ROOT
     "./cli/src/**/*",
     "./sdk/src/**/*",
-    "./contracts/**/*.sol"
+    
   ],
   "exclude": [
     "node_modules",
@@ -55,6 +55,7 @@
     "cache",
     "coverage",
     "tools/ai-assistant/frontend",
+  "./contracts/**/*.sol",
     "**/*.spec.js",
     "**/*.test.js"
   ],

@@ -125,7 +125,7 @@ class PayRoxRefactorLinter {
       this.errors.push({
         type: 'COMPILATION',
         message: `Compilation failed: ${error}`,
-        details: { error: error.toString() }
+        details: { error: String(error) }
       });
     }
   }

@@ -415,8 +415,9 @@ export class SolidityAnalyzer {
               sourceLocation: this.getSourceLocation(variable, sourceCode),
             };
 
-            // Update slot counter based on variable size
-            slotCounter += Math.ceil(variableInfo.size / 32);
+            // Update slot counter based on variable size (defensive default)
+            const varSize = typeof variableInfo.size === 'number' ? variableInfo.size : 32;
+            slotCounter += Math.ceil(varSize / 32);
 
             variables.push(variableInfo);
           }
@@ -719,7 +720,9 @@ export class SolidityAnalyzer {
     }
 
     const location = this.getSourceLocation(functionNode, sourceCode);
-    const functionCode = sourceCode.slice(location.start, location.end);
+  const startPos = typeof location.start === 'number' ? location.start : 0;
+  const endPos = typeof location.end === 'number' ? location.end : sourceCode.length;
+  const functionCode = sourceCode.slice(startPos, endPos);
 
     // Rough estimation: 1 byte per 2 characters of source (accounting for compilation)
     return Math.ceil(functionCode.length / 2);
@@ -967,7 +970,7 @@ export class SolidityAnalyzer {
 
     return (
       adminPatterns.some(pattern => pattern.test(func.name)) ||
-      func.modifiers.some(mod => /owner|admin|auth|role/i.test(mod))
+      (func.modifiers || []).some(mod => /owner|admin|auth|role/i.test(mod))
     );
   }
 
@@ -1208,7 +1211,7 @@ export class SolidityAnalyzer {
     securityConsiderations: string[];
     chunkingStrategy?: string;
   } {
-    const facetRecommendations: FacetCandidate[] = [];
+  const facetRecommendations: FacetCandidate[] = [];
 
     // Convert facet candidates to structured recommendations
     const facetEntries: Array<[string, any[]]> = contract.facetCandidates
@@ -1216,25 +1219,25 @@ export class SolidityAnalyzer {
       : [];
 
     for (const [facetName, functions] of facetEntries) {
+      const safeFunctions = functions || [];
       const candidate: FacetCandidate = {
         name: facetName,
-        functions: functions,
-        estimatedSize: functions.reduce((total, fn) => total + fn.codeSize, 0),
+        functions: safeFunctions,
+        estimatedSize: safeFunctions.reduce((total, fn) => total + (fn.codeSize || 0), 0),
         category: this.categorizeFacet(facetName),
-        dependencies: this.analyzeFacetDependencies(functions),
-        storageRequirements: this.analyzeFacetStorage(functions),
+        dependencies: this.analyzeFacetDependencies(safeFunctions),
+        storageRequirements: this.analyzeFacetStorage(safeFunctions),
       };
 
       facetRecommendations.push(candidate);
     }
 
     const gasOptimizations = this.generateGasOptimizations(contract);
-    const securityConsiderations =
-      this.generateSecurityConsiderations(contract);
+    const securityConsiderations = this.generateSecurityConsiderations(contract);
 
     return {
       facetRecommendations,
-      deploymentStrategy: contract.deploymentStrategy,
+      deploymentStrategy: contract.deploymentStrategy || 'unknown',
       gasOptimizations,
       securityConsiderations,
       ...(contract.chunkingRequired && {
@@ -1271,8 +1274,8 @@ export class SolidityAnalyzer {
   private analyzeFacetDependencies(functions: FunctionInfo[]): string[] {
     const dependencies = new Set<string>();
 
-    for (const func of functions) {
-      for (const dep of func.dependencies) {
+    for (const func of (functions || [])) {
+      for (const dep of (func.dependencies || [])) {
         dependencies.add(dep);
       }
     }
@@ -1295,25 +1298,25 @@ export class SolidityAnalyzer {
   private generateGasOptimizations(contract: ParsedContract): string[] {
     const optimizations: string[] = [];
 
-    if (contract.chunkingRequired) {
+  if (contract.chunkingRequired) {
       optimizations.push(
         'Deploy via DeterministicChunkFactory to avoid contract size limits'
       );
     }
 
-    if (contract.facetCandidates.size > 1) {
+  if ((contract.facetCandidates?.size || 0) > 1) {
       optimizations.push(
         'Modular facet deployment reduces individual deployment costs'
       );
     }
 
-    if (contract.storageCollisions.length > 0) {
+  if ((contract.storageCollisions || []).length > 0) {
       optimizations.push(
         'Implement diamond storage pattern to avoid storage collisions'
       );
     }
 
-    const viewFunctions = contract.functions.filter(
+    const viewFunctions = (contract.functions || []).filter(
       f => f.stateMutability === 'view' || f.stateMutability === 'pure'
     );
     if (viewFunctions.length > 5) {
@@ -1331,8 +1334,8 @@ export class SolidityAnalyzer {
   private generateSecurityConsiderations(contract: ParsedContract): string[] {
     const considerations: string[] = [];
 
-    const criticalFunctions = contract.functions.filter(
-      f => this.assessSecurityLevel(f) === 'critical'
+    const criticalFunctions = (contract.functions || []).filter(
+      (f: FunctionInfo) => this.assessSecurityLevel(f) === 'critical'
     );
 
     if (criticalFunctions.length > 0) {
@@ -1341,13 +1344,12 @@ export class SolidityAnalyzer {
       );
     }
 
-    if (contract.storageCollisions.length > 0) {
+    if ((contract.storageCollisions || []).length > 0) {
       considerations.push(
         'Storage collisions detected - implement proper facet isolation'
       );
     }
-
-    const adminFunctions = contract.functions.filter(f =>
+    const adminFunctions = (contract.functions || []).filter((f: FunctionInfo) =>
       this.isAdminFunction(f)
     );
     if (adminFunctions.length > 0) {
@@ -1402,12 +1404,12 @@ export class SolidityAnalyzer {
           if (options.verbose) {
             console.log('Analysis Results:');
             console.log(`- Contract name: ${analysis.name}`);
-            console.log(`- Functions found: ${analysis.functions.length}`);
-            console.log(`- State variables: ${analysis.variables.length}`);
-            console.log(`- Events: ${analysis.events.length}`);
-            console.log(`- Modifiers: ${analysis.modifiers.length}`);
-            console.log(`- Total size: ${analysis.totalSize} bytes`);
-            console.log(`- Deployment strategy: ${analysis.deploymentStrategy}`);
+            console.log(`- Functions found: ${(analysis.functions || []).length}`);
+            console.log(`- State variables: ${(analysis.variables || []).length}`);
+            console.log(`- Events: ${(analysis.events || []).length}`);
+            console.log(`- Modifiers: ${(analysis.modifiers || []).length}`);
+            console.log(`- Total size: ${analysis.totalSize}`);
+            console.log(`- Deployment strategy: ${analysis.deploymentStrategy || 'unknown'}`);
             console.log(`- Chunking required: ${analysis.chunkingRequired}`);
           }
           
@@ -1482,10 +1484,10 @@ export class SolidityAnalyzer {
             console.log(`Optimization efficiency: ${chunkPlan.optimization.efficiency}`);
             console.log(`Gas optimized: ${chunkPlan.optimization.gasOptimized}`);
             console.log(`Dependency score: ${chunkPlan.optimization.dependencyScore}`);
-            
-            if (chunkPlan.optimization.recommendations.length > 0) {
+
+            if ((chunkPlan.optimization.recommendations || []).length > 0) {
               console.log('Recommendations:');
-              chunkPlan.optimization.recommendations.forEach(rec => {
+              (chunkPlan.optimization.recommendations || []).forEach((rec: any) => {
                 console.log(`  - ${rec}`);
               });
             }
@@ -1614,7 +1616,7 @@ export class SolidityAnalyzer {
     options: { maxChunkSize: number; strategy: string; gasLimit?: number }
   ): any {
     // Convert analysis functions to chunk functions
-    const chunkFunctions = analysis.functions.map(func => ({
+  const chunkFunctions = (analysis.functions || []).map((func: any) => ({
       name: func.name,
       signature: func.signature,
       estimatedSize: func.codeSize,
@@ -1646,7 +1648,7 @@ export class SolidityAnalyzer {
     
     return {
       chunks,
-      totalFunctions: analysis.functions.length,
+  totalFunctions: (analysis.functions || []).length,
       totalEstimatedSize: chunks.reduce(
         (sum, chunk) => sum + chunk.estimatedSize,
         0
@@ -1679,7 +1681,7 @@ export class SolidityAnalyzer {
     for (const chunk of chunkPlan.chunks) {
       const fileName = `${(analysis.name || 'Contract')}-${chunk.id}.facet.sol`;
       // Heuristic snippet: export minimal interface with function signatures
-      const funcs = chunk.functions.map((f: any) => `function ${f.name}(${(f.signature || '')}) external;`).join('\n');
+  const funcs = (chunk.functions || []).map((f: any) => `function ${f.name}(${(f.signature || '')}) external;`).join('\n');
       const snippet = `// Suggested facet: ${chunk.id}\n// Functions:\n${funcs}\n`;
       patches.push({ file: fileName, snippet });
     }
@@ -1695,14 +1697,14 @@ export class SolidityAnalyzer {
   private calculateFunctionComplexity(func: FunctionInfo): number {
     let complexity = 1; // Base complexity
     
-    // Add complexity for parameters
-    complexity += func.parameters.length * 0.5;
+  // Add complexity for parameters
+  complexity += (func.parameters || []).length * 0.5;
     
     // Add complexity for return parameters
-    complexity += func.returnParameters.length * 0.5;
+  complexity += (func.returnParameters || []).length * 0.5;
     
     // Add complexity for modifiers
-    complexity += func.modifiers.length;
+  complexity += (func.modifiers || []).length;
     
     // Add complexity for state mutability
     if (func.stateMutability !== 'view' && func.stateMutability !== 'pure') {
@@ -1710,7 +1712,7 @@ export class SolidityAnalyzer {
     }
     
     // Add complexity for dependencies
-    complexity += func.dependencies.length * 0.2;
+  complexity += (func.dependencies || []).length * 0.2;
     
     return Math.round(complexity * 10) / 10;
   }
@@ -2042,13 +2044,13 @@ export class SolidityAnalyzer {
     });
     
     // Build routes from manifest routes in analysis
-    analysis.manifestRoutes.forEach(route => {
-      const chunkId = functionToChunkMap.get(route.functionName) || 'unknown-chunk';
+    (analysis.manifestRoutes || []).forEach((route: any) => {
+      const chunkId = functionToChunkMap.get(route.functionName || '') || 'unknown-chunk';
       routes.push({
         selector: route.selector,
-        signature: this.findFunctionSignature(analysis.functions, route.functionName),
+        signature: this.findFunctionSignature(analysis.functions || [], route.functionName || ''),
         chunkId,
-        functionName: route.functionName,
+        functionName: route.functionName || '',
         // In a real implementation, we would calculate actual facet addresses
         facet: '<predicted_facet_address>'
       });
@@ -2060,9 +2062,9 @@ export class SolidityAnalyzer {
   /**
    * Find function signature by name
    */
-  private findFunctionSignature(functions: FunctionInfo[], functionName: string): string {
-    const func = functions.find(f => f.name === functionName);
-    return func ? func.signature : '';
+  private findFunctionSignature(functions: FunctionInfo[] = [], functionName: string = ''): string {
+    const func = (functions || []).find(f => f && f.name === functionName);
+    return func ? (func.signature || '') : '';
   }
   
   /**
@@ -2135,18 +2137,18 @@ export class SolidityAnalyzer {
     const dependencies: string[] = [];
     
     // Extract from imports
-    analysis.imports.forEach(imp => {
-      if (imp.path.startsWith('@openzeppelin') || imp.path.startsWith('@')) {
+    (analysis.imports || []).forEach((imp: any) => {
+      if ((imp.path || '').startsWith('@openzeppelin') || (imp.path || '').startsWith('@')) {
         dependencies.push(imp.path);
       }
     });
     
     // Extract from inheritance
-    analysis.inheritance.forEach(inh => {
+    (analysis.inheritance || []).forEach((inh: string) => {
       dependencies.push(inh);
     });
     
-    return [...new Set(dependencies)]; // Remove duplicates
+  return [...new Set(dependencies)]; // Remove duplicates
   }
   
   /**
@@ -2154,11 +2156,8 @@ export class SolidityAnalyzer {
    */
   private checkManifestSecurity(analysis: ParsedContract): any {
     return {
-      pausable: analysis.functions.some(
-        func =>
-          func.name === 'pause' ||
-          func.name === 'unpause' ||
-          func.name === 'paused'
+      pausable: (analysis.functions || []).some((func: FunctionInfo) =>
+        func.name === 'pause' || func.name === 'unpause' || func.name === 'paused'
       ),
       upgradeable: true, // Assume upgradeable in PayRox context
     };
@@ -2185,16 +2184,16 @@ export class SolidityAnalyzer {
     
     report += `## Overview\n`;
     report += `- Contract Name: ${analysis.name}\n`;
-    report += `- Functions: ${analysis.functions.length}\n`;
-    report += `- State Variables: ${analysis.variables.length}\n`;
-    report += `- Events: ${analysis.events.length}\n`;
-    report += `- Modifiers: ${analysis.modifiers.length}\n`;
+  report += `- Functions: ${(analysis.functions || []).length}\n`;
+  report += `- State Variables: ${(analysis.variables || []).length}\n`;
+  report += `- Events: ${(analysis.events || []).length}\n`;
+  report += `- Modifiers: ${(analysis.modifiers || []).length}\n`;
     report += `- Total Size: ${analysis.totalSize} bytes\n`;
     report += `- Deployment Strategy: ${analysis.deploymentStrategy}\n`;
     report += `- Chunking Required: ${analysis.chunkingRequired}\n\n`;
     
     report += `## Functions\n`;
-    analysis.functions.forEach(func => {
+    (analysis.functions || []).forEach((func: FunctionInfo) => {
       report += `- **${func.name}** (${func.visibility} ${func.stateMutability})\n`;
       report += `  - Selector: ${func.selector}\n`;
       report += `  - Signature: ${func.signature}\n`;
@@ -2203,7 +2202,7 @@ export class SolidityAnalyzer {
     });
     
     report += `## State Variables\n`;
-    analysis.variables.forEach(variable => {
+    (analysis.variables || []).forEach((variable: any) => {
       report += `- **${variable.name}** (${variable.type})\n`;
       report += `  - Visibility: ${variable.visibility}\n`;
       report += `  - Slot: ${variable.slot}\n`;
@@ -2216,7 +2215,8 @@ export class SolidityAnalyzer {
       : [];
 
     for (const [facetName, functions] of facetEntriesReport) {
-      report += `- **${facetName}**: ${functions.length} functions\n`;
+      const fnList = functions || [];
+      report += `- **${facetName}**: ${fnList.length} functions\n`;
     }
     
     return report;
