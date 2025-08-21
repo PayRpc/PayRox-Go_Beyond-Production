@@ -76,6 +76,9 @@ security/mythril-reports/
 .temp/
 temp/
 
+# Generated monitoring reports
+reports/monitoring/
+
 # Test artifacts
 test-results/
 coverage.json
