@@ -1,13 +1,13 @@
 name: PayRox Production CI/CD Pipeline
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 env:
-  NODE_VERSION: '20'
-  PYTHON_VERSION: '3.11'
+  NODE_VERSION: "20"
+  PYTHON_VERSION: "3.11"
 
 jobs:
   # Pre-commit validation
@@ -16,16 +16,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-      
+          cache: "npm"
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Check for empty files
         run: |
           EMPTY_FILES=$(find . -name "*.sol" -o -name "*.ts" -o -name "*.js" | xargs -r ls -la | awk '$5 == 0 {print $9}' | grep -v node_modules || true)
@@ -35,10 +35,10 @@ jobs:
             exit 1
           fi
           echo "✅ No empty files found"
-      
+
       - name: Lint check (fail fast)
         run: npm run lint:check || echo "⚠️ Lint issues detected - will be fixed automatically"
-      
+
       - name: TypeScript compilation check
         run: npx tsc --noEmit
 
@@ -49,16 +49,16 @@ jobs:
     needs: validate
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-      
+          cache: "npm"
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Run ESLint with auto-fix
         run: |
           npm run lint:fix || true
@@ -69,10 +69,10 @@ jobs:
             git commit -m "fix: auto-fix linting issues [skip ci]"
             git push
           fi
-      
+
       - name: Security audit
         run: npm audit --audit-level moderate
-      
+
       - name: Check dependencies
         run: npm outdated || true
 
@@ -83,31 +83,31 @@ jobs:
     needs: validate
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-      
+          cache: "npm"
+
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
-      
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Compile contracts with Hardhat
         run: npx hardhat compile
-      
+
       - name: Compile contracts with Foundry
         run: forge build
-      
+
       - name: Run Foundry tests
         run: forge test -vvv
-      
+
       - name: Generate gas report
         run: forge test --gas-report > gas-report.txt
-      
+
       - name: Upload gas report
         uses: actions/upload-artifact@v4
         with:
@@ -121,22 +121,22 @@ jobs:
     needs: [validate, quality]
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-      
+          cache: "npm"
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Compile TypeScript
         run: npx tsc
-      
+
       - name: Run Jest tests
         run: npm test -- --coverage --ci
-      
+
       - name: Upload coverage reports
         uses: codecov/codecov-action@v3
         with:
@@ -150,27 +150,27 @@ jobs:
     needs: [contracts, tests]
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-      
+          cache: "npm"
+
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
-      
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Start local blockchain
         run: |
           npx hardhat node &
           sleep 10
-      
+
       - name: Run integration tests
         run: npm run test:integration
-      
+
       - name: Run E2E production readiness tests
         run: npm run test:e2e
 
@@ -182,16 +182,16 @@ jobs:
     if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-      
+          cache: "npm"
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Check contract sizes
         run: |
           npx hardhat compile
@@ -199,7 +199,7 @@ jobs:
             const artifacts = require('./artifacts/contracts');
             const path = require('path');
             const fs = require('fs');
-            
+
             function checkContractSizes(dir) {
               const items = fs.readdirSync(dir);
               for (const item of items) {
@@ -219,11 +219,11 @@ jobs:
                 }
               }
             }
-            
+
             checkContractSizes('./artifacts/contracts');
             console.log('✅ All contracts within size limits');
           "
-      
+
       - name: Generate deployment manifest
         run: |
           echo "# Deployment Manifest - $(date)" > deployment-manifest.md
@@ -234,7 +234,7 @@ jobs:
             const artifacts = require('./artifacts/contracts');
             const path = require('path');
             const fs = require('fs');
-            
+
             function listContractSizes(dir) {
               const items = fs.readdirSync(dir);
               for (const item of items) {
@@ -250,11 +250,11 @@ jobs:
                 }
               }
             }
-            
+
             listContractSizes('./artifacts/contracts');
           " >> deployment-manifest.md
           echo "\`\`\`" >> deployment-manifest.md
-      
+
       - name: Upload deployment manifest
         uses: actions/upload-artifact@v4
         with:

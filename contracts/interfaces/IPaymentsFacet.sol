@@ -15,7 +15,7 @@ interface IPaymentsFacet {
 
     /// @notice Set configuration value
     /// @param newValue New configuration value
-    function setConfig(uint256 newValue) external;
+    function setPaymentConfig(uint256 newValue) external;
 
     /// @notice Get current operator
     /// @return The current operator address
@@ -23,7 +23,7 @@ interface IPaymentsFacet {
 
     /// @notice Get current configuration
     /// @return The current configuration value
-    function getConfig() external view returns (uint256);
+    function getPaymentConfig() external view returns (uint256);
 
     /// @notice Get operations count
     /// @return The operations count
@@ -36,4 +36,15 @@ interface IPaymentsFacet {
     /// @notice Get initialization status
     /// @return True if initialized
     function isInitialized() external view returns (bool);
+
+    /// @notice Get complete payment state
+    /// @return config The current configuration value
+    /// @return ops The operations count
+    /// @return operator The current operator address
+    /// @return lastCaller The last caller address
+    /// @return paused Whether the contract is paused
+    function getPaymentState()
+        external
+        view
+        returns (uint256 config, uint256 ops, address operator, address lastCaller, bool paused);
 }
