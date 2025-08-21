@@ -1,0 +1,59 @@
+{
+  "root": true,
+  "env": {
+    "node": true,
+    "es2022": true,
+    "mocha": true
+  },
+  "rules": {},
+  "overrides": [
+    {
+      "files": ["**/*.ts"],
+      "extends": [
+        "standard-with-typescript"
+      ],
+      "parserOptions": {
+        "project": ["./tsconfig.json", "./tsconfig.hardhat.json"]
+      },
+      "rules": {
+        "@typescript-eslint/explicit-function-return-type": "off",
+        "@typescript-eslint/explicit-module-boundary-types": "off",
+        "@typescript-eslint/no-explicit-any": "off",
+        "@typescript-eslint/no-non-null-assertion": "off",
+        "@typescript-eslint/prefer-nullish-coalescing": "off",
+        "@typescript-eslint/strict-boolean-expressions": "off",
+        "@typescript-eslint/no-unsafe-argument": "off",
+        "@typescript-eslint/no-var-requires": "off",
+        "@typescript-eslint/naming-convention": "off",
+        "@typescript-eslint/no-unused-expressions": "off",
+        "@typescript-eslint/require-array-sort-compare": "off"
+      }
+    },
+    {
+      "files": ["**/*.js"],
+      "extends": [
+        "standard"
+      ],
+      "parserOptions": {
+        "ecmaVersion": 2022,
+        "sourceType": "script"
+      },
+      "env": {
+        "node": true
+      },
+      "rules": {
+        "camelcase": "off"
+      }
+    }
+  ],
+  "ignorePatterns": [
+    "node_modules/",
+    "dist/",
+    "build/",
+    "artifacts/",
+    "cache/",
+    "typechain-types/",
+    "coverage/",
+    "*.min.js"
+  ]
+}

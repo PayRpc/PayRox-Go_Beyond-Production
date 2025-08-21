@@ -184,6 +184,27 @@ docker-compose ps
 - **[Tools Overview](tools/README.md)**: Development tools documentation
 - **[Repository Analysis](REPOSITORY_ANALYSIS.md)**: Comprehensive system analysis
 
+## ✅ Quality Gates
+
+The repository enforces a two-layer lint strategy:
+
+| Gate | Command | Purpose | Fails On |
+|------|---------|---------|----------|
+| Strict Lint | `npm run lint` | Standard code quality for active development surface | Any rule violation |
+| Zero-Issue Lint | `npm run lint:zero` | Ensures intentional legacy / dynamic patterns do not regress | New findings beyond baseline |
+
+Baseline file: `.quality/lint-zero-baseline.json` (tracked in VCS).
+
+Update baseline only when a new intentional pattern is introduced:
+
+```bash
+npm run lint:zero:baseline
+git add .quality/lint-zero-baseline.json
+```
+
+Never update the baseline to hide real regressions—review diffs first.
+
+
 ## 🔧 Configuration
 
 ### Environment Variables
