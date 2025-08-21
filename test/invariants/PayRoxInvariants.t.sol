@@ -2,8 +2,8 @@
 pragma solidity 0.8.30;
 
 import "forge-std/Test.sol";
-import {IManifestDispatcher} from "../contracts/interfaces/IManifestDispatcher.sol";
-import {IChunkFactory} from "../contracts/interfaces/IChunkFactory.sol";
+import {IManifestDispatcher} from "contracts/interfaces/IManifestDispatcher.sol";
+import {IChunkFactory} from "contracts/interfaces/IChunkFactory.sol";
 
 /**
  * @title PayRox Invariant Tests
@@ -86,7 +86,7 @@ contract PayRoxInvariants is Test {
      * @dev Tests that time progression is handled correctly
      */
     function invariant_EpochMonotonicity() public view {
-        try dispatcher.activeEpoch() returns (uint256 currentEpoch) {
+        try dispatcher.activeEpoch() returns (uint64 currentEpoch) {
             // Basic sanity check - epoch should be reasonable
             assertGe(currentEpoch, 0, "Epoch should be non-negative");
             assertLe(currentEpoch, type(uint64).max, "Epoch should be reasonable size");

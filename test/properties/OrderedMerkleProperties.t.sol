@@ -5,11 +5,62 @@ import "forge-std/Test.sol";
 import {OrderedMerkle} from "../../contracts/utils/OrderedMerkle.sol";
 
 /**
+ * @title OrderedMerkle Test Wrapper
+ * @notice Wrapper contract to expose internal library functions for testing
+ */
+contract OrderedMerkleWrapper {
+    using OrderedMerkle for bytes32;
+    
+    function verify(
+        bytes32 leaf,
+        bytes32[] calldata proof,
+        uint256 positions,
+        bytes32 root
+    ) external pure returns (bool) {
+        return OrderedMerkle.verify(leaf, proof, positions, root);
+    }
+    
+    function verify(
+        bytes32[] calldata proof,
+        bool[] calldata isRight,
+        bytes32 root,
+        bytes32 leaf
+    ) external pure returns (bool) {
+        return OrderedMerkle.verify(proof, isRight, root, leaf);
+    }
+    
+    function verifyRoute(
+        bytes4 selector,
+        address facet,
+        bytes32 codehash,
+        bytes32[] calldata proof,
+        uint256 positions,
+        bytes32 root
+    ) external pure returns (bool) {
+        return OrderedMerkle.verifyRoute(selector, facet, codehash, proof, positions, root);
+    }
+    
+    function leafOfSelectorRoute(
+        bytes4 selector,
+        address facet,
+        bytes32 codehash
+    ) external pure returns (bytes32) {
+        return OrderedMerkle.leafOfSelectorRoute(selector, facet, codehash);
+    }
+}
+
+/**
  * @title OrderedMerkle Property Tests
  * @notice Property-based tests for OrderedMerkle verification functions
  * @dev Tests equivalence between legacy bool[] and new bitfield implementations
  */
 contract OrderedMerkleProperties is Test {
+    
+    OrderedMerkleWrapper wrapper;
+    
+    function setUp() public {
+        wrapper = new OrderedMerkleWrapper();
+    }
     
     /**
      * @notice Property A: Bitfield and bool array verification should be equivalent
@@ -20,7 +71,7 @@ contract OrderedMerkleProperties is Test {
         bytes32[] memory proof, 
         bool[] memory directions, 
         bytes32 root
-    ) public pure {
+    ) public {
         // Bound input size to reasonable limits
         vm.assume(proof.length == directions.length);
         vm.assume(proof.length <= 32); // Max depth for practical Merkle trees
@@ -35,8 +86,8 @@ contract OrderedMerkleProperties is Test {
         }
         
         // Test equivalence of both verification methods
-        bool resultBitfield = OrderedMerkle.verify(leaf, proof, position, root);
-        bool resultBoolArray = OrderedMerkle.verify(proof, directions, root, leaf);
+        bool resultBitfield = wrapper.verify(leaf, proof, position, root);
+        bool resultBoolArray = wrapper.verify(proof, directions, root, leaf);
         
         assertEq(
             resultBitfield, 
@@ -55,7 +106,7 @@ contract OrderedMerkleProperties is Test {
         uint256 position,
         bytes32 root,
         uint256 extraBits
-    ) public pure {
+    ) public view {
         vm.assume(proof.length > 0 && proof.length <= 16); // Reasonable bounds
         vm.assume(extraBits > 0);
         
@@ -65,8 +116,8 @@ contract OrderedMerkleProperties is Test {
         // Add extra high bits that should be ignored
         uint256 positionWithExtra = maskedPosition | (extraBits << proof.length);
         
-        bool resultMasked = OrderedMerkle.verify(leaf, proof, maskedPosition, root);
-        bool resultWithExtra = OrderedMerkle.verify(leaf, proof, positionWithExtra, root);
+        bool resultMasked = wrapper.verify(leaf, proof, maskedPosition, root);
+        bool resultWithExtra = wrapper.verify(leaf, proof, positionWithExtra, root);
         
         assertEq(
             resultMasked,
@@ -86,13 +137,13 @@ contract OrderedMerkleProperties is Test {
         uint256 position,
         bytes32 root,
         uint8 flipIndex
-    ) public pure {
+    ) public view {
         vm.assume(proof.length > 0 && proof.length <= 8); // Keep small for gas
         vm.assume(flipIndex < proof.length);
         vm.assume(proof[flipIndex] != bytes32(0)); // Avoid edge case of flipping to same value
         
         // Get original result
-        bool originalResult = OrderedMerkle.verify(leaf, proof, position, root);
+        bool originalResult = wrapper.verify(leaf, proof, position, root);
         
         // Only test if original verification would pass
         if (!originalResult) return;
@@ -106,7 +157,7 @@ contract OrderedMerkleProperties is Test {
         // Flip the target sibling (XOR with non-zero value)
         modifiedProof[flipIndex] = bytes32(uint256(proof[flipIndex]) ^ 1);
         
-        bool modifiedResult = OrderedMerkle.verify(leaf, modifiedProof, position, root);
+        bool modifiedResult = wrapper.verify(leaf, modifiedProof, position, root);
         
         assertFalse(
             modifiedResult,
@@ -123,15 +174,15 @@ contract OrderedMerkleProperties is Test {
         bytes32[] memory proof,
         uint256 position,
         bytes32 root
-    ) public pure {
+    ) public view {
         vm.assume(proof.length > 0 && proof.length <= 20);
         
         // Create a position with high bits set
         uint256 maskedPosition = position & ((1 << proof.length) - 1);
         uint256 highBitsPosition = maskedPosition | (type(uint256).max << proof.length);
         
-        bool resultMasked = OrderedMerkle.verify(leaf, proof, maskedPosition, root);
-        bool resultHighBits = OrderedMerkle.verify(leaf, proof, highBitsPosition, root);
+        bool resultMasked = wrapper.verify(leaf, proof, maskedPosition, root);
+        bool resultHighBits = wrapper.verify(leaf, proof, highBitsPosition, root);
         
         assertEq(
             resultMasked,
@@ -144,13 +195,13 @@ contract OrderedMerkleProperties is Test {
      * @notice Property E: Empty proof should handle edge case correctly
      * @dev Test behavior with zero-length proof arrays
      */
-    function test_prop_emptyProof(bytes32 leaf, bytes32 root) public pure {
+    function test_prop_emptyProof(bytes32 leaf, bytes32 root) public view {
         bytes32[] memory emptyProof = new bytes32[](0);
         bool[] memory emptyDirections = new bool[](0);
         
         // Both methods should handle empty proofs consistently
-        bool resultBitfield = OrderedMerkle.verify(leaf, emptyProof, 0, root);
-        bool resultBoolArray = OrderedMerkle.verify(emptyProof, emptyDirections, root, leaf);
+        bool resultBitfield = wrapper.verify(leaf, emptyProof, 0, root);
+        bool resultBoolArray = wrapper.verify(emptyProof, emptyDirections, root, leaf);
         
         assertEq(
             resultBitfield,
@@ -170,7 +221,7 @@ contract OrderedMerkleProperties is Test {
      * @notice Test concrete example for regression testing
      * @dev Ensure known good cases continue to work
      */
-    function test_concreteExample() public pure {
+    function test_concreteExample() public view {
         // Simple two-element tree: keccak256(abi.encodePacked(0x01, left, right))
         bytes32 left = keccak256("left");
         bytes32 right = keccak256("right");
@@ -180,12 +231,12 @@ contract OrderedMerkleProperties is Test {
         proof[0] = right;
         
         // Verify left leaf (position 0 = left side)
-        bool result = OrderedMerkle.verify(left, proof, 0, root);
+        bool result = wrapper.verify(left, proof, 0, root);
         assertTrue(result, "Known good example should verify");
         
         // Verify right leaf (position 1 = right side)  
         proof[0] = left;
-        result = OrderedMerkle.verify(right, proof, 1, root);
+        result = wrapper.verify(right, proof, 1, root);
         assertTrue(result, "Known good example should verify");
     }
 }

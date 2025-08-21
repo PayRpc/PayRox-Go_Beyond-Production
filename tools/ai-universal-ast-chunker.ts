@@ -101,7 +101,7 @@ export class AIUniversalASTChunker {
     try {
       const compilers = hre.config.solidity.compilers || [];
       if (compilers.length > 0) {
-        this?.pragmaVersion = compilers?.[0].version;
+        this.pragmaVersion = compilers?.[0].version ?? this.pragmaVersion;
       }
     } catch (e) {
       console.log("Using default pragma version:", this.pragmaVersion);

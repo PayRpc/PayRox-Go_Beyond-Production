@@ -1,0 +1,25 @@
+[profile.default]
+src = "contracts"
+out = "artifacts/forge"
+libs = ["lib"]
+remappings = [
+    "@openzeppelin/=node_modules/@openzeppelin/",
+    "forge-std/=lib/forge-std/src/",
+    "contracts/=contracts/"
+]
+
+# Use Solidity 0.8.30 to match your project
+solc_version = "0.8.30"
+
+# Optimizer settings
+optimizer = true
+optimizer_runs = 200
+via_ir = true
+
+# Test settings
+[profile.default.fuzz]
+runs = 1000
+
+[profile.default.invariant]
+runs = 256
+depth = 15
