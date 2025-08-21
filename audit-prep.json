@@ -1,5 +1,5 @@
 {
-  "timestamp": "2025-08-21T01:23:47.489Z",
+  "timestamp": "2025-08-21T01:54:46.519Z",
   "context": {
     "projectName": "PayRox-Go_Beyond-Production",
     "repoUrl": "https://github.com/PayRpc/PayRox-Go_Beyond-Production",
@@ -53,8 +53,8 @@
       "@openzeppelin/contracts",
       "@openzeppelin/contracts-upgradeable",
       "@solarity/hardhat-habits",
-      "@uniswap/v3-core",
-      "@uniswap/v3-periphery"
+      "@typechain/ethers-v6",
+      "@uniswap/v3-core"
     ]
   },
   "contractSizes": {

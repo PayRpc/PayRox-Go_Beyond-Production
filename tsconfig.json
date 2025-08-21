@@ -24,7 +24,7 @@
     // Only use standard DefinitelyTyped packages; do not treat ./types as a typeRoots package,
     // otherwise TS will try to load '@openzeppelin', 'contracts', 'factories' as ambient libs.
     "typeRoots": ["./node_modules/@types"],
-  "types": ["node", "mocha", "jest"],
+    "types": ["node", "mocha", "jest"],
     "baseUrl": "./",
     "paths": {
       "@/*": ["./src/*"],
@@ -45,8 +45,7 @@
     "./src/**/*",
     "./typechain-types/**/*", // Aligns with ARTIFACTS_PATHS.TYPECHAIN_ROOT
     "./cli/src/**/*",
-    "./sdk/src/**/*",
-    
+    "./sdk/src/**/*"
   ],
   "exclude": [
     "node_modules",
@@ -55,7 +54,7 @@
     "cache",
     "coverage",
     "tools/ai-assistant/frontend",
-  "./contracts/**/*.sol",
+    "./contracts/**/*.sol",
     "**/*.spec.js",
     "**/*.test.js"
   ],

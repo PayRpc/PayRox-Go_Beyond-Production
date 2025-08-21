@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env ts-node
 "use strict";
 var __create = Object.create;
 var __defProp = Object.defineProperty;

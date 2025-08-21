@@ -71,6 +71,7 @@
     "@nomiclabs/hardhat-solhint": "^3.1.0",
     "@solidity-parser/parser": "^0.18.0",
     "@solidstate/hardhat-bytecode-exporter": "^1.0.0",
+    "@typechain/ethers-v6": "^0.5.1",
     "@typechain/hardhat": "^9.1.0",
     "@types/chai": "^5.2.2",
     "@types/cors": "^2.8.19",
@@ -88,6 +89,7 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-config-standard-with-typescript": "^43.0.1",
     "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-n": "^16.0.0",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^5.5.4",
     "eslint-plugin-promise": "^6.6.0",
@@ -113,12 +115,23 @@
     "@openzeppelin/contracts": "^5.4.0",
     "@openzeppelin/contracts-upgradeable": "^5.4.0",
     "@solarity/hardhat-habits": "^1.0.1",
+    "@typechain/ethers-v6": "^0.5.1",
     "@uniswap/v3-core": "^1.0.1",
     "@uniswap/v3-periphery": "^1.4.4",
     "commander": "^11.0.0",
+    "eslint-plugin-n": "^16.6.2",
     "hardhat-abi-exporter": "^2.11.0",
     "hardhat-deploy": "^1.0.4",
     "hardhat-gas-reporter": "^2.3.0",
     "hardhat-watcher": "^2.5.0"
+  },
+  "overrides": {
+    "elliptic": "^6.6.1",
+    "ws": "^8.18.0",
+    "tough-cookie": "^4.1.4",
+    "form-data": "^4.0.1",
+    "cookie": "^0.7.2",
+    "tar": "^6.2.1",
+    "tmp": "^0.2.4"
   }
 }
