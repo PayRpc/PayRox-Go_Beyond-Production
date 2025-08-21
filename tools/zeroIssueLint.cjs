@@ -11,7 +11,6 @@ const path = require('path');
 const TARGET_FILES = [
   'scripts/ai/ai-adapter.ts',
   'scripts/utils/io.ts',
-  'tools/refactor-lint.ts',
   'scripts/analysis/regression-harness-gen.js',
   'scripts/diagnose-manifest-mismatch.js',
   'tools/generate-manifest.js',

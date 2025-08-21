@@ -46,8 +46,6 @@
     "plan": "node dist/scripts/cli/plan.js --input",
     "serve:manifest": "node dist/scripts/node/manifest-server.js",
     "ai:refactor": "ts-node tools/ai-refactor-copilot.ts",
-    "ai:lint": "ts-node tools/refactor-lint.ts",
-    "ai:validate": "npm run compile && npm run ai:lint && npm run test:diamond",
     "compile": "npx hardhat compile",
     "test:diamond": "node scripts/run-diamond-tests.js",
     "test:loupe": "npx hardhat test --grep \"(loupe|selectors)\"",

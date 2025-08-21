@@ -50,7 +50,7 @@ module.exports = {
       },
     },
     {
-      files: ['scripts/ai/ai-adapter.ts', 'scripts/utils/io.ts', 'tools/refactor-lint.ts'],
+      files: ['scripts/ai/ai-adapter.ts', 'scripts/utils/io.ts'],
       excludedFiles: [],
       rules: {},
     },
