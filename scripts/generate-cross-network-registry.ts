@@ -439,10 +439,16 @@ async function main () {
     `Factory cross-chain consistency: ${uniqFactories.length === 1 ? '✅ YES' : '❌ NO'}`
   )
   if (uniqTargets.length === 1) {
-    console.log(`🎯 Universal Target: ${getAddress(uniqTargets[0])}`)
+    const target = uniqTargets[0]
+    if (target) {
+      console.log(`🎯 Universal Target: ${getAddress(target)}`)
+    }
   }
   if (uniqFactories.length === 1) {
-    console.log(`🏗  Universal Factory: ${getAddress(uniqFactories[0])}`)
+    const factory = uniqFactories[0]
+    if (factory) {
+      console.log(`🏗  Universal Factory: ${getAddress(factory)}`)
+    }
   }
 
   // Manifest

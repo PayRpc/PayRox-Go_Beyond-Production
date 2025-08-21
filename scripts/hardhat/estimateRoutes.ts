@@ -87,7 +87,15 @@ async function main () {
   const isRight: boolean[][] = [[]]
 
   // Compute the leaf using the shared helper (matches OrderedMerkle.leafOfSelectorRoute)
-  const leaf = encodeLeaf(selectors[0], facets[0], codehashes[0])
+  const selector = selectors[0]
+  const facetAddr = facets[0]
+  const codeHash = codehashes[0]
+  
+  if (!selector || !facetAddr || !codeHash) {
+    throw new Error('Required selector, facet, and codehash values are missing')
+  }
+  
+  const leaf = encodeLeaf(selector, facetAddr, codeHash)
 
   // Commit the root to make applyRoutes callable (commitRoot requires COMMIT_ROLE which deployer has)
   try {

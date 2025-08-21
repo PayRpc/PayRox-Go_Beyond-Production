@@ -57,9 +57,15 @@ async function main () {
     const key = `${meta?.selector}:${meta?.facet}:${meta?.codehash}`
     const proof = proofs[key] || []
     const pos = positions[key] || '0x0'
+    const leaf = leaves[i]
+    if (!leaf) {
+      console.log(`leaf ${i} is undefined, skipping`)
+      continue
+    }
     let ok = false
     try {
-      verifyOrderedProof(leaves[i], proof ?? '', pos ?? '', root ?? '')
+      verifyOrderedProof(leaf, proof, pos ?? '', root ?? '')
+      ok = true
     } catch (_e) {
       ok = false
     }

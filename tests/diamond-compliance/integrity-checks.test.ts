@@ -86,9 +86,14 @@ describe("System Integrity Checks", function () {
 
       expect(operatorRole).to.be.a("string");
       expect(feeRole).to.be.a("string");
-      expect(await factory.owner()).to.equal(
-        (await ethers.getSigners())[0].address,
-      );
+      
+      const signers = await ethers.getSigners();
+      const owner = signers[0];
+      if (!owner) {
+        throw new Error("Owner signer not available");
+      }
+      
+      expect(await factory.owner()).to.equal(owner.address);
     });
 
     it("should reject admin calls from dispatcher without roles", async function () {

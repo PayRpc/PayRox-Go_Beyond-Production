@@ -20,6 +20,9 @@ export function processOrderedProof (
 
   for (let i = 0n; i < BigInt(proof.length); i++) {
     const sib = proof[Number(i)]
+    if (!sib) {
+      throw new Error(`Proof sibling at position ${i} is undefined`)
+    }
     const isRight = ((positions >> i) & 1n) === 1n
     if (isRight) {
       computed = keccak256(concat(['0x01', computed, sib]))

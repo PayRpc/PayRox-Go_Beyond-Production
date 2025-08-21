@@ -37,9 +37,14 @@ function proofForIndex (levels: string[][], leafIndex: number): string[] {
   let idx = leafIndex
   for (let level = 0; level < levels.length - 1; level++) {
     const nodes = levels[level]
+    if (!nodes) throw new Error(`Level ${level} is undefined`)
     const isRight = idx % 2 === 1
     const sibling = isRight ? idx - 1 : idx + 1
-    if (sibling < nodes?.length) proof.push(nodes?.[sibling])
+    if (sibling < nodes.length) {
+      const siblingNode = nodes[sibling]
+      if (!siblingNode) throw new Error(`Sibling node at ${sibling} is undefined`)
+      proof.push(siblingNode)
+    }
     idx = Math.floor(idx / 2)
   }
   return proof
@@ -236,8 +241,15 @@ export async function generateManifestLeaves (
   while (level.length > 1) {
     const next: string[] = []
     for (let i = 0; i < level.length; i += 2) {
-      if (i + 1 < level.length) next.push(pairHash(level[i], level[i + 1]))
-      else next.push(level[i]) // duplicate last node (no extra prefix)
+      const leftNode = level[i]
+      if (!leftNode) throw new Error(`Left node at ${i} is undefined`)
+      if (i + 1 < level.length) {
+        const rightNode = level[i + 1]
+        if (!rightNode) throw new Error(`Right node at ${i + 1} is undefined`)
+        next.push(pairHash(leftNode, rightNode))
+      } else {
+        next.push(leftNode) // duplicate last node (no extra prefix)
+      }
     }
     tree.push(next)
     level = next
@@ -245,11 +257,14 @@ export async function generateManifestLeaves (
 
   const root = level[0]
 
-  // Proofs keyed by "selector:facet:codehash"
   const proofs: Record<string, string[]> = {}
   const positions: Record<string, string> = {}
   for (let i = 0; i < leaves.length; i++) {
-    const key = `${leafMeta?.[i].selector}:${leafMeta?.[i].facet}:${leafMeta?.[i].codehash}`
+    const meta = leafMeta[i]
+    if (!meta?.selector || !meta?.facet || !meta?.codehash) {
+      throw new Error(`Missing metadata for leaf ${i}`)
+    }
+    const key = `${meta.selector}:${meta.facet}:${meta.codehash}`
     // proof should contain sibling *node* values (ie. hashed leaf nodes and upper nodes) as used by OrderedMerkle.processProof
     const proof = proofForIndex(tree, i)
     proofs[key] = proof
@@ -268,6 +283,10 @@ export async function generateManifestLeaves (
     // positionsHex as 0x-prefixed hex
     positions[key] =
       '0x' + bits.toString(16).padStart(Math.ceil((tree.length - 1) / 4), '0')
+  }
+
+  if (!root) {
+    throw new Error('Root is undefined')
   }
 
   return { root, tree, proofs, positions, leaves, leafMeta }

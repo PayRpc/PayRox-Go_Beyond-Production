@@ -48,6 +48,41 @@
       "selector": "0x01ffc9a7",
       "facet": "0xFacetAddressPlaceholder",
       "functionName": "supportsInterface"
+    },
+    {
+      "name": "initializeRewards",
+      "path": "/initializeRewards",
+      "selector": "0x240581d4",
+      "facet": "<fill-facet-address>",
+      "functionName": "initializeRewards"
+    },
+    {
+      "name": "getLastCaller",
+      "path": "/getLastCaller",
+      "selector": "0x880b36e7",
+      "facet": "<fill-facet-address>",
+      "functionName": "getLastCaller"
+    },
+    {
+      "name": "getOperator",
+      "path": "/getOperator",
+      "selector": "0xe7f43c68",
+      "facet": "<fill-facet-address>",
+      "functionName": "getOperator"
+    },
+    {
+      "name": "getOps",
+      "path": "/getOps",
+      "selector": "0x6a41aae0",
+      "facet": "<fill-facet-address>",
+      "functionName": "getOps"
+    },
+    {
+      "name": "isInitialized",
+      "path": "/isInitialized",
+      "selector": "0x392e53cd",
+      "facet": "<fill-facet-address>",
+      "functionName": "isInitialized"
     }
   ]
 }

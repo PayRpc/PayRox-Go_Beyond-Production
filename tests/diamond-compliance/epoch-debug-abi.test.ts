@@ -6,6 +6,9 @@ function getTarget(c: any) {
 
 async function deployEpochSystemFixture() {
   const [owner] = await ethers.getSigners();
+  if (!owner) {
+    throw new Error('No owner signer available');
+  }
 
   const EpochManager = await ethers.getContractFactory("EpochManager");
   const epochManager = await EpochManager.deploy();

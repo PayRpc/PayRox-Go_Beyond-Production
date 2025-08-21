@@ -12,6 +12,7 @@ import {IDiamondLoupeEx}     from "../interfaces/IDiamondLoupeEx.sol";
 
 import {OrderedMerkle}       from "../utils/OrderedMerkle.sol";
 import {RefactorSafetyLib}   from "../libraries/RefactorSafetyLib.sol";
+import {IAuditRegistry}      from "../interfaces/IAuditRegistry.sol";
 
 /**
  * @title ManifestDispatcher (compact)
@@ -70,6 +71,8 @@ contract ManifestDispatcher is
 
     // Dev registrar control for production safety
     bool private devRegistrarEnabled;
+    // External audit registry (optional; zero address disables enforcement)
+    address public auditRegistry;
 
     // ───────────────────────────────────────────────────────────────────────────
     // Errors
@@ -94,6 +97,7 @@ contract ManifestDispatcher is
     error InvalidSecurityLevel(uint8 level);
     error FacetUnknown(address facet);
     error DevOnly();
+    error AuditNotApproved(bytes32 manifestHash);
 
     // ───────────────────────────────────────────────────────────────────────────
     // Events (contract-specific + some from interfaces are reused)
@@ -105,6 +109,7 @@ contract ManifestDispatcher is
     event FacetVersionTagSet(address indexed facet, bytes32 versionTag);
     event L2TimestampWarning(uint64 activationTime, uint64 delay); // L2 governance timing alert
     event DevRegistrarToggled(bool enabled);
+    event AuditRegistrySet(address indexed registry);
 
     // ───────────────────────────────────────────────────────────────────────────
     // Constructor
@@ -319,7 +324,7 @@ contract ManifestDispatcher is
         uint256 n = selectors.length;
         if (n > MAX_BATCH) revert BatchTooLarge(n);
         bool changed;
-        for (uint256 i = 0; i < n; i++) {
+    for (uint256 i = 0; i < n; i++) {
             bytes4 sel = selectors[i];
             address oldFacet = _routes[sel].facet;
             if (oldFacet != address(0)) {
@@ -375,6 +380,14 @@ contract ManifestDispatcher is
         if (manifest.frozen) revert FrozenContract();
         devRegistrarEnabled = enabled;
         emit DevRegistrarToggled(enabled);
+    }
+
+    /// @notice Set the external AuditRegistry address (optional). Zero disables enforcement.
+    function setAuditRegistry(address registry) external {
+        require(ACS.layout().roles[ACS.DEFAULT_ADMIN_ROLE][msg.sender], "Missing role");
+        if (manifest.frozen) revert FrozenContract();
+        auditRegistry = registry;
+        emit AuditRegistrySet(registry);
     }
 
     // Pause/unpause provided by PauseFacet to avoid selector duplication

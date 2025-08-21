@@ -9,8 +9,7 @@
     "noUncheckedIndexedAccess": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    // downlevelIteration not required for ES2022 target
-    "downlevelIteration": false,
+    "downlevelIteration": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
@@ -24,7 +23,7 @@
     // Only use standard DefinitelyTyped packages; do not treat ./types as a typeRoots package,
     // otherwise TS will try to load '@openzeppelin', 'contracts', 'factories' as ambient libs.
     "typeRoots": ["./node_modules/@types"],
-    "types": ["node", "mocha", "jest"],
+    "types": ["node", "mocha"],
     "baseUrl": "./",
     "paths": {
       "@/*": ["./src/*"],

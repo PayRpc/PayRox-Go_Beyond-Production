@@ -14,6 +14,7 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { Interface } from "ethers";
 import * as fs from "fs";
 import * as path from "path";
+import { execSync } from "child_process";
 
 interface ChunkAnalysis {
   originalFile: string;
@@ -101,7 +102,7 @@ export class AIUniversalASTChunker {
     try {
       const compilers = hre.config.solidity.compilers || [];
       if (compilers.length > 0) {
-        this.pragmaVersion = compilers?.[0].version ?? this.pragmaVersion;
+        this.pragmaVersion = (compilers && compilers[0] && compilers[0].version) ?? this.pragmaVersion;
       }
     } catch (e) {
       console.log("Using default pragma version:", this.pragmaVersion);
@@ -679,7 +680,10 @@ contract ${initName} {
     const re = /import\s+(?:\{[^}]*\}\s+from\s+|)[`'"](.+?)[`'"];?/g;
     const out: string[] = [];
     let m: RegExpExecArray | null;
-exec( src ?? '')
+    // Best-effort extraction: match import paths directly from source
+    while ((m = re.exec(src || "")) !== null) {
+      if (m && typeof m[1] === "string") out.push(m[1]);
+    }
     return out;
   }
 

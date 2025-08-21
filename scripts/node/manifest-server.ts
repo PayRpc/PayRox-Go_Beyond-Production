@@ -144,7 +144,9 @@ function findCollisions (selectors: string[], labels: string[]): string[] {
   const seen: Record<string, string> = {}
   const coll: string[] = []
   selectors.forEach((sel, i) => {
-    if (seen[sel]) { coll.push(`collision:${sel} => ${labels[i]} vs ${seen[sel]}`) } else seen[sel] = labels[i]
+    const label = labels[i]
+    if (!label) return // Skip if label is undefined
+    if (seen[sel]) { coll.push(`collision:${sel} => ${label} vs ${seen[sel]}`) } else seen[sel] = label
   })
   return coll
 }
@@ -179,17 +181,25 @@ app.post('/api/chunk', (req: Request, res: Response) => {
         mut === 'pure' ||
         n.startsWith('get') ||
         n.startsWith('facet')
-      ) { groups?.View.push(f) } else if (
+      ) {
+        if (groups.View) groups.View.push(f)
+      } else if (
         n.includes('owner') ||
         n.includes('admin') ||
         n.includes('pause') ||
         n.includes('govern')
-      ) { groups?.Admin.push(f) } else if (
+      ) {
+        if (groups.Admin) groups.Admin.push(f)
+      } else if (
         n.includes('oracle') ||
         n.includes('twap') ||
         n.includes('price') ||
         n.includes('util')
-      ) { groups?.Utility.push(f) } else groups?.Core.push(f)
+      ) {
+        if (groups.Utility) groups.Utility.push(f)
+      } else {
+        if (groups.Core) groups.Core.push(f)
+      }
     }
 
     const MAX = Number(maxPerFacet || 20)
@@ -274,18 +284,25 @@ app.post('/api/proofs', (req: Request, res: Response) => {
 // ---- Merkle helpers (sorted-pair) ----
 function buildMerkleRoot (leaves: string[]): string {
   if (leaves.length === 0) return HASH_ZERO
-  if (leaves.length === 1) return leaves[0]
+  if (leaves.length === 1) {
+    const leaf = leaves[0]
+    if (!leaf) throw new Error('Leaf is undefined')
+    return leaf
+  }
   let level = leaves.slice()
   while (level.length > 1) {
     const next: string[] = []
     for (let i = 0; i < level.length; i += 2) {
       const A = level[i]
       const B = i + 1 < level.length ? level[i + 1] : A
+      if (!A) throw new Error('Level A is undefined')
       next.push(stablePairHash(A, B ?? ''))
     }
     level = next
   }
-  return level[0]
+  const root = level[0]
+  if (!root) throw new Error('Root is undefined')
+  return root
 }
 function generateProof (leaves: string[], index: number): string[] {
   if (leaves.length <= 1) return []
@@ -295,12 +312,15 @@ function generateProof (leaves: string[], index: number): string[] {
   while (lvl.length > 1) {
     const isRight = idx % 2 === 1
     const pair = isRight ? idx - 1 : idx + 1
-    proof.push(lvl[pair] || lvl[idx]) // if odd end, pair with self
+    const proofValue = lvl[pair] || lvl[idx] // if odd end, pair with self
+    if (!proofValue) throw new Error('Proof value is undefined')
+    proof.push(proofValue)
     // next level
     const next: string[] = []
     for (let i = 0; i < lvl.length; i += 2) {
       const A = lvl[i]
       const B = i + 1 < lvl.length ? lvl[i + 1] : A
+      if (!A) throw new Error('Level A is undefined')
       next.push(stablePairHash(A, B ?? ''))
     }
     lvl = next

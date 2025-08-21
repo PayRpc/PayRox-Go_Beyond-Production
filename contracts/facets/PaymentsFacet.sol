@@ -56,6 +56,22 @@ contract PaymentsFacet is IPaymentsFacet {
         return S.layout().config;
     }
 
+    function getOperator() external view returns (address) {
+        return S.layout().operator;
+    }
+
+    function getOps() external view returns (uint256) {
+        return S.layout().ops;
+    }
+
+    function getLastCaller() external view returns (address) {
+        return S.layout().lastCaller;
+    }
+
+    function isInitialized() external view returns (bool) {
+        return S.layout().initialized;
+    }
+
     function getState()
         external
         view
@@ -63,12 +79,6 @@ contract PaymentsFacet is IPaymentsFacet {
     {
         S.Layout storage l = S.layout();
         return (l.config, l.ops, l.operator, l.lastCaller, PS.layout().paused);
-    }
-
-    /* ERC-165 */
-    function supportsInterface(bytes4 interfaceId) external pure returns (bool) {
-        return interfaceId == 0x01ffc9a7 /* ERC165 */ ||
-               interfaceId == type(IPaymentsFacet).interfaceId;
     }
 
     /* Facet metadata for manifest/loupe tooling */
