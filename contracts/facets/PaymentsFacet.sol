@@ -44,7 +44,7 @@ contract PaymentsFacet is IPaymentsFacet {
     }
 
     /* Core API */
-    function setConfig(uint256 newValue) external whenNotPaused onlyOperator {
+    function setPaymentConfig(uint256 newValue) external whenNotPaused onlyOperator {
         S.Layout storage l = S.layout();
         l.config = newValue;
         unchecked { l.ops += 1; }
@@ -52,7 +52,7 @@ contract PaymentsFacet is IPaymentsFacet {
         emit PaymentsConfigSet(newValue, msg.sender);
     }
 
-    function getConfig() external view returns (uint256) {
+    function getPaymentConfig() external view returns (uint256) {
         return S.layout().config;
     }
 
@@ -72,7 +72,7 @@ contract PaymentsFacet is IPaymentsFacet {
         return S.layout().initialized;
     }
 
-    function getState()
+    function getPaymentState()
         external
         view
         returns (uint256 config, uint256 ops, address operator, address lastCaller, bool paused)
@@ -89,11 +89,15 @@ contract PaymentsFacet is IPaymentsFacet {
     {
         name = "PaymentsFacet";
         version = "1.0.0";
-        selectors = new bytes4[](5);
+        selectors = new bytes4[](8);
         selectors[0] = this.initializePayments.selector;
-        selectors[1] = this.setConfig.selector;
-        selectors[2] = this.getConfig.selector;
-        selectors[3] = this.getState.selector;
-        selectors[4] = this.getFacetInfo.selector;
+        selectors[1] = this.setPaymentConfig.selector;
+        selectors[2] = this.getPaymentConfig.selector;
+        selectors[3] = this.getOperator.selector;
+        selectors[4] = this.getOps.selector;
+        selectors[5] = this.getLastCaller.selector;
+        selectors[6] = this.isInitialized.selector;
+        selectors[7] = this.getPaymentState.selector;
+        // Note: getFacetInfo is not included to avoid self-reference issues
     }
 }

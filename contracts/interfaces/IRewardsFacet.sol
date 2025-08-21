@@ -6,11 +6,10 @@ interface IRewardsFacet {
     event RewardsConfigSet(uint256 newValue, address indexed by);
 
     function initializeRewards(address operator) external;
-    function setConfig(uint256 newValue) external;
-    function getConfig() external view returns (uint256);
-
-    function getFacetInfo()
+    function setRewardConfig(uint256 newValue) external;
+    function getRewardConfig() external view returns (uint256);
+    function getRewardState()
         external
-        pure
-        returns (string memory name, string memory version, bytes4[] memory selectors);
+        view
+        returns (uint256 config, uint256 ops, address operator, address lastCaller, bool paused);
 }

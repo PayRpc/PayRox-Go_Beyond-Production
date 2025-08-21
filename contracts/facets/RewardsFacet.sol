@@ -15,7 +15,7 @@ contract RewardsFacet is IRewardsFacet {
     error ZeroAddress();
 
     /* Optional role key (handy if you expand beyond operator) */
-    bytes32 public constant OPERATOR_ROLE = keccak256("Rewards_OPERATOR");
+    bytes32 public constant REWARDS_OPERATOR_ROLE = keccak256("Rewards_OPERATOR");
 
     /* Modifiers */
     modifier whenNotPaused() {
@@ -44,7 +44,7 @@ contract RewardsFacet is IRewardsFacet {
     }
 
     /* Core API */
-    function setConfig(uint256 newValue) external whenNotPaused onlyOperator {
+    function setRewardConfig(uint256 newValue) external whenNotPaused onlyOperator {
         S.Layout storage l = S.layout();
         l.config = newValue;
         unchecked { l.ops += 1; }
@@ -52,32 +52,16 @@ contract RewardsFacet is IRewardsFacet {
         emit RewardsConfigSet(newValue, msg.sender);
     }
 
-    function getConfig() external view returns (uint256) {
+    function getRewardConfig() external view returns (uint256) {
         return S.layout().config;
     }
 
-    function getState()
+    function getRewardState()
         external
         view
         returns (uint256 config, uint256 ops, address operator, address lastCaller, bool paused)
     {
         S.Layout storage l = S.layout();
         return (l.config, l.ops, l.operator, l.lastCaller, PS.layout().paused);
-    }
-
-    /* Facet metadata for manifest/loupe tooling */
-    function getFacetInfo()
-        external
-        pure
-        returns (string memory name, string memory version, bytes4[] memory selectors)
-    {
-        name = "RewardsFacet";
-        version = "1.0.0";
-        selectors = new bytes4[](5);
-        selectors[0] = this.initializeRewards.selector;
-        selectors[1] = this.setConfig.selector;
-        selectors[2] = this.getConfig.selector;
-        selectors[3] = this.getState.selector;
-        selectors[4] = this.getFacetInfo.selector;
     }
 }

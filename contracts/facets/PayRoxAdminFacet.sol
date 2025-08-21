@@ -46,7 +46,7 @@ contract PayRoxAdminFacet {
         s.feeBps = feeBps;
     }
 
-    function getConfig() external view returns (address owner, address treasury, uint16 feeBps, bool paused) {
+    function getAdminConfig() external view returns (address owner, address treasury, uint16 feeBps, bool paused) {
         PayRoxStorage.Layout storage s = PayRoxStorage.layout();
         // Read canonical paused state from Pause storage to avoid duplication of pause selectors
         return (s.owner, s.treasury, s.feeBps, PS.layout().paused);
