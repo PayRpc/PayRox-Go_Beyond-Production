@@ -1,9 +1,9 @@
 {
-  "timestamp": "2025-08-21T03:51:54.384Z",
+  "timestamp": "2025-08-21T03:58:21.971Z",
   "summary": {
-    "totalErrors": 102,
+    "totalErrors": 92,
     "byCategory": {
-      "typescript": 82,
+      "typescript": 72,
       "eslint": 20,
       "dependencies": 0,
       "tests": 0,
@@ -526,52 +526,12 @@
         {
           "type": "TYPE_ERROR",
           "file": "tools/ai-assistant/backend/src/services/refactor/SolidityAnalyzer.ts",
-          "line": "730",
-          "column": "44",
-          "errorCode": "TS7006",
-          "message": "Parameter 'fn' implicitly has an 'any' type.",
-          "category": "IMPLICIT_ANY",
-          "fix": "Add explicit type annotation"
-        },
-        {
-          "type": "TYPE_ERROR",
-          "file": "tools/ai-assistant/backend/src/services/refactor/SolidityAnalyzer.ts",
           "line": "731",
           "column": "16",
           "errorCode": "TS2304",
           "message": "Cannot find name 'contract'.",
           "category": "MISSING_IMPORT",
           "fix": "Review TypeScript error and fix accordingly"
-        },
-        {
-          "type": "TYPE_ERROR",
-          "file": "tools/ai-assistant/backend/src/services/refactor/SolidityAnalyzer.ts",
-          "line": "782",
-          "column": "36",
-          "errorCode": "TS7006",
-          "message": "Parameter 'mod' implicitly has an 'any' type.",
-          "category": "IMPLICIT_ANY",
-          "fix": "Add explicit type annotation"
-        },
-        {
-          "type": "TYPE_ERROR",
-          "file": "tools/ai-assistant/backend/src/services/refactor/SolidityAnalyzer.ts",
-          "line": "939",
-          "column": "14",
-          "errorCode": "TS7006",
-          "message": "Parameter 'sum' implicitly has an 'any' type.",
-          "category": "IMPLICIT_ANY",
-          "fix": "Add explicit type annotation"
-        },
-        {
-          "type": "TYPE_ERROR",
-          "file": "tools/ai-assistant/backend/src/services/refactor/SolidityAnalyzer.ts",
-          "line": "939",
-          "column": "19",
-          "errorCode": "TS7006",
-          "message": "Parameter 'f' implicitly has an 'any' type.",
-          "category": "IMPLICIT_ANY",
-          "fix": "Add explicit type annotation"
         },
         {
           "type": "TYPE_ERROR",
@@ -606,72 +566,12 @@
         {
           "type": "TYPE_ERROR",
           "file": "tools/ai-assistant/backend/src/services/refactor/SolidityAnalyzer.ts",
-          "line": "1319",
-          "column": "36",
-          "errorCode": "TS7006",
-          "message": "Parameter 'sum' implicitly has an 'any' type.",
-          "category": "IMPLICIT_ANY",
-          "fix": "Add explicit type annotation"
-        },
-        {
-          "type": "TYPE_ERROR",
-          "file": "tools/ai-assistant/backend/src/services/refactor/SolidityAnalyzer.ts",
-          "line": "1319",
-          "column": "41",
-          "errorCode": "TS7006",
-          "message": "Parameter 'f' implicitly has an 'any' type.",
-          "category": "IMPLICIT_ANY",
-          "fix": "Add explicit type annotation"
-        },
-        {
-          "type": "TYPE_ERROR",
-          "file": "tools/ai-assistant/backend/src/services/refactor/SolidityAnalyzer.ts",
-          "line": "1341",
-          "column": "43",
-          "errorCode": "TS7006",
-          "message": "Parameter 'f' implicitly has an 'any' type.",
-          "category": "IMPLICIT_ANY",
-          "fix": "Add explicit type annotation"
-        },
-        {
-          "type": "TYPE_ERROR",
-          "file": "tools/ai-assistant/backend/src/services/refactor/SolidityAnalyzer.ts",
           "line": "1347",
           "column": "11",
           "errorCode": "TS2345",
           "message": "Argument of type '([name, funcs]: [any, any]) => { name: any; functions: any; selectors: any; }' is not assignable to parameter of type '(value: unknown, index: number, array: unknown[]) => { name: any; functions: any; selectors: any; }'.",
           "category": "TYPE_MISMATCH",
           "fix": "Fix type mismatch by adding type assertion or updating types"
-        },
-        {
-          "type": "TYPE_ERROR",
-          "file": "tools/ai-assistant/backend/src/services/refactor/SolidityAnalyzer.ts",
-          "line": "1349",
-          "column": "35",
-          "errorCode": "TS7006",
-          "message": "Parameter 'f' implicitly has an 'any' type.",
-          "category": "IMPLICIT_ANY",
-          "fix": "Add explicit type annotation"
-        },
-        {
-          "type": "TYPE_ERROR",
-          "file": "tools/ai-assistant/backend/src/services/refactor/SolidityAnalyzer.ts",
-          "line": "1350",
-          "column": "35",
-          "errorCode": "TS7006",
-          "message": "Parameter 'f' implicitly has an 'any' type.",
-          "category": "IMPLICIT_ANY",
-          "fix": "Add explicit type annotation"
-        },
-        {
-          "type": "TYPE_ERROR",
-          "file": "tools/ai-assistant/backend/src/services/refactor/SolidityAnalyzer.ts",
-          "line": "1416",
-          "column": "34",
-          "errorCode": "TS7006",
-          "message": "Parameter 'dep' implicitly has an 'any' type.",
-          "category": "IMPLICIT_ANY",
-          "fix": "Add explicit type annotation"
         },
         {
           "type": "TYPE_ERROR",
@@ -834,7 +734,7 @@
           "fix": "Review TypeScript error and fix accordingly"
         }
       ],
-      "count": 82
+      "count": 72
     },
     "eslint": {
       "errors": [

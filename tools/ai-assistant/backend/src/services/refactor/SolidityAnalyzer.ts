@@ -727,7 +727,7 @@ export class SolidityAnalyzer {
   ): FacetCandidate[] {
     const _facetRecommendations: FacetCandidate[] = [];
 
-    return (contract.functions || []).map((fn) => ({
+    return (contract.functions || []).map((fn: any) => ({
       name: `${contract.name}_${fn.name}`,
       functions: [fn],
       size: fn.size,
@@ -779,7 +779,7 @@ export class SolidityAnalyzer {
 
     return (
       adminPatterns.some((pattern) => pattern.test(func.name)) ||
-      (func.modifiers || []).some((mod) => /owner|admin|auth|role/i.test(mod))
+      (func.modifiers || []).some((mod: any) => /owner|admin|auth|role/i.test(mod))
     );
   }
 
@@ -936,7 +936,7 @@ export class SolidityAnalyzer {
           variables: contract.variables,
           size: contract.totalSize,
           gasEstimate: contract.functions.reduce(
-            (sum, f) => sum + f.gasEstimate,
+            (sum: any, f: any) => sum + f.gasEstimate,
             0,
           ),
           dependencies: [],
@@ -1316,7 +1316,7 @@ export class SolidityAnalyzer {
         ([name, funcs]) => ({
           name,
           functionCount: funcs.length,
-          totalSize: funcs.reduce((sum, f) => sum + f.size, 0),
+          totalSize: funcs.reduce((sum: any, f: any) => sum + f.size, 0),
         }),
       ),
     };
@@ -1338,7 +1338,7 @@ export class SolidityAnalyzer {
           id: chunk.id,
           name: chunk.name,
           size: chunk.size,
-          functions: chunk.functions.map((f) => f.signature),
+          functions: chunk.functions.map((f: any) => f.signature),
           gasEstimate: chunk.gasEstimate,
         })),
       },
@@ -1346,8 +1346,8 @@ export class SolidityAnalyzer {
         facets: Array.from(contract.facetCandidates?.entries() || []).map(
           ([name, funcs]) => ({
             name,
-            functions: funcs.map((f) => f.signature),
-            selectors: funcs.map((f) => f.selector),
+            functions: funcs.map((f: any) => f.signature),
+            selectors: funcs.map((f: any) => f.selector),
           }),
         ),
       },
@@ -1413,7 +1413,7 @@ export class SolidityAnalyzer {
     const dependencies = new Set<string>();
 
     functions.forEach((func) => {
-      func.dependencies.forEach((dep) => dependencies.add(dep));
+      func.dependencies.forEach((dep: any) => dependencies.add(dep));
     });
 
     return Array.from(new Set(dependencies)); // Remove duplicates
