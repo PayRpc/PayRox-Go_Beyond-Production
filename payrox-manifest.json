@@ -61,6 +61,20 @@
         "0x3f4ba83a"
       ]
     },
+    "PaymentsFacet": {
+      "selectors": [
+        "0xf5b541a6",
+        "0xc3f909d4",
+        "0x7ab7b94b",
+        "0x880b36e7",
+        "0xe7f43c68",
+        "0x6a41aae0",
+        "0x1865c57d",
+        "0x7baf948f",
+        "0x392e53cd",
+        "0x893bcfbe"
+      ]
+    },
     "PayRoxAdminFacet": {
       "selectors": [
         "0xc3f909d4",
@@ -79,6 +93,16 @@
       "selectors": [
         "0xe623a87c",
         "0xc34c492f"
+      ]
+    },
+    "RewardsFacet": {
+      "selectors": [
+        "0xf5b541a6",
+        "0xc3f909d4",
+        "0x7ab7b94b",
+        "0x1865c57d",
+        "0x240581d4",
+        "0x893bcfbe"
       ]
     },
     "SaltViewFacet": {
