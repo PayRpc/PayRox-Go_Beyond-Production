@@ -1,85 +1,165 @@
 #!/usr/bin/env node
-// AST-based facet splitter using solidity-parser-antlr
-// Usage: node split-facets.js <solidity-file>
+
+/**
+ * Smart Shim for Facet Splitter Integration
+ * 
+ * This shim provides a safe migration path from the legacy AST-based splitter
+ * to the new TypeScript implementation. It implements a three-tier fallback:
+ * 1. Built JavaScript (production)
+ * 2. ts-node execution (development) 
+ * 3. Legacy AST splitter (rollback)
+ * 
+ * Environment Controls:
+ * - SPLITTER_USE_LEGACY=1: Forces legacy AST splitter usage
+ * - SPLITTER_DEBUG=1: Enables detailed execution logging
+ * 
+ * This preserves compatibility with existing pipeline callers while
+ * allowing safe rollback if issues arise.
+ */
 
 const fs = require('fs');
 const path = require('path');
-let parser;
-try {
-  parser = require('solidity-parser-antlr');
-} catch (e) {
-  console.error(
-    'Missing dependency: solidity-parser-antlr. Install with `npm install solidity-parser-antlr`',
-  );
-  process.exit(2);
+const { execSync, spawn } = require('child_process');
+
+// Environment configuration
+const USE_LEGACY = process.env.SPLITTER_USE_LEGACY === '1';
+const DEBUG = process.env.SPLITTER_DEBUG === '1';
+
+function debug(message) {
+    if (DEBUG) {
+        console.error(`[SPLITTER_DEBUG] ${message}`);
+    }
 }
 
-const file = process.argv[2];
-if (!file) {
-  console.error('Usage: split-facets.js <file.sol>');
-  process.exit(1);
+function findProjectRoot() {
+    let current = __dirname;
+    while (current !== path.dirname(current)) {
+        if (fs.existsSync(path.join(current, 'package.json'))) {
+            return current;
+        }
+        current = path.dirname(current);
+    }
+    throw new Error('Could not find project root (package.json)');
 }
 
-const text = fs.readFileSync(file, 'utf8');
-let ast;
-try {
-  ast = parser.parse(text, { tolerant: true });
-} catch (e) {
-  console.error('Parse error:', e.message || e);
-  process.exit(3);
+function executeBuiltJS(args) {
+    const projectRoot = findProjectRoot();
+    const builtPath = path.join(__dirname, 'dist', 'split-facet.js');
+    
+    debug(`Attempting built JS execution: ${builtPath}`);
+    
+    if (!fs.existsSync(builtPath)) {
+        debug(`Built JS not found: ${builtPath}`);
+        return false;
+    }
+    
+    try {
+        const result = execSync(`node "${builtPath}" ${args.join(' ')}`, {
+            cwd: projectRoot,
+            stdio: 'inherit'
+        });
+        debug('Built JS execution successful');
+        return true;
+    } catch (error) {
+        debug(`Built JS execution failed: ${error.message}`);
+        return false;
+    }
 }
 
-// Collect contract/library/interface nodes with their source ranges
-const fragments = [];
-parser.visit(ast, {
-  ContractDefinition(node) {
-    fragments.push({
-      name: node.name,
-      start: node.loc.start.line,
-      end: node.loc.end.line,
-      type: 'contract',
-    });
-  },
-  // Note: interface and library are also ContractDefinition nodes in parser
-});
-
-// If no contract-like nodes, return whole file
-if (fragments.length === 0) {
-  const selectors = extractSelectors(text);
-  const out = [
-    {
-      name: path.basename(file, '.sol'),
-      code: text,
-      selectors,
-      size: Buffer.byteLength(text, 'utf8'),
-    },
-  ];
-  console.log(JSON.stringify(out, null, 2));
-  process.exit(0);
+function executeTsNode(args) {
+    const projectRoot = findProjectRoot();
+    const tsPath = path.join(projectRoot, 'tools', 'splitter', 'split-facet.ts');
+    
+    debug(`Attempting ts-node execution: ${tsPath}`);
+    
+    if (!fs.existsSync(tsPath)) {
+        debug(`TypeScript source not found: ${tsPath}`);
+        return false;
+    }
+    
+    try {
+        // Check if ts-node is available
+        execSync('npx ts-node --version', { stdio: 'ignore' });
+        
+        const result = execSync(`npx ts-node "${tsPath}" ${args.join(' ')}`, {
+            cwd: projectRoot,
+            stdio: 'inherit'
+        });
+        debug('ts-node execution successful');
+        return true;
+    } catch (error) {
+        debug(`ts-node execution failed: ${error.message}`);
+        return false;
+    }
 }
 
-// Build slices by line numbers
-const lines = text.split(/\r?\n/);
-const out = [];
-for (let i = 0; i < fragments.length; i++) {
-  const f = fragments[i];
-  const startIdx = Math.max(0, f.start - 1);
-  const endIdx = Math.min(lines.length, f.end);
-  const code = lines.slice(startIdx, endIdx).join('\n');
-  const selectors = extractSelectors(code);
-  out.push({ name: f.name, code, selectors, size: Buffer.byteLength(code, 'utf8') });
+function executeLegacy(args) {
+    const legacyPath = path.join(__dirname, 'split-facets.legacy.js');
+    
+    debug(`Attempting legacy execution: ${legacyPath}`);
+    
+    if (!fs.existsSync(legacyPath)) {
+        debug(`Legacy splitter not found: ${legacyPath}`);
+        return false;
+    }
+    
+    try {
+        const result = execSync(`node "${legacyPath}" ${args.join(' ')}`, {
+            stdio: 'inherit'
+        });
+        debug('Legacy execution successful');
+        return true;
+    } catch (error) {
+        debug(`Legacy execution failed: ${error.message}`);
+        return false;
+    }
 }
 
-console.log(JSON.stringify(out, null, 2));
-
-function extractSelectors(code) {
-  const re = /function\s+([A-Za-z0-9_]+)\s*\(([^)]*)\)\s*(public|external|internal|private)?/g;
-  const sels = [];
-  let m;
-  while ((m = re.exec(code)) !== null) {
-    const name = m[1];
-    const args = m[2].trim();
-    sels.push(`${name}(${args})`);
-  }
-  return sels;
+function main() {
+    const args = process.argv.slice(2);
+    
+    debug(`Facet splitter shim starting with args: [${args.join(', ')}]`);
+    debug(`USE_LEGACY: ${USE_LEGACY}, DEBUG: ${DEBUG}`);
+    
+    // Force legacy if requested
+    if (USE_LEGACY) {
+        debug('Forced legacy mode via SPLITTER_USE_LEGACY=1');
+        if (executeLegacy(args)) {
+            process.exit(0);
+        } else {
+            console.error('ERROR: Legacy splitter execution failed');
+            process.exit(1);
+        }
+    }
+    
+    // Three-tier fallback chain
+    debug('Starting fallback chain: built JS → ts-node → legacy');
+    
+    // Tier 1: Built JavaScript (production)
+    if (executeBuiltJS(args)) {
+        process.exit(0);
+    }
+    
+    // Tier 2: ts-node execution (development)
+    if (executeTsNode(args)) {
+        process.exit(0);
+    }
+    
+    // Tier 3: Legacy AST splitter (rollback)
+    if (executeLegacy(args)) {
+        process.exit(0);
+    }
+    
+    // All fallbacks failed
+    console.error('ERROR: All splitter execution methods failed');
+    console.error('Available fallbacks: built JS, ts-node, legacy AST');
+    console.error('Check SPLITTER_DEBUG=1 for detailed diagnostics');
+    process.exit(1);
 }
+
+// Execute main function
+if (require.main === module) {
+    main();
+}
+
+module.exports = { main };

@@ -53,7 +53,9 @@
     "audit:template": "ts-node tools/audit/audit-consultant.ts template",
     "audit:chatgpt": "ts-node tools/audit/audit-consultant.ts chatgpt",
     "audit:checklist": "ts-node tools/audit/audit-consultant.ts checklist",
-    "audit:interactive": "ts-node tools/audit/audit-consultant.ts interactive"
+    "audit:interactive": "ts-node tools/audit/audit-consultant.ts interactive",
+    "build:splitter": "tsup tools/splitter/split-facet.ts --format cjs --platform=node --target=node20 --out-dir scripts/tools/ast/dist --clean",
+    "postinstall": "npm run build:splitter || true"
   },
   "keywords": [],
   "author": "",
@@ -77,8 +79,8 @@
     "@types/mocha": "^10.0.10",
     "@types/node": "^24.3.0",
     "@types/ws": "^8.18.1",
-  "@typescript-eslint/eslint-plugin": "^7.6.0",
-  "@typescript-eslint/parser": "^7.6.0",
+    "@typescript-eslint/eslint-plugin": "^7.6.0",
+    "@typescript-eslint/parser": "^7.6.0",
     "chai": "^4.5.0",
     "commander": "^11.0.0",
     "diff": "^7.0.0",
@@ -100,10 +102,11 @@
     "solhint": "^6.0.0",
     "solidity-parser-antlr": "^0.4.11",
     "ts-jest": "^29.4.1",
-  "ts-node": "^10.9.2",
+    "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
+    "tsup": "^8.5.0",
     "typechain": "^8.3.2",
-  "typescript": "5.5.4",
+    "typescript": "5.5.4",
     "web3": "^1.10.4"
   },
   "dependencies": {
