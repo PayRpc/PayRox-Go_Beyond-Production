@@ -302,6 +302,20 @@ contract ManifestDispatcher is
         // Emit L2 timing warning for governance monitoring
         emit L2TimestampWarning(nowTs, manifest.activationDelay);
 
+        // Optional audit enforcement: if an external AuditRegistry is set, require
+        // that the pending manifest has a currently valid audit before activation.
+        // Administrators may set auditRegistry to address(0) to disable enforcement.
+        // Dev registrar remains a bypass for local/test workflows.
+        if (auditRegistry != address(0) && !devRegistrarEnabled) {
+            bool ok;
+            try IAuditRegistry(auditRegistry).getAuditStatus(pending) returns (bool isValid, bytes memory) {
+                ok = isValid;
+            } catch {
+                ok = false;
+            }
+            if (!ok) revert AuditNotApproved(pending);
+        }
+
         manifest.activeRoot = pending;
         manifest.activeEpoch += 1;
         manifest.pendingRoot = bytes32(0);
