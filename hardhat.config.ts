@@ -6,6 +6,7 @@ import '@nomicfoundation/hardhat-chai-matchers'
 import './tasks/prx.chunk'
 import './tasks/facet-init'
 import './tasks/crosschain'
+import './tasks/create2-check'
 
 const config: HardhatUserConfig = {
   solidity: {

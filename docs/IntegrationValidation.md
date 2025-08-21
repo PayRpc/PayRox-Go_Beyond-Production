@@ -1,10 +1,18 @@
 # Integration Validation System
 
+![PayRox Logo](icons/payrox-logo.svg)
+
 ## Overview
 
 The PayRox integration validator (`tools/validate-integration.ts`) provides end-to-end protocol consistency checks to ensure all components speak the same language.
 
 ## What It Validates
+
+![Code Document](icons/code-document.svg) **Facet Policy Compliance**
+
+![Validation Document](icons/validation-document.svg) **Manifest-ABI Parity**  
+
+![Network Integration](icons/network-integration.svg) **System Integration**
 
 ### 1. **Facet Policy Compliance**
 - ✅ No Diamond Loupe functions in business facets (centralized in DiamondLoupeFacet)

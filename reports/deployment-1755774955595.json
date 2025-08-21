@@ -1,0 +1,23 @@
+{
+  "timestamp": "2025-08-21T11:15:55.595Z",
+  "config": {
+    "networks": [
+      "hardhat"
+    ],
+    "skipFactoryDeployment": false,
+    "skipManifestValidation": true,
+    "dryRun": true,
+    "pausedDeployment": true,
+    "force": true
+  },
+  "result": {
+    "success": false,
+    "deploymentResults": {},
+    "errors": [
+      "Factory deployment failed: Error: Factory address parity validation failed"
+    ]
+  },
+  "networks": [
+    "hardhat"
+  ]
+}

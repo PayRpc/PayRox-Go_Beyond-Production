@@ -1,5 +1,7 @@
 # PayRox Go Beyond - Diamond Pattern Blockchain Platform
 
+![PayRox Logo](docs/icons/payrox-logo.svg)
+
 [![CI/CD](https://github.com/PayRpc/PayRox-Go-Beond_Final_V2/workflows/payrox-refactor-gate/badge.svg)](https://github.com/PayRpc/PayRox-Go-Beond_Final_V2/actions)
 [![Solidity](https://img.shields.io/badge/Solidity-0.8.30-blue.svg)](https://docs.soliditylang.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg)](https://www.typescriptlang.org/)
@@ -45,6 +47,8 @@ open http://127.0.0.1:8000/docs
 
 ## 🏗️ Architecture
 
+![Code Document](docs/icons/code-document.svg)
+
 ### Core Components
 
 - **🔷 Diamond Pattern Contracts**: EIP-2535 compliant modular proxy system
@@ -62,6 +66,8 @@ open http://127.0.0.1:8000/docs
 - **Deployment**: Docker, Multi-network support
 
 ## 📋 Key Features
+
+![Network Integration](docs/icons/network-integration.svg)
 
 ### Diamond Pattern (EIP-2535)
 - ✅ Modular facet system with upgradeable logic
@@ -134,8 +140,12 @@ npm run test:size        # Size limit enforcement
 ```
 
 ### Comprehensive Validation
+
+![Validation Document](docs/icons/validation-document.svg)
+
 ```bash
 npm run payrox:self-check  # Full test suite
+npm run check:wire         # Integration validation
 ```
 
 ### API Tests

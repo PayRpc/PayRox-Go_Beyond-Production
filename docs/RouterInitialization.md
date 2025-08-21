@@ -1,9 +1,14 @@
 # PayRox Proxy Router Initialization Guide
 
+![PayRox Logo](icons/payrox-logo.svg)
+
 ## Overview
 The `PayRoxProxyRouter` serves as a compatibility shim that allows existing proxies to route calls to a ManifestDispatcher (Diamond entry point) with enhanced security features including pause, freeze, per-selector blocking, and codehash pinning.
 
 ## Security Model
+
+![Network Integration](icons/network-integration.svg)
+
 - **Salt-based initialization**: Prevents front-running attacks during proxy upgrades
 - **Atomic deployment**: Must use `upgradeToAndCall` for secure initialization
 - **Codehash pinning**: Optional dispatcher integrity verification
