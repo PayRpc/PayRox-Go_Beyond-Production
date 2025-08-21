@@ -48,4 +48,4 @@ program
     }
   )
 
-program.parseAsync(process.argv)
+void program.parseAsync(process.argv)

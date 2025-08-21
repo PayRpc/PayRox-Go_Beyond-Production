@@ -2497,7 +2497,7 @@ export class SolidityAnalyzer {
       const parts = t.split(' ')
       if (parts.length > 1) {
         const last = parts[parts.length - 1]
-test( last ?? '')
+        if (/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(last ?? '')) {
           return parts.slice(0, -1).join(' ')
         }
       }

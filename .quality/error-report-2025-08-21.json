@@ -1,10 +1,10 @@
 {
-  "timestamp": "2025-08-21T04:05:52.995Z",
+  "timestamp": "2025-08-21T04:08:07.688Z",
   "summary": {
-    "totalErrors": 48,
+    "totalErrors": 22,
     "byCategory": {
-      "typescript": 33,
-      "eslint": 15,
+      "typescript": 2,
+      "eslint": 20,
       "dependencies": 0,
       "tests": 0,
       "ci": 0
@@ -13,316 +13,6 @@
   "details": {
     "typescript": {
       "errors": [
-        {
-          "type": "TYPE_ERROR",
-          "file": "scripts/analyzers/SolidityAnalyzer.ts",
-          "line": "2504",
-          "column": "7",
-          "errorCode": "TS1005",
-          "message": "',' expected.",
-          "category": "OTHER",
-          "fix": "Review TypeScript error and fix accordingly"
-        },
-        {
-          "type": "TYPE_ERROR",
-          "file": "scripts/analyzers/SolidityAnalyzer.ts",
-          "line": "2505",
-          "column": "6",
-          "errorCode": "TS1068",
-          "message": "Unexpected token. A constructor, method, accessor, or property was expected.",
-          "category": "OTHER",
-          "fix": "Review TypeScript error and fix accordingly"
-        },
-        {
-          "type": "TYPE_ERROR",
-          "file": "scripts/analyzers/SolidityAnalyzer.ts",
-          "line": "2512",
-          "column": "3",
-          "errorCode": "TS1128",
-          "message": "Declaration or statement expected.",
-          "category": "OTHER",
-          "fix": "Review TypeScript error and fix accordingly"
-        },
-        {
-          "type": "TYPE_ERROR",
-          "file": "scripts/analyzers/SolidityAnalyzer.ts",
-          "line": "2512",
-          "column": "46",
-          "errorCode": "TS1005",
-          "message": "',' expected.",
-          "category": "OTHER",
-          "fix": "Review TypeScript error and fix accordingly"
-        },
-        {
-          "type": "TYPE_ERROR",
-          "file": "scripts/analyzers/SolidityAnalyzer.ts",
-          "line": "2512",
-          "column": "55",
-          "errorCode": "TS1005",
-          "message": "';' expected.",
-          "category": "OTHER",
-          "fix": "Review TypeScript error and fix accordingly"
-        },
-        {
-          "type": "TYPE_ERROR",
-          "file": "scripts/analyzers/SolidityAnalyzer.ts",
-          "line": "2512",
-          "column": "57",
-          "errorCode": "TS1434",
-          "message": "Unexpected keyword or identifier.",
-          "category": "OTHER",
-          "fix": "Review TypeScript error and fix accordingly"
-        },
-        {
-          "type": "TYPE_ERROR",
-          "file": "scripts/analyzers/SolidityAnalyzer.ts",
-          "line": "2525",
-          "column": "3",
-          "errorCode": "TS1128",
-          "message": "Declaration or statement expected.",
-          "category": "OTHER",
-          "fix": "Review TypeScript error and fix accordingly"
-        },
-        {
-          "type": "TYPE_ERROR",
-          "file": "scripts/analyzers/SolidityAnalyzer.ts",
-          "line": "2526",
-          "column": "9",
-          "errorCode": "TS1005",
-          "message": "',' expected.",
-          "category": "OTHER",
-          "fix": "Review TypeScript error and fix accordingly"
-        },
-        {
-          "type": "TYPE_ERROR",
-          "file": "scripts/analyzers/SolidityAnalyzer.ts",
-          "line": "2527",
-          "column": "14",
-          "errorCode": "TS1005",
-          "message": "',' expected.",
-          "category": "OTHER",
-          "fix": "Review TypeScript error and fix accordingly"
-        },
-        {
-          "type": "TYPE_ERROR",
-          "file": "scripts/analyzers/SolidityAnalyzer.ts",
-          "line": "2527",
-          "column": "23",
-          "errorCode": "TS1011",
-          "message": "An element access expression should take an argument.",
-          "category": "OTHER",
-          "fix": "Review TypeScript error and fix accordingly"
-        },
-        {
-          "type": "TYPE_ERROR",
-          "file": "scripts/analyzers/SolidityAnalyzer.ts",
-          "line": "2528",
-          "column": "4",
-          "errorCode": "TS1005",
-          "message": "';' expected.",
-          "category": "OTHER",
-          "fix": "Review TypeScript error and fix accordingly"
-        },
-        {
-          "type": "TYPE_ERROR",
-          "file": "scripts/analyzers/SolidityAnalyzer.ts",
-          "line": "2528",
-          "column": "6",
-          "errorCode": "TS1434",
-          "message": "Unexpected keyword or identifier.",
-          "category": "OTHER",
-          "fix": "Review TypeScript error and fix accordingly"
-        },
-        {
-          "type": "TYPE_ERROR",
-          "file": "scripts/analyzers/SolidityAnalyzer.ts",
-          "line": "2553",
-          "column": "3",
-          "errorCode": "TS1434",
-          "message": "Unexpected keyword or identifier.",
-          "category": "OTHER",
-          "fix": "Review TypeScript error and fix accordingly"
-        },
-        {
-          "type": "TYPE_ERROR",
-          "file": "scripts/analyzers/SolidityAnalyzer.ts",
-          "line": "2554",
-          "column": "15",
-          "errorCode": "TS1005",
-          "message": "',' expected.",
-          "category": "OTHER",
-          "fix": "Review TypeScript error and fix accordingly"
-        },
-        {
-          "type": "TYPE_ERROR",
-          "file": "scripts/analyzers/SolidityAnalyzer.ts",
-          "line": "2555",
-          "column": "18",
-          "errorCode": "TS1109",
-          "message": "Expression expected.",
-          "category": "OTHER",
-          "fix": "Review TypeScript error and fix accordingly"
-        },
-        {
-          "type": "TYPE_ERROR",
-          "file": "scripts/analyzers/SolidityAnalyzer.ts",
-          "line": "2556",
-          "column": "4",
-          "errorCode": "TS1005",
-          "message": "';' expected.",
-          "category": "OTHER",
-          "fix": "Review TypeScript error and fix accordingly"
-        },
-        {
-          "type": "TYPE_ERROR",
-          "file": "scripts/analyzers/SolidityAnalyzer.ts",
-          "line": "2557",
-          "column": "9",
-          "errorCode": "TS1005",
-          "message": "':' expected.",
-          "category": "OTHER",
-          "fix": "Review TypeScript error and fix accordingly"
-        },
-        {
-          "type": "TYPE_ERROR",
-          "file": "scripts/analyzers/SolidityAnalyzer.ts",
-          "line": "2559",
-          "column": "13",
-          "errorCode": "TS1005",
-          "message": "':' expected.",
-          "category": "OTHER",
-          "fix": "Review TypeScript error and fix accordingly"
-        },
-        {
-          "type": "TYPE_ERROR",
-          "file": "scripts/analyzers/SolidityAnalyzer.ts",
-          "line": "2560",
-          "column": "7",
-          "errorCode": "TS1005",
-          "message": "',' expected.",
-          "category": "OTHER",
-          "fix": "Review TypeScript error and fix accordingly"
-        },
-        {
-          "type": "TYPE_ERROR",
-          "file": "scripts/analyzers/SolidityAnalyzer.ts",
-          "line": "2560",
-          "column": "13",
-          "errorCode": "TS1005",
-          "message": "':' expected.",
-          "category": "OTHER",
-          "fix": "Review TypeScript error and fix accordingly"
-        },
-        {
-          "type": "TYPE_ERROR",
-          "file": "scripts/analyzers/SolidityAnalyzer.ts",
-          "line": "2561",
-          "column": "7",
-          "errorCode": "TS1005",
-          "message": "',' expected.",
-          "category": "OTHER",
-          "fix": "Review TypeScript error and fix accordingly"
-        },
-        {
-          "type": "TYPE_ERROR",
-          "file": "scripts/analyzers/SolidityAnalyzer.ts",
-          "line": "2561",
-          "column": "13",
-          "errorCode": "TS1005",
-          "message": "':' expected.",
-          "category": "OTHER",
-          "fix": "Review TypeScript error and fix accordingly"
-        },
-        {
-          "type": "TYPE_ERROR",
-          "file": "scripts/analyzers/SolidityAnalyzer.ts",
-          "line": "2564",
-          "column": "7",
-          "errorCode": "TS1005",
-          "message": "',' expected.",
-          "category": "OTHER",
-          "fix": "Review TypeScript error and fix accordingly"
-        },
-        {
-          "type": "TYPE_ERROR",
-          "file": "scripts/analyzers/SolidityAnalyzer.ts",
-          "line": "2564",
-          "column": "13",
-          "errorCode": "TS1005",
-          "message": "':' expected.",
-          "category": "OTHER",
-          "fix": "Review TypeScript error and fix accordingly"
-        },
-        {
-          "type": "TYPE_ERROR",
-          "file": "scripts/analyzers/SolidityAnalyzer.ts",
-          "line": "2564",
-          "column": "20",
-          "errorCode": "TS1005",
-          "message": "',' expected.",
-          "category": "OTHER",
-          "fix": "Review TypeScript error and fix accordingly"
-        },
-        {
-          "type": "TYPE_ERROR",
-          "file": "scripts/analyzers/SolidityAnalyzer.ts",
-          "line": "2564",
-          "column": "45",
-          "errorCode": "TS1005",
-          "message": "'(' expected.",
-          "category": "OTHER",
-          "fix": "Review TypeScript error and fix accordingly"
-        },
-        {
-          "type": "TYPE_ERROR",
-          "file": "scripts/analyzers/SolidityAnalyzer.ts",
-          "line": "2564",
-          "column": "47",
-          "errorCode": "TS1136",
-          "message": "Property assignment expected.",
-          "category": "OTHER",
-          "fix": "Review TypeScript error and fix accordingly"
-        },
-        {
-          "type": "TYPE_ERROR",
-          "file": "scripts/analyzers/SolidityAnalyzer.ts",
-          "line": "2696",
-          "column": "5",
-          "errorCode": "TS1128",
-          "message": "Declaration or statement expected.",
-          "category": "OTHER",
-          "fix": "Review TypeScript error and fix accordingly"
-        },
-        {
-          "type": "TYPE_ERROR",
-          "file": "scripts/analyzers/SolidityAnalyzer.ts",
-          "line": "2696",
-          "column": "7",
-          "errorCode": "TS1005",
-          "message": "'try' expected.",
-          "category": "OTHER",
-          "fix": "Review TypeScript error and fix accordingly"
-        },
-        {
-          "type": "TYPE_ERROR",
-          "file": "scripts/analyzers/SolidityAnalyzer.ts",
-          "line": "2701",
-          "column": "3",
-          "errorCode": "TS1128",
-          "message": "Declaration or statement expected.",
-          "category": "OTHER",
-          "fix": "Review TypeScript error and fix accordingly"
-        },
-        {
-          "type": "TYPE_ERROR",
-          "file": "scripts/analyzers/SolidityAnalyzer.ts",
-          "line": "2702",
-          "column": "1",
-          "errorCode": "TS1128",
-          "message": "Declaration or statement expected.",
-          "category": "OTHER",
-          "fix": "Review TypeScript error and fix accordingly"
-        },
         {
           "type": "TYPE_ERROR",
           "file": "scripts/node/manifest-server.ts",
@@ -344,29 +34,79 @@
           "fix": "Review TypeScript error and fix accordingly"
         }
       ],
-      "count": 33
+      "count": 2
     },
     "eslint": {
       "errors": [
         {
           "type": "LINT_ERROR",
           "file": "\\scripts\\analyzers\\SolidityAnalyzer.ts",
-          "line": "2504",
-          "column": "6",
-          "message": "Parsing error: ','",
-          "rule": "expected",
-          "category": "OTHER",
-          "fix": "Check ESLint documentation for this rule"
+          "line": "7",
+          "column": "13",
+          "message": "'_path' is defined but never used",
+          "rule": "@typescript-eslint/no-unused-vars",
+          "category": "UNUSED_VARIABLES",
+          "fix": "Prefix unused variables with underscore (_variable) or remove them"
         },
         {
           "type": "LINT_ERROR",
-          "file": "\\scripts\\cli\\analyze.ts",
-          "line": "51",
-          "column": "1",
-          "message": "Promises must be awaited, end with a call to .catch, end with a call to .then with a rejection handler or be explicitly marked as ignored with the `void` operator",
-          "rule": "@typescript-eslint/no-floating-promises",
-          "category": "ASYNC_ISSUES",
-          "fix": "Add void operator or .catch() handler to promise"
+          "file": "\\scripts\\analyzers\\SolidityAnalyzer.ts",
+          "line": "89",
+          "column": "11",
+          "message": "'_ModifierNode' is defined but never used",
+          "rule": "@typescript-eslint/no-unused-vars",
+          "category": "UNUSED_VARIABLES",
+          "fix": "Prefix unused variables with underscore (_variable) or remove them"
+        },
+        {
+          "type": "LINT_ERROR",
+          "file": "\\scripts\\analyzers\\SolidityAnalyzer.ts",
+          "line": "95",
+          "column": "11",
+          "message": "'_ImportNode' is defined but never used",
+          "rule": "@typescript-eslint/no-unused-vars",
+          "category": "UNUSED_VARIABLES",
+          "fix": "Prefix unused variables with underscore (_variable) or remove them"
+        },
+        {
+          "type": "LINT_ERROR",
+          "file": "\\scripts\\analyzers\\SolidityAnalyzer.ts",
+          "line": "101",
+          "column": "11",
+          "message": "'_CompilationOutput' is defined but never used",
+          "rule": "@typescript-eslint/no-unused-vars",
+          "category": "UNUSED_VARIABLES",
+          "fix": "Prefix unused variables with underscore (_variable) or remove them"
+        },
+        {
+          "type": "LINT_ERROR",
+          "file": "\\scripts\\analyzers\\SolidityAnalyzer.ts",
+          "line": "126",
+          "column": "3",
+          "message": "Useless constructor",
+          "rule": "@typescript-eslint/no-useless-constructor",
+          "category": "CODE_STYLE",
+          "fix": "Remove empty constructor or add meaningful logic"
+        },
+        {
+          "type": "LINT_ERROR",
+          "file": "\\scripts\\analyzers\\SolidityAnalyzer.ts",
+          "line": "232",
+          "column": "14",
+          "message": "Always prefer const x: T = { ... }",
+          "rule": "@typescript-eslint/consistent-type-assertions",
+          "category": "TYPE_STYLE",
+          "fix": "Use \"as Type\" instead of \"<Type>\""
+        },
+        {
+          "type": "LINT_ERROR",
+          "file": "\\scripts\\analyzers\\SolidityAnalyzer.ts",
+          "line": "1017",
+          "column": "36",
+          "message": "Always prefer const x: T = { ... }",
+          "rule": "@typescript-eslint/consistent-type-assertions",
+          "category": "TYPE_STYLE",
+          "fix": "Use \"as Type\" instead of \"<Type>\""
         },
         {
           "type": "LINT_ERROR",
@@ -499,7 +239,7 @@
           "fix": "Convert utility class to functions or add instance methods"
         }
       ],
-      "count": 15
+      "count": 20
     },
     "dependencies": {
       "errors": [],
