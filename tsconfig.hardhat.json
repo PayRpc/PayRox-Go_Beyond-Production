@@ -1,4 +1,7 @@
 {
+  // 🎯 CANONICAL TYPESCRIPT CONFIGURATION
+  // This is the single source of truth for all TypeScript compilation in the PayRox project.
+  // Used by: package.json scripts, Jest, ESLint, CI workflows, and all build tools.
   "compilerOptions": {
     "target": "ES2022",
     "lib": ["ES2022"],
@@ -20,6 +23,8 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "exactOptionalPropertyTypes": false,
+    // Only use standard DefinitelyTyped packages; do not treat ./types as a typeRoots package,
+    // otherwise TS will try to load '@openzeppelin', 'contracts', 'factories' as ambient libs.
     "typeRoots": ["./node_modules/@types"],
     "types": ["node", "mocha", "chai"],
     "baseUrl": "./",
@@ -33,17 +38,24 @@
     }
   },
   "include": [
+    // Core application code
     "./scripts/**/*",
     "./test/**/*",
     "./tests/**/*",
     "./tasks/**/*",
     "./tools/**/*",
-    "./hardhat.config.ts",
     "./src/**/*",
-    "./typechain-types/**/*",
+    
+    // Generated types and configs
+    "./typechain-types/**/*", // Aligns with ARTIFACTS_PATHS.TYPECHAIN_ROOT
+    "./hardhat.config.ts",
+    
+    // Extended modules
     "./cli/src/**/*",
     "./sdk/src/**/*",
     "./deployable-modules/**/*",
+    
+    // Legacy include patterns (for compatibility)
     "hardhat.config.ts",
     "scripts",
     "test",
@@ -51,15 +63,25 @@
     "types"
   ],
   "exclude": [
+    // Build artifacts and dependencies
     "node_modules",
     "dist",
     "artifacts",
     "cache",
     "coverage",
+    
+    // Separate project modules
     "tools/ai-assistant/frontend",
+    "tools/ai-assistant/backend", // Has its own tsconfig.json
+    
+    // Solidity source files (not TypeScript)
     "./contracts/**/*.sol",
+    
+    // JavaScript test files (not TypeScript)
     "**/*.spec.js",
     "**/*.test.js",
+    
+    // Temporarily excluded files (specific compilation issues)
     "scripts/deploy/enhanced-cross-chain-deploy.ts",
     "scripts/orchestrate-crosschain.ts",
     "scripts/validate/cross-chain-validator.ts",

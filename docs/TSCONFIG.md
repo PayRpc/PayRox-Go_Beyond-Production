@@ -1,33 +1,45 @@
-Canonical TypeScript Configuration
+# Canonical TypeScript Configuration - UNIFIED ✅
 
-This repository uses a single, stable TypeScript configuration for development, tests and CI.
+This repository uses a **single, unified TypeScript configuration** for all development, testing, and CI operations.
 
-Canonical config: `tsconfig.hardhat.json` (root)
+## 🎯 Canonical Configuration
 
-Why this file:
-- It extends `tsconfig.json` and adds test/runtime types (chai/mocha).
-- Many dev scripts, CI, and jest/ts-node run with `-p tsconfig.hardhat.json` meaning it is the authoritative config for type-checks.
+**File**: `tsconfig.hardhat.json` (root)
 
-Places that are configured to use `tsconfig.hardhat.json`:
-- package.json scripts
-  - `check:ts` runs `tsc -p tsconfig.hardhat.json --noEmit`
-  - `smoke:merkle` runs `ts-node -P tsconfig.hardhat.json ...`
-  - `build` now runs `tsc -p tsconfig.hardhat.json` (canonicalized)
-  - many tools (error-fixer, error-detector) call `npx tsc -p tsconfig.hardhat.json` internally
+This is the **single source of truth** for all TypeScript compilation in the PayRox project.
 
-- Jest
-  - `jest.config.js` uses `ts-jest` with `tsconfig: 'tsconfig.hardhat.json'`.
+## 🔧 What Uses the Canonical Config
 
-- ESLint
-  - `.eslintrc.canonical.json` parserOptions.project set to `./tsconfig.hardhat.json`
+### Package.json Scripts
 
-- CI workflows & tools
-  - Disabled and enabled CI workflow steps call `npx tsc -p tsconfig.hardhat.json --noEmit`.
+- `check:ts` runs `tsc -p tsconfig.hardhat.json --noEmit`
+- `smoke:merkle` runs `ts-node -P tsconfig.hardhat.json ...`
+- `build` runs `tsc -p tsconfig.hardhat.json`
 
-Notes and recommendations
-- If you need a different behavior for a specific tool (for example a separate project for the `tools/` folder), create a dedicated tsconfig in that folder (e.g. `tools/tsconfig.json`) and use `-p` for that command. By default, prefer `tsconfig.hardhat.json` for repo-level type-checks and test runs.
-- `tsconfig.json` remains the base for IDEs and generic builds. It is extended by `tsconfig.hardhat.json`.
+### Build Tools & Testing
 
-If you want I can:
-- Make `tsconfig.hardhat.json` the only tsconfig by merging `tsconfig.json` into it and replacing `extends` (larger change).
-- Update any remaining docs or scripts pointing to `tsconfig.json` examples.
+- **Jest**: `jest.config.js` uses `ts-jest` with `tsconfig: 'tsconfig.hardhat.json'`
+- **ESLint**: `.eslintrc.canonical.json` parserOptions.project uses `./tsconfig.hardhat.json`
+- **All error-fixing tools**: Use `npx tsc -p tsconfig.hardhat.json --noEmit`
+
+### CI Workflows
+
+- GitHub Actions workflows use `npx tsc -p tsconfig.hardhat.json --noEmit`
+
+## 📁 IDE Compatibility
+
+**File**: `tsconfig.json` → Simple stub that extends `tsconfig.hardhat.json`
+
+This exists purely for IDE/editor TypeScript language service compatibility while maintaining the unified configuration.
+
+## 🏗️ Separate Projects
+
+- **AI Assistant Backend**: `tools/ai-assistant/backend/tsconfig.json` (independent project)
+
+## ✅ Unification Complete
+
+- ✅ Single canonical configuration source
+- ✅ All build tools unified
+- ✅ All CI workflows unified  
+- ✅ IDE compatibility maintained
+- ✅ No configuration drift possible
