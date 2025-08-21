@@ -1,8 +1,8 @@
 import { ethers } from 'hardhat'
 
 // Crash prevention utilities
-export class CrashGuard {
-  static safeProcessExit (code: number = 0): never {
+export const CrashGuard = {
+  safeProcessExit (code: number = 0): never {
     console.log(`[CrashGuard] Attempting clean exit with code ${code}`)
 
     // Give time for async operations to complete
@@ -11,9 +11,9 @@ export class CrashGuard {
     }, 100)
 
     throw new Error(`Process exit requested with code ${code}`)
-  }
+  },
 
-  static wrapWithErrorHandling<T extends (..._args: any[]) => any>(
+  wrapWithErrorHandling<T extends (..._args: any[]) => any>(
     fn: T,
     context: string
   ): T {
@@ -36,9 +36,9 @@ export class CrashGuard {
         throw error
       }
     }) as T
-  }
+  },
 
-  static async safeContractCall<T>(
+  async safeContractCall<T>(
     contractCall: () => Promise<T>,
     fallback?: T,
     context: string = 'contract call'
@@ -55,9 +55,9 @@ export class CrashGuard {
 
       throw error
     }
-  }
+  },
 
-  static safePropertyAccess<T>(
+  safePropertyAccess<T>(
     obj: any,
     path: string,
     fallback?: T
@@ -85,8 +85,8 @@ export class CrashGuard {
 }
 
 // Ethers.js v6 compatibility layer
-export class EthersV6Helper {
-  static async getAddress (contract: any): Promise<string> {
+export const EthersV6Helper = {
+  async getAddress (contract: any): Promise<string> {
     try {
       // Try v6 method first
       if (typeof contract.getAddress === 'function') {
@@ -103,9 +103,9 @@ export class EthersV6Helper {
       console.error('[EthersV6Helper] getAddress failed:', error)
       throw error
     }
-  }
+  },
 
-  static async waitForDeployment (contract: any): Promise<void> {
+  async waitForDeployment (contract: any): Promise<void> {
     try {
       // Try v6 method first
       if (typeof contract.waitForDeployment === 'function') {
@@ -124,19 +124,19 @@ export class EthersV6Helper {
       console.error('[EthersV6Helper] waitForDeployment failed:', error)
       throw error
     }
-  }
+  },
 
-  static getZeroAddress (): string {
+  getZeroAddress (): string {
     // Ethers v6 approach
     return ethers.ZeroAddress
-  }
+  },
 
-  static keccak256 (data: string): string {
+  keccak256 (data: string): string {
     // Ethers v6 approach
     return ethers.keccak256(data)
-  }
+  },
 
-  static toUtf8Bytes (str: string): Uint8Array {
+  toUtf8Bytes (str: string): Uint8Array {
     // Ethers v6 approach
     return ethers.toUtf8Bytes(str)
   }

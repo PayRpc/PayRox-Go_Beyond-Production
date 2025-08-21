@@ -166,7 +166,14 @@ function c3Linearize (name, idx, memo, stack) {
     if (!candidate) {
       // fallback: flatten left-to-right DFS
       const seen = new Set(result)
-      for (const s of seqs) { for (const n of s) if (!seen.has(n)) (result.push(n), seen.add(n)) }
+      for (const s of seqs) {
+        for (const n of s) {
+          if (!seen.has(n)) {
+            result.push(n)
+            seen.add(n)
+          }
+        }
+      }
       seqs.forEach((s) => (s.length = 0))
       break
     }

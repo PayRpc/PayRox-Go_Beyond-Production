@@ -89,7 +89,7 @@ interface EventNode extends ASTNode {
 const ZERO_HASH = '0x' + '0'.repeat(64)
 
 // Helper: safely convert optional hex string to Buffer
-function _safeHexToBuffer(s: string | undefined | null): Buffer {
+function _safeHexToBuffer (s: string | undefined | null): Buffer {
   const clean = typeof s === 'string' ? s.replace(/^0x/, '') : ''
   return clean ? Buffer.from(clean, 'hex') : Buffer.alloc(0)
 }
@@ -197,7 +197,7 @@ export class SolidityAnalyzer {
         functions.length
       )
 
-      return {
+      const result: ParsedContract = {
         name: contractNode.name,
         sourceCode,
         ast,
@@ -215,7 +215,8 @@ export class SolidityAnalyzer {
         runtimeCodehash,
         storageCollisions,
         deploymentStrategy
-      } as ParsedContract
+      }
+      return result
     } catch (error: unknown) {
       if (error instanceof AnalysisError) {
         throw error
@@ -995,7 +996,7 @@ export class SolidityAnalyzer {
         // Optional fields for compatibility
         signature: func.signature,
         chunkId: undefined
-      } as ManifestRoute
+      }
 
       routes.push(route)
     }

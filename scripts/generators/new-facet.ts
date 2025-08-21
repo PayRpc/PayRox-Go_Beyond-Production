@@ -1,27 +1,27 @@
 #!/usr/bin/env ts-node
-import fs from "fs";
-import path from "path";
+import fs from 'fs'
+import path from 'path'
 
-const rawName = process.argv[2];
+const rawName = process.argv[2]
 if (!rawName) {
-  console.error("Usage: new-facet <Name>  (e.g., new-facet Payments)");
-  process.exit(1);
+  console.error('Usage: new-facet <Name>  (e.g., new-facet Payments)')
+  process.exit(1)
 }
 
 // Sanitize & derive names/slot
-const FacetName = rawName.replace(/[^A-Za-z0-9_]/g, "");
-const facetSlot = FacetName.toLowerCase();
+const FacetName = rawName.replace(/[^A-Za-z0-9_]/g, '')
+const facetSlot = FacetName.toLowerCase()
 
-function write(outPath: string, content: string) {
-  const fp = path.join(process.cwd(), outPath);
-  fs.mkdirSync(path.dirname(fp), { recursive: true });
+function write (outPath: string, content: string) {
+  const fp = path.join(process.cwd(), outPath)
+  fs.mkdirSync(path.dirname(fp), { recursive: true })
   fs.writeFileSync(
     fp,
-    content.replaceAll("{{FacetName}}", FacetName)
-           .replaceAll("{{facet_slot}}", facetSlot),
-    "utf8"
-  );
-  console.log("✔", outPath);
+    content.replaceAll('{{FacetName}}', FacetName)
+      .replaceAll('{{facet_slot}}', facetSlot),
+    'utf8'
+  )
+  console.log('✔', outPath)
 }
 
 // ---- TEMPLATES ----
@@ -41,7 +41,7 @@ interface I{{FacetName}}Facet {
         pure
         returns (string memory name, string memory version, bytes4[] memory selectors);
 }
-`;
+`
 
 const libTpl = `// SPDX-License-Identifier: MIT
 pragma solidity 0.8.30;
@@ -62,7 +62,7 @@ library {{FacetName}}Storage {
         assembly { l.slot := slot }
     }
 }
-`;
+`
 
 const facetTpl = `// SPDX-License-Identifier: MIT
 pragma solidity 0.8.30;
@@ -153,14 +153,14 @@ contract {{FacetName}}Facet is I{{FacetName}}Facet {
         selectors[4] = this.getFacetInfo.selector;
     }
 }
-`;
+`
 
 // ---- WRITE FILES ----
-write(`contracts/interfaces/I${FacetName}Facet.sol`, ifaceTpl);
-write(`contracts/libraries/${FacetName}Storage.sol`, libTpl);
-write(`contracts/facets/${FacetName}Facet.sol`, facetTpl);
+write(`contracts/interfaces/I${FacetName}Facet.sol`, ifaceTpl)
+write(`contracts/libraries/${FacetName}Storage.sol`, libTpl)
+write(`contracts/facets/${FacetName}Facet.sol`, facetTpl)
 
 console.log(`\nDone. Next:
 - Compile:        npm run compile
 - Route selectors: see scripts/manifest/add-facet-routes.ts
-- Initialize:     npx hardhat facet:init --name ${FacetName} --operator <EOA> --diamond <DiamondAddress>\n`);
+- Initialize:     npx hardhat facet:init --name ${FacetName} --operator <EOA> --diamond <DiamondAddress>\n`)

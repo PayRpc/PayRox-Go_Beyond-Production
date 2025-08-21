@@ -90,11 +90,11 @@ async function main () {
   const selector = selectors[0]
   const facetAddr = facets[0]
   const codeHash = codehashes[0]
-  
+
   if (!selector || !facetAddr || !codeHash) {
     throw new Error('Required selector, facet, and codehash values are missing')
   }
-  
+
   const leaf = encodeLeaf(selector, facetAddr, codeHash)
 
   // Commit the root to make applyRoutes callable (commitRoot requires COMMIT_ROLE which deployer has)

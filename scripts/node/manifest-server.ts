@@ -124,14 +124,15 @@ app.post('/api/selectors', (req: Request, res: Response) => {
       }))
 
       const allSels = out.flatMap((f) => f.selectors)
-      return res.json({
+      const result: SelectorMap = {
         facets: out,
         collisions: findCollisions(
           allSels,
           out.flatMap((f) => f.signatures)
         ),
         coverage: uniqueCount(allSels) / Math.max(1, allSels.length)
-      } as SelectorMap)
+      }
+      return res.json(result)
     }
 
     return res.status(400).json({ error: 'Provide signatures[] or facets[]' })

@@ -290,9 +290,6 @@ async function main () {
 
   const factoryInitCode = factoryInfo?.bytecode
   let targetInitCode = targetInfo?.bytecode
-  const _factoryCompiler = factoryInfo?.compiler
-  let _targetCompiler = targetInfo?.compiler
-  let _manifestFallbackUsed = false
 
   // If the intended universal contract artifact isn't present, fall back to SaltViewFacet (read-only helpers)
   if (!targetInitCode) {
@@ -310,8 +307,7 @@ async function main () {
         )
       }
       targetInitCode = fbInfo.bytecode
-      _targetCompiler = fbInfo.compiler
-      _manifestFallbackUsed = true
+      // Fallback artifact loaded successfully
     }
   }
 

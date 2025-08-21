@@ -83,11 +83,7 @@ class DiamondDeployer {
 
       const FacetFactory = await hre.ethers.getContractFactory(facetName)
 
-      // Use deterministic salt for CREATE2
-      const _facetSalt = hre.ethers.keccak256(
-        hre.ethers.toUtf8Bytes(`${this.config.salt}-${facetName}`)
-      )
-
+      // Deploy facet with gas limit
       const facet = await FacetFactory.deploy({ gasLimit: 5000000 })
       await facet.waitForDeployment()
 
@@ -237,7 +233,7 @@ class DiamondDeployer {
     console.log(`  📊 Total selectors: ${totalSelectors}`)
 
     // Verify selector routing
-    for (const [_facetName, facetData] of Object.entries(
+    for (const [, facetData] of Object.entries(
       this.manifest.facets
     )) {
       for (const selector of facetData.selectors) {
@@ -346,8 +342,8 @@ class DiamondDeployer {
   private async setupRoles (diamond: Contract): Promise<void> {
     console.log('👥 Setting up role assignments...')
 
-  // All roles should be granted to the diamond (dispatcher), not individual facets
-  await hre.ethers.getSigners()
+    // All roles should be granted to the diamond (dispatcher), not individual facets
+    await hre.ethers.getSigners()
 
     // If diamond has access control, grant roles to diamond address
     try {

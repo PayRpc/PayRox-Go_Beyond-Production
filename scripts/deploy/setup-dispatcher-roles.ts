@@ -14,9 +14,9 @@ async function main () {
     throw new Error('FACTORY_ADDRESS and DISPATCHER_ADDRESS must be set')
   }
 
-  // Connect to factory
-  const Factory = await ethers.getContractFactory('DeterministicChunkFactory')
-  const _factory = Factory.attach(FACTORY_ADDRESS)
+  // Factory setup for future role management
+  // const Factory = await ethers.getContractFactory('DeterministicChunkFactory')
+  // const factory = Factory.attach(FACTORY_ADDRESS)
 
   // Grant roles to dispatcher (commented out due to interface limitations)
   console.log('Granting OPERATOR_ROLE to dispatcher...')

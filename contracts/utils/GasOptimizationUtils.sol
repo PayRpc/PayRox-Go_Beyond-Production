@@ -3,51 +3,116 @@ pragma solidity 0.8.30;
 
 /**
  * @title GasOptimizationUtils
- * @notice Utilities for gas-efficient operations across facets
- * @dev Provides batching and optimization patterns
+ * @notice Utilities for gas-aware batched calls and compact packing.
+ * @dev Library functions are internal to avoid delegatecall linkage and keep call sites explicit.
  */
 library GasOptimizationUtils {
+    uint256 internal constant MAX_BATCH = 64;
+
     /**
-     * @notice Batch multiple low-level calls with gas optimization
-     * @param targets Array of target addresses
-     * @param data Array of calldata
-     * @return results Array of return data
+     * @notice Batch low-level calls. Reverts atomically on any failure and bubbles revert data.
+     * @param targets Target addresses (must be nonzero)
+     * @param data    Calldata blobs (one per target)
+     * @return results Return data for each successful call
      */
-    function batchCall(
+    function batchCallStrict(
         address[] calldata targets,
         bytes[] calldata data
-    ) external returns (bytes[] memory results) {
-        require(targets.length == data.length, 'GasOptimizer: length mismatch');
-        require(targets.length <= 50, 'GasOptimizer: batch too large');
+    ) internal returns (bytes[] memory results) {
+        uint256 n = targets.length;
+        require(n == data.length, "GasOpt:length");
+        require(n <= MAX_BATCH, "GasOpt:batch");
 
-        results = new bytes[](targets.length);
+        results = new bytes[](n);
+        for (uint256 i = 0; i < n; ) {
+            address t = targets[i];
+            require(t != address(0), "GasOpt:zero");
 
-        for (uint256 i = 0; i < targets.length; i++) {
-            (bool success, bytes memory result) = targets[i].call(data[i]);
-            require(success, 'GasOptimizer: call failed');
-            results[i] = result;
+            (bool ok, bytes memory ret) = t.call(data[i]);
+            if (!ok) {
+                // bubble exact revert reason from the failed call
+                assembly {
+                    revert(add(ret, 0x20), mload(ret))
+                }
+            }
+            results[i] = ret;
+            unchecked { ++i; }
         }
     }
 
     /**
-     * @notice Optimized storage packing for multiple uint256 values
-     * @param values Array of values to pack (max 4 values)
-     * @return packed Packed storage value
+     * @notice Flexible batch: optional ETH per call and optional per-call failure tolerance.
+     * @param targets Target addresses
+     * @param data    Calldata blobs
+     * @param values  ETH to send per call (0 if not payable). Pass empty array to send 0 to all.
+     * @param mustSucceed If provided, failures at indexes with true will bubble; false will record (ok=false).
+     * @return okFlags Success flags per call
+     * @return results  Return data per call (empty on failed/ignored)
      */
-    function packStorage(uint64[] calldata values) external pure returns (bytes32 packed) {
-        require(values.length <= 4, 'GasOptimizer: too many values');
+    function batchCallFlexible(
+        address[] calldata targets,
+        bytes[] calldata data,
+        uint256[] calldata values,
+        bool[] calldata mustSucceed
+    ) internal returns (bool[] memory okFlags, bytes[] memory results) {
+        uint256 n = targets.length;
+        require(n == data.length, "GasOpt:length");
+        require(n <= MAX_BATCH, "GasOpt:batch");
+        // values and mustSucceed may be empty (treated as all zeros / all true)
+        require(values.length == 0 || values.length == n, "GasOpt:values");
+        require(mustSucceed.length == 0 || mustSucceed.length == n, "GasOpt:flags");
 
-        assembly {
-            let offset := 0
-            for {
-                let i := 0
-            } lt(i, values.length) {
-                i := add(i, 1)
-            } {
-                let value := calldataload(add(values.offset, mul(i, 0x20)))
-                packed := or(packed, shl(offset, value))
-                offset := add(offset, 64)
+        okFlags = new bool[](n);
+        results = new bytes[](n);
+
+        for (uint256 i = 0; i < n; ) {
+            address t = targets[i];
+            require(t != address(0), "GasOpt:zero");
+
+            uint256 val = values.length == 0 ? 0 : values[i];
+            (bool ok, bytes memory ret) = t.call{value: val}(data[i]);
+
+            if (!ok && (mustSucceed.length == 0 || mustSucceed[i])) {
+                assembly {
+                    revert(add(ret, 0x20), mload(ret))
+                }
+            }
+
+            okFlags[i] = ok;
+            results[i] = ret;
+            unchecked { ++i; }
+        }
+    }
+
+    /**
+     * @notice Pack up to four uint64 values into one bytes32 (little-endian lanes: slot0 at lowest bits).
+     * @dev values.length must be <= 4. No inline assembly → fewer calldata layout pitfalls.
+     */
+    function packU64(bytes64Array calldata values) internal pure returns (bytes32 packed) {
+        uint256 len = values.arr.length;
+        require(len <= 4, "GasOpt:pack4");
+        unchecked {
+            for (uint256 i = 0; i < len; ++i) {
+                packed |= bytes32(uint256(values.arr[i]) << (i * 64));
             }
         }
     }
+
+    /**
+     * @notice Unpack a bytes32 previously packed by packU64. Missing lanes become zero.
+     */
+    function unpackU64(bytes32 packed) internal pure returns (uint64 a, uint64 b, uint64 c, uint64 d) {
+        a = uint64(uint256(packed));
+        b = uint64(uint256(packed >> 64));
+        c = uint64(uint256(packed >> 128));
+        d = uint64(uint256(packed >> 192));
+    }
+}
+
+/**
+ * @dev Helper wrapper so we can keep a calldata array without brittle inline assembly.
+ * Using a struct parameter avoids accidental misuse and keeps signatures distinct.
+ */
+struct bytes64Array {
+    uint64[] arr;
 }
