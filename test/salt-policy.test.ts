@@ -12,8 +12,9 @@ describe("SaltViewFacet", () => {
     const content = "PayRoxUniversalContract";
     const nonce = 1000n;
 
-    const factorySalt = await f?.factorySalt(version);
-    const universalSalt = await f?.universalSalt(
+    if (!f) throw new Error('contract not deployed')
+    const factorySalt = await (f as any).factorySalt(version);
+    const universalSalt = await (f as any).universalSalt(
       deployer,
       content,
       nonce,
@@ -24,10 +25,10 @@ describe("SaltViewFacet", () => {
     const factoryBytecode = "0x60006000fd";
     const targetBytecode = "0x60016000fd";
 
-    const hFac = await f?.hashInitCode(factoryBytecode);
-    const hTgt = await f?.hashInitCode(targetBytecode);
+  const hFac = await (f as any).hashInitCode(factoryBytecode);
+  const hTgt = await (f as any).hashInitCode(targetBytecode);
 
-    const predictedFactory = await f?.predictCreate2(
+    const predictedFactory = await (f as any).predictCreate2(
       deployer,
       factorySalt,
       hFac,
@@ -39,7 +40,7 @@ describe("SaltViewFacet", () => {
     );
     expect(predictedFactory).to.equal(predictedFactoryRef);
 
-    const predictedTarget = await f?.predictCreate2(
+    const predictedTarget = await (f as any).predictCreate2(
       predictedFactory,
       universalSalt,
       hTgt,

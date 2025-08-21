@@ -88,6 +88,12 @@ interface EventNode extends ASTNode {
 // Canonical zero hash (256-bit)
 const ZERO_HASH = '0x' + '0'.repeat(64)
 
+// Helper: safely convert optional hex string to Buffer
+function _safeHexToBuffer(s: string | undefined | null): Buffer {
+  const clean = typeof s === 'string' ? s.replace(/^0x/, '') : ''
+  return clean ? Buffer.from(clean, 'hex') : Buffer.alloc(0)
+}
+
 export class SolidityAnalyzer {
   // --- Internal helpers -------------------------------------------------
   /**
@@ -2195,12 +2201,14 @@ export class SolidityAnalyzer {
     const nextLevel: string[] = []
     for (let i = 0; i < hashes.length; i += 2) {
       const left = hashes[i]
-      const right = hashes[i + 1] || left // Duplicate last hash if odd number
-      // combine raw hex strings; strip 0x if present
-      const leftRaw = left?.startsWith('0x') ? left?.slice(2) : left
-      const rightRaw = right?.startsWith('0x') ? right?.slice(2) : right
-      const combined = this?.calculateSHA256(leftRaw + rightRaw)
-      nextLevel.push(combined)
+      const right = hashes[i + 1] ?? left // Duplicate last hash if odd number
+
+      // Convert to safe buffers and hash
+      const leftBuf = _safeHexToBuffer(typeof left === 'string' ? left : undefined)
+      const rightBuf = _safeHexToBuffer(typeof right === 'string' ? right : undefined)
+      const combined = Buffer.concat([leftBuf, rightBuf])
+      const hash = crypto.createHash('sha256').update(combined).digest('hex')
+      nextLevel.push('0x' + hash)
     }
 
     return this.calculateMerkleRoot(nextLevel)
@@ -2535,9 +2543,13 @@ export class SolidityAnalyzer {
 
       parsedFunctions.forEach((f, i) => {
         // weight by share of code slice; cap at source size
+        const sliceByte = sliceBytes[i]
+        if (!sliceByte) {
+          throw new Error(`Missing slice bytes for function ${i}`)
+        }
         const est = Math.max(
           300,
-          Math?.floor((sliceBytes?.[i] / totalSliceBytes) * sizeBytes)
+          Math.floor((sliceByte / totalSliceBytes) * sizeBytes)
         )
         // Key by name (UI expects this); if overloads exist, we aggregate
         fnSizes[f.name] = (fnSizes[f.name] || 0) + est

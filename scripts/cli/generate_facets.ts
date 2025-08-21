@@ -23,7 +23,13 @@ async function main () {
       ? (args[strategyFlag + 1] as 'function' | 'feature' | 'gas')
       : 'function'
 
-  const resolved = path.resolve(process.cwd(), file)
+  if (!file) {
+    console.error('File path is required')
+    process.exit(1)
+  }
+  // narrow type for TypeScript: file is guaranteed by the guard above
+  const inputFile: string = file
+  const resolved = path.resolve(process.cwd(), inputFile)
   if (!fs.existsSync(resolved)) {
     console.error(`File not found: ${resolved}`)
     process.exit(2)

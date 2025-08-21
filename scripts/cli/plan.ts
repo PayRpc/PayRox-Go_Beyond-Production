@@ -29,7 +29,19 @@ function main () {
     )
     process.exit(1)
   }
-  const inputPath = path.resolve(process.cwd(), process.argv[idx + 1])
+  const inputFile = process.argv[idx + 1]
+  if (!inputFile) {
+    process.stdout.write(
+      JSON.stringify({
+        ok: false,
+        error: 'Input file path is required'
+      })
+    )
+    process.exit(1)
+  }
+  // narrow type for TypeScript now that we've guarded presence
+  const inputFileStr: string = inputFile
+  const inputPath = path.resolve(process.cwd(), inputFileStr)
   const raw = readJson(inputPath)
   const parsed = normalizeToParsedContract(raw)
   const wizard = new AIRefactorWizard()

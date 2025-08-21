@@ -133,7 +133,10 @@ class DiamondDeployer {
 
     // Deploy Diamond
     const Diamond = await hre.ethers.getContractFactory('Diamond')
-    const diamond = await Diamond?.deploy(deployer?.address)
+    if (!deployer?.address) {
+      throw new Error('Deployer address is required')
+    }
+    const diamond = await Diamond.deploy(deployer.address)
     await diamond.waitForDeployment()
 
     console.log(`  ✅ Diamond deployed to: ${await diamond.getAddress()}`)
@@ -145,7 +148,10 @@ class DiamondDeployer {
     )
     const loupeSelectors = this.getFunctionSelectors(diamondLoupeFacet as any)
 
-    await diamondCut?.diamondCut(
+    if (!diamondCut || typeof diamondCut.diamondCut !== 'function') {
+      throw new Error('DiamondCut function not available')
+    }
+    await diamondCut.diamondCut(
       [
         {
           facetAddress: await diamondLoupeFacet.getAddress(),
@@ -169,12 +175,12 @@ class DiamondDeployer {
     )
     const facetCuts = []
 
-    for (const [_facetName, facetData] of Object.entries(
+    for (const [facetName, facetData] of Object.entries(
       this.manifest.facets
     )) {
-      const facet = this.deployedFacets.get(_facetName)
+      const facet = this.deployedFacets.get(facetName)
       if (!facet) {
-        throw new Error(`Facet not deployed: ${_facetName}`)
+        throw new Error(`Facet not deployed: ${facetName}`)
       }
 
       facetCuts.push({
@@ -184,12 +190,15 @@ class DiamondDeployer {
       })
 
       console.log(
-        `  Adding ${_facetName} with ${facetData.selectors.length} selectors`
+        `  Adding ${facetName} with ${facetData.selectors.length} selectors`
       )
     }
 
     // Execute diamond cut
-    const tx = await diamondCut?.diamondCut(
+    if (!diamondCut || typeof (diamondCut as any).diamondCut !== 'function') {
+      throw new Error('DiamondCut function not available')
+    }
+    const tx = await (diamondCut as any).diamondCut(
       facetCuts,
       hre.ethers.ZeroAddress,
       '0x',
@@ -211,7 +220,10 @@ class DiamondDeployer {
     )
 
     // Verify all facets are properly added
-    const facets = await diamondLoupe?.facets()
+    if (!diamondLoupe || typeof (diamondLoupe as any).facets !== 'function') {
+      throw new Error('DiamondLoupe facets function not available')
+    }
+    const facets = await (diamondLoupe as any).facets()
     console.log(`  📊 Total facets: ${facets.length}`)
 
     let totalSelectors = 0
@@ -229,7 +241,10 @@ class DiamondDeployer {
       this.manifest.facets
     )) {
       for (const selector of facetData.selectors) {
-        const facetAddress = await diamondLoupe?.facetAddress(selector)
+        if (!diamondLoupe || typeof (diamondLoupe as any).facetAddress !== 'function') {
+          throw new Error('DiamondLoupe facetAddress function not available')
+        }
+        const facetAddress = await (diamondLoupe as any).facetAddress(selector)
         if (facetAddress !== facetData.address) {
           throw new Error(
             `Selector routing failed: ${selector} -> ${facetAddress} (expected ${facetData.address})`
@@ -288,11 +303,19 @@ class DiamondDeployer {
     (this.manifest as any).merkle_root = combinedHash
 
     // Add deployment metadata
+    const signers = await hre.ethers.getSigners()
+    if (!signers || signers.length === 0) {
+      throw new Error('No signers available')
+    }
+    const primarySigner = signers[0]
+    if (!primarySigner) {
+      throw new Error('Primary signer is undefined')
+    }
     const deployment = {
       network: (await hre.ethers.provider.getNetwork()).name,
       block: await hre.ethers.provider.getBlockNumber(),
       timestamp: Math.floor(Date.now() / 1000),
-      deployer: (await hre?.ethers?.getSigners())[0].address,
+      deployer: primarySigner.address,
       salt: this.config.salt
     }
 
@@ -323,12 +346,12 @@ class DiamondDeployer {
   private async setupRoles (diamond: Contract): Promise<void> {
     console.log('👥 Setting up role assignments...')
 
-    // All roles should be granted to the diamond (dispatcher), not individual facets
-    const [_deployer] = await hre.ethers.getSigners()
+  // All roles should be granted to the diamond (dispatcher), not individual facets
+  await hre.ethers.getSigners()
 
     // If diamond has access control, grant roles to diamond address
     try {
-      const _accessControl = await hre.ethers.getContractAt(
+      await hre.ethers.getContractAt(
         'IAccessControl',
         await (diamond as any).getAddress()
       )
