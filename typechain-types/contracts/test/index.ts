@@ -10,4 +10,5 @@ export type { DiamondWithEpoch } from "./DiamondWithEpoch";
 export type { EpochManager } from "./EpochManager";
 export type { FacetA } from "./FacetA";
 export type { FacetB } from "./FacetB";
+export type { MockAuditRegistry } from "./MockAuditRegistry";
 export type { MockManifestDispatcher } from "./MockManifestDispatcher";

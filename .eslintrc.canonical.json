@@ -5,7 +5,7 @@
     "prettier"
   ],
   "parserOptions": {
-    "project": ["./tsconfig.json", "./tsconfig.hardhat.json"]
+  "project": ["./tsconfig.hardhat.json"]
   },
   "env": {
     "node": true,

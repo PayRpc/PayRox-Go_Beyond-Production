@@ -126,6 +126,11 @@ export async function crossChainConsistencyCheck(
 
   // Check consistency
   const firstPrediction = predictions[0];
+  if (!firstPrediction) {
+    console.error("❌ No predictions available");
+    return false;
+  }
+  
   const allMatch = predictions.every(
     p => p.predicted.toLowerCase() === firstPrediction.predicted.toLowerCase() &&
          p.initCodeHash === firstPrediction.initCodeHash

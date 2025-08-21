@@ -29,8 +29,6 @@ export interface DeterministicChunkFactoryInterface extends Interface {
       | "FEE_ROLE"
       | "MAX_CHUNK_BYTES"
       | "OPERATOR_ROLE"
-      | "addAuthorizedRecipient"
-      | "authorizedRecipients"
       | "baseFeeWei"
       | "chunkOf"
       | "defaultAdmin"
@@ -55,18 +53,15 @@ export interface DeterministicChunkFactoryInterface extends Interface {
       | "idempotentMode"
       | "isDeployed"
       | "isDeployedContract"
-      | "maxSingleTransfer"
       | "owner"
       | "predict"
       | "predictAddress"
       | "predictAddressBatch"
       | "read"
-      | "removeAuthorizedRecipient"
       | "setBaseFeeWei"
       | "setFeeRecipient"
       | "setFeesEnabled"
       | "setIdempotentMode"
-      | "setMaxSingleTransfer"
       | "setTierFee"
       | "setUserTier"
       | "stage"
@@ -83,8 +78,6 @@ export interface DeterministicChunkFactoryInterface extends Interface {
 
   getEvent(
     nameOrSignatureOrTopic:
-      | "AuthorizedRecipientAdded"
-      | "AuthorizedRecipientRemoved"
       | "BaseFeeSet"
       | "BatchDeployed"
       | "BatchStaged"
@@ -109,14 +102,6 @@ export interface DeterministicChunkFactoryInterface extends Interface {
   encodeFunctionData(
     functionFragment: "OPERATOR_ROLE",
     values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "addAuthorizedRecipient",
-    values: [AddressLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "authorizedRecipients",
-    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "baseFeeWei",
@@ -208,10 +193,6 @@ export interface DeterministicChunkFactoryInterface extends Interface {
     functionFragment: "isDeployedContract",
     values: [AddressLike]
   ): string;
-  encodeFunctionData(
-    functionFragment: "maxSingleTransfer",
-    values?: undefined
-  ): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(functionFragment: "predict", values: [BytesLike]): string;
   encodeFunctionData(
@@ -223,10 +204,6 @@ export interface DeterministicChunkFactoryInterface extends Interface {
     values: [BytesLike[], BytesLike[]]
   ): string;
   encodeFunctionData(functionFragment: "read", values: [AddressLike]): string;
-  encodeFunctionData(
-    functionFragment: "removeAuthorizedRecipient",
-    values: [AddressLike]
-  ): string;
   encodeFunctionData(
     functionFragment: "setBaseFeeWei",
     values: [BigNumberish]
@@ -242,10 +219,6 @@ export interface DeterministicChunkFactoryInterface extends Interface {
   encodeFunctionData(
     functionFragment: "setIdempotentMode",
     values: [boolean]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "setMaxSingleTransfer",
-    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "setTierFee",
@@ -300,14 +273,6 @@ export interface DeterministicChunkFactoryInterface extends Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "OPERATOR_ROLE",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "addAuthorizedRecipient",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "authorizedRecipients",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "baseFeeWei", data: BytesLike): Result;
@@ -394,10 +359,6 @@ export interface DeterministicChunkFactoryInterface extends Interface {
     functionFragment: "isDeployedContract",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "maxSingleTransfer",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "predict", data: BytesLike): Result;
   decodeFunctionResult(
@@ -409,10 +370,6 @@ export interface DeterministicChunkFactoryInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "read", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "removeAuthorizedRecipient",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(
     functionFragment: "setBaseFeeWei",
     data: BytesLike
@@ -427,10 +384,6 @@ export interface DeterministicChunkFactoryInterface extends Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "setIdempotentMode",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "setMaxSingleTransfer",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "setTierFee", data: BytesLike): Result;
@@ -463,30 +416,6 @@ export interface DeterministicChunkFactoryInterface extends Interface {
     functionFragment: "withdrawRefund",
     data: BytesLike
   ): Result;
-}
-
-export namespace AuthorizedRecipientAddedEvent {
-  export type InputTuple = [recipient: AddressLike];
-  export type OutputTuple = [recipient: string];
-  export interface OutputObject {
-    recipient: string;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
-}
-
-export namespace AuthorizedRecipientRemovedEvent {
-  export type InputTuple = [recipient: AddressLike];
-  export type OutputTuple = [recipient: string];
-  export interface OutputObject {
-    recipient: string;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
 }
 
 export namespace BaseFeeSetEvent {
@@ -764,18 +693,6 @@ export interface DeterministicChunkFactory extends BaseContract {
 
   OPERATOR_ROLE: TypedContractMethod<[], [string], "view">;
 
-  addAuthorizedRecipient: TypedContractMethod<
-    [recipient: AddressLike],
-    [void],
-    "nonpayable"
-  >;
-
-  authorizedRecipients: TypedContractMethod<
-    [arg0: AddressLike],
-    [boolean],
-    "view"
-  >;
-
   baseFeeWei: TypedContractMethod<[], [bigint], "view">;
 
   chunkOf: TypedContractMethod<[arg0: BytesLike], [string], "view">;
@@ -836,8 +753,6 @@ export interface DeterministicChunkFactory extends BaseContract {
     "view"
   >;
 
-  maxSingleTransfer: TypedContractMethod<[], [bigint], "view">;
-
   owner: TypedContractMethod<[], [string], "view">;
 
   predict: TypedContractMethod<
@@ -860,12 +775,6 @@ export interface DeterministicChunkFactory extends BaseContract {
 
   read: TypedContractMethod<[chunk: AddressLike], [string], "view">;
 
-  removeAuthorizedRecipient: TypedContractMethod<
-    [recipient: AddressLike],
-    [void],
-    "nonpayable"
-  >;
-
   setBaseFeeWei: TypedContractMethod<
     [newBase: BigNumberish],
     [void],
@@ -882,12 +791,6 @@ export interface DeterministicChunkFactory extends BaseContract {
 
   setIdempotentMode: TypedContractMethod<
     [enabled: boolean],
-    [void],
-    "nonpayable"
-  >;
-
-  setMaxSingleTransfer: TypedContractMethod<
-    [newMax: BigNumberish],
     [void],
     "nonpayable"
   >;
@@ -957,12 +860,6 @@ export interface DeterministicChunkFactory extends BaseContract {
   getFunction(
     nameOrSignature: "OPERATOR_ROLE"
   ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "addAuthorizedRecipient"
-  ): TypedContractMethod<[recipient: AddressLike], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "authorizedRecipients"
-  ): TypedContractMethod<[arg0: AddressLike], [boolean], "view">;
   getFunction(
     nameOrSignature: "baseFeeWei"
   ): TypedContractMethod<[], [bigint], "view">;
@@ -1044,9 +941,6 @@ export interface DeterministicChunkFactory extends BaseContract {
     nameOrSignature: "isDeployedContract"
   ): TypedContractMethod<[arg0: AddressLike], [boolean], "view">;
   getFunction(
-    nameOrSignature: "maxSingleTransfer"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
     nameOrSignature: "owner"
   ): TypedContractMethod<[], [string], "view">;
   getFunction(
@@ -1074,9 +968,6 @@ export interface DeterministicChunkFactory extends BaseContract {
     nameOrSignature: "read"
   ): TypedContractMethod<[chunk: AddressLike], [string], "view">;
   getFunction(
-    nameOrSignature: "removeAuthorizedRecipient"
-  ): TypedContractMethod<[recipient: AddressLike], [void], "nonpayable">;
-  getFunction(
     nameOrSignature: "setBaseFeeWei"
   ): TypedContractMethod<[newBase: BigNumberish], [void], "nonpayable">;
   getFunction(
@@ -1088,9 +979,6 @@ export interface DeterministicChunkFactory extends BaseContract {
   getFunction(
     nameOrSignature: "setIdempotentMode"
   ): TypedContractMethod<[enabled: boolean], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "setMaxSingleTransfer"
-  ): TypedContractMethod<[newMax: BigNumberish], [void], "nonpayable">;
   getFunction(
     nameOrSignature: "setTierFee"
   ): TypedContractMethod<
@@ -1144,20 +1032,6 @@ export interface DeterministicChunkFactory extends BaseContract {
     nameOrSignature: "withdrawRefund"
   ): TypedContractMethod<[], [void], "nonpayable">;
 
-  getEvent(
-    key: "AuthorizedRecipientAdded"
-  ): TypedContractEvent<
-    AuthorizedRecipientAddedEvent.InputTuple,
-    AuthorizedRecipientAddedEvent.OutputTuple,
-    AuthorizedRecipientAddedEvent.OutputObject
-  >;
-  getEvent(
-    key: "AuthorizedRecipientRemoved"
-  ): TypedContractEvent<
-    AuthorizedRecipientRemovedEvent.InputTuple,
-    AuthorizedRecipientRemovedEvent.OutputTuple,
-    AuthorizedRecipientRemovedEvent.OutputObject
-  >;
   getEvent(
     key: "BaseFeeSet"
   ): TypedContractEvent<
@@ -1258,28 +1132,6 @@ export interface DeterministicChunkFactory extends BaseContract {
   >;
 
   filters: {
-    "AuthorizedRecipientAdded(address)": TypedContractEvent<
-      AuthorizedRecipientAddedEvent.InputTuple,
-      AuthorizedRecipientAddedEvent.OutputTuple,
-      AuthorizedRecipientAddedEvent.OutputObject
-    >;
-    AuthorizedRecipientAdded: TypedContractEvent<
-      AuthorizedRecipientAddedEvent.InputTuple,
-      AuthorizedRecipientAddedEvent.OutputTuple,
-      AuthorizedRecipientAddedEvent.OutputObject
-    >;
-
-    "AuthorizedRecipientRemoved(address)": TypedContractEvent<
-      AuthorizedRecipientRemovedEvent.InputTuple,
-      AuthorizedRecipientRemovedEvent.OutputTuple,
-      AuthorizedRecipientRemovedEvent.OutputObject
-    >;
-    AuthorizedRecipientRemoved: TypedContractEvent<
-      AuthorizedRecipientRemovedEvent.InputTuple,
-      AuthorizedRecipientRemovedEvent.OutputTuple,
-      AuthorizedRecipientRemovedEvent.OutputObject
-    >;
-
     "BaseFeeSet(uint256)": TypedContractEvent<
       BaseFeeSetEvent.InputTuple,
       BaseFeeSetEvent.OutputTuple,

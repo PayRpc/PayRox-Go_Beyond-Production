@@ -26,7 +26,6 @@ import type {
 export interface ChunkFactoryFacetInterface extends Interface {
   getFunction(
     nameOrSignature:
-      | "addAuthorizedRecipient"
       | "deployDeterministic"
       | "deployDeterministicBatch"
       | "deploymentCount"
@@ -43,12 +42,10 @@ export interface ChunkFactoryFacetInterface extends Interface {
       | "predictAddress"
       | "predictAddressBatch"
       | "read"
-      | "removeAuthorizedRecipient"
       | "setBaseFeeWei"
       | "setFeeRecipient"
       | "setFeesEnabled"
       | "setIdempotentMode"
-      | "setMaxSingleTransfer"
       | "setTierFee"
       | "setUserTier"
       | "stage"
@@ -64,8 +61,6 @@ export interface ChunkFactoryFacetInterface extends Interface {
 
   getEvent(
     nameOrSignatureOrTopic:
-      | "AuthorizedRecipientAdded"
-      | "AuthorizedRecipientRemoved"
       | "BaseFeeSet"
       | "BatchDeployed"
       | "BatchStaged"
@@ -82,10 +77,6 @@ export interface ChunkFactoryFacetInterface extends Interface {
       | "UserTierSet"
   ): EventFragment;
 
-  encodeFunctionData(
-    functionFragment: "addAuthorizedRecipient",
-    values: [AddressLike]
-  ): string;
   encodeFunctionData(
     functionFragment: "deployDeterministic",
     values: [BytesLike, BytesLike, BytesLike]
@@ -139,10 +130,6 @@ export interface ChunkFactoryFacetInterface extends Interface {
   ): string;
   encodeFunctionData(functionFragment: "read", values: [AddressLike]): string;
   encodeFunctionData(
-    functionFragment: "removeAuthorizedRecipient",
-    values: [AddressLike]
-  ): string;
-  encodeFunctionData(
     functionFragment: "setBaseFeeWei",
     values: [BigNumberish]
   ): string;
@@ -157,10 +144,6 @@ export interface ChunkFactoryFacetInterface extends Interface {
   encodeFunctionData(
     functionFragment: "setIdempotentMode",
     values: [boolean]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "setMaxSingleTransfer",
-    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "setTierFee",
@@ -204,10 +187,6 @@ export interface ChunkFactoryFacetInterface extends Interface {
     values?: undefined
   ): string;
 
-  decodeFunctionResult(
-    functionFragment: "addAuthorizedRecipient",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(
     functionFragment: "deployDeterministic",
     data: BytesLike
@@ -261,10 +240,6 @@ export interface ChunkFactoryFacetInterface extends Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "read", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "removeAuthorizedRecipient",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "setBaseFeeWei",
     data: BytesLike
   ): Result;
@@ -278,10 +253,6 @@ export interface ChunkFactoryFacetInterface extends Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "setIdempotentMode",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "setMaxSingleTransfer",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "setTierFee", data: BytesLike): Result;
@@ -313,30 +284,6 @@ export interface ChunkFactoryFacetInterface extends Interface {
     functionFragment: "withdrawRefund",
     data: BytesLike
   ): Result;
-}
-
-export namespace AuthorizedRecipientAddedEvent {
-  export type InputTuple = [recipient: AddressLike];
-  export type OutputTuple = [recipient: string];
-  export interface OutputObject {
-    recipient: string;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
-}
-
-export namespace AuthorizedRecipientRemovedEvent {
-  export type InputTuple = [recipient: AddressLike];
-  export type OutputTuple = [recipient: string];
-  export interface OutputObject {
-    recipient: string;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
 }
 
 export namespace BaseFeeSetEvent {
@@ -608,12 +555,6 @@ export interface ChunkFactoryFacet extends BaseContract {
     event?: TCEvent
   ): Promise<this>;
 
-  addAuthorizedRecipient: TypedContractMethod<
-    [recipient: AddressLike],
-    [void],
-    "nonpayable"
-  >;
-
   deployDeterministic: TypedContractMethod<
     [salt: BytesLike, bytecode: BytesLike, constructorArgs: BytesLike],
     [string],
@@ -670,12 +611,6 @@ export interface ChunkFactoryFacet extends BaseContract {
 
   read: TypedContractMethod<[chunk: AddressLike], [string], "view">;
 
-  removeAuthorizedRecipient: TypedContractMethod<
-    [recipient: AddressLike],
-    [void],
-    "nonpayable"
-  >;
-
   setBaseFeeWei: TypedContractMethod<
     [newBase: BigNumberish],
     [void],
@@ -692,12 +627,6 @@ export interface ChunkFactoryFacet extends BaseContract {
 
   setIdempotentMode: TypedContractMethod<
     [enabled: boolean],
-    [void],
-    "nonpayable"
-  >;
-
-  setMaxSingleTransfer: TypedContractMethod<
-    [newMax: BigNumberish],
     [void],
     "nonpayable"
   >;
@@ -756,9 +685,6 @@ export interface ChunkFactoryFacet extends BaseContract {
     key: string | FunctionFragment
   ): T;
 
-  getFunction(
-    nameOrSignature: "addAuthorizedRecipient"
-  ): TypedContractMethod<[recipient: AddressLike], [void], "nonpayable">;
   getFunction(
     nameOrSignature: "deployDeterministic"
   ): TypedContractMethod<
@@ -828,9 +754,6 @@ export interface ChunkFactoryFacet extends BaseContract {
     nameOrSignature: "read"
   ): TypedContractMethod<[chunk: AddressLike], [string], "view">;
   getFunction(
-    nameOrSignature: "removeAuthorizedRecipient"
-  ): TypedContractMethod<[recipient: AddressLike], [void], "nonpayable">;
-  getFunction(
     nameOrSignature: "setBaseFeeWei"
   ): TypedContractMethod<[newBase: BigNumberish], [void], "nonpayable">;
   getFunction(
@@ -842,9 +765,6 @@ export interface ChunkFactoryFacet extends BaseContract {
   getFunction(
     nameOrSignature: "setIdempotentMode"
   ): TypedContractMethod<[enabled: boolean], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "setMaxSingleTransfer"
-  ): TypedContractMethod<[newMax: BigNumberish], [void], "nonpayable">;
   getFunction(
     nameOrSignature: "setTierFee"
   ): TypedContractMethod<
@@ -895,20 +815,6 @@ export interface ChunkFactoryFacet extends BaseContract {
     nameOrSignature: "withdrawRefund"
   ): TypedContractMethod<[], [void], "nonpayable">;
 
-  getEvent(
-    key: "AuthorizedRecipientAdded"
-  ): TypedContractEvent<
-    AuthorizedRecipientAddedEvent.InputTuple,
-    AuthorizedRecipientAddedEvent.OutputTuple,
-    AuthorizedRecipientAddedEvent.OutputObject
-  >;
-  getEvent(
-    key: "AuthorizedRecipientRemoved"
-  ): TypedContractEvent<
-    AuthorizedRecipientRemovedEvent.InputTuple,
-    AuthorizedRecipientRemovedEvent.OutputTuple,
-    AuthorizedRecipientRemovedEvent.OutputObject
-  >;
   getEvent(
     key: "BaseFeeSet"
   ): TypedContractEvent<
@@ -1009,28 +915,6 @@ export interface ChunkFactoryFacet extends BaseContract {
   >;
 
   filters: {
-    "AuthorizedRecipientAdded(address)": TypedContractEvent<
-      AuthorizedRecipientAddedEvent.InputTuple,
-      AuthorizedRecipientAddedEvent.OutputTuple,
-      AuthorizedRecipientAddedEvent.OutputObject
-    >;
-    AuthorizedRecipientAdded: TypedContractEvent<
-      AuthorizedRecipientAddedEvent.InputTuple,
-      AuthorizedRecipientAddedEvent.OutputTuple,
-      AuthorizedRecipientAddedEvent.OutputObject
-    >;
-
-    "AuthorizedRecipientRemoved(address)": TypedContractEvent<
-      AuthorizedRecipientRemovedEvent.InputTuple,
-      AuthorizedRecipientRemovedEvent.OutputTuple,
-      AuthorizedRecipientRemovedEvent.OutputObject
-    >;
-    AuthorizedRecipientRemoved: TypedContractEvent<
-      AuthorizedRecipientRemovedEvent.InputTuple,
-      AuthorizedRecipientRemovedEvent.OutputTuple,
-      AuthorizedRecipientRemovedEvent.OutputObject
-    >;
-
     "BaseFeeSet(uint256)": TypedContractEvent<
       BaseFeeSetEvent.InputTuple,
       BaseFeeSetEvent.OutputTuple,

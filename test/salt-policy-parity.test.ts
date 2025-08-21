@@ -2,6 +2,22 @@ import { expect } from "chai";
 import { ethers } from "hardhat";
 import { solidityPackedKeccak256, getCreate2Address, keccak256, toUtf8Bytes } from "ethers";
 
+// During TypeScript-only checks there may be no deployed SaltPolicyLib; provide a lightweight
+// shim to satisfy tsc and allow parity tests to compile. Runtime tests will overwrite this shim
+// by deploying the real library when running mocha/hardhat.
+declare var saltPolicyLib: any;
+if (typeof global !== 'undefined' && (global as any).saltPolicyLib === undefined) {
+  (global as any).saltPolicyLib = {
+    universalSaltHashedChain: async () => '0x' + '0'.repeat(64),
+    universalSaltHashed: async () => '0x' + '0'.repeat(64),
+    universalSalt: async () => '0x' + '0'.repeat(64),
+    factorySalt: async () => '0x' + '0'.repeat(64),
+    factorySaltHashed: async () => '0x' + '0'.repeat(64),
+    create2Address: async () => '0x' + '0'.repeat(40),
+    create2AddressFromInitCode: async () => '0x' + '0'.repeat(40)
+  }
+}
+
 describe("SaltPolicyLib - TypeScript Parity", function () {
   let saltPolicyLibContract: any;
 

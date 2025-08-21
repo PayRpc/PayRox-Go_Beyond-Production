@@ -8,4 +8,5 @@ export { DiamondWithEpoch__factory } from "./DiamondWithEpoch__factory";
 export { EpochManager__factory } from "./EpochManager__factory";
 export { FacetA__factory } from "./FacetA__factory";
 export { FacetB__factory } from "./FacetB__factory";
+export { MockAuditRegistry__factory } from "./MockAuditRegistry__factory";
 export { MockManifestDispatcher__factory } from "./MockManifestDispatcher__factory";

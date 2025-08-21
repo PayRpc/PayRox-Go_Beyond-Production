@@ -16,3 +16,4 @@ export * as manifest from "./manifest";
 export * as orchestrator from "./orchestrator";
 export * as test from "./test";
 export * as utils from "./utils";
+export { TestSaltPolicyLib__factory } from "./TestSaltPolicyLib__factory";

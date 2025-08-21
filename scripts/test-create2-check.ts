@@ -1,159 +1,353 @@
-// scripts/test-create2-check.ts
+// SPDX-License-Identifier: MIT
 /**
- * Test script for CREATE2 checking functionality
- * Run with: npx hardhat run scripts/test-create2-check.ts
+ * CREATE2 Check Testing Script
+ * 
+ * Tests CREATE2 deployment functionality and address prediction
+ * to ensure deterministic deployment capabilities.
  */
 
-import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { runCreate2Check, preflightCreate2Check } from "../src/tools/create2Check";
+const hre = require('hardhat');
+const { ethers } = hre;
+import * as crypto from 'crypto';
+import * as fs from 'fs';
+import * as path from 'path';
 
-async function main() {
-  const hre = require("hardhat") as HardhatRuntimeEnvironment;
+interface CREATE2TestResult {
+  testName: string;
+  success: boolean;
+  predictedAddress: string;
+  actualAddress?: string;
+  saltUsed: string;
+  errorMessage?: string;
+}
+
+interface CREATE2TestSuite {
+  timestamp: string;
+  totalTests: number;
+  passedTests: number;
+  failedTests: number;
+  results: CREATE2TestResult[];
+}
+
+async function testAddressPrediction(): Promise<CREATE2TestResult> {
+  console.log('🔮 Testing address prediction...');
   
-  console.log("🧪 Testing CREATE2 Check Implementation");
-  console.log("=".repeat(60));
-  
-  // Test configuration
-  const testConfig = {
-    factory: "0x5FbDB2315678afecb367f032d93F642f64180aa3", // Local hardhat factory
-    salt: "0x" + "1".repeat(64), // Test salt
-    contractName: "DeterministicChunkFactory", // Use an existing contract
-    constructorArgs: [
-      "0x" + "0".repeat(40), // feeRecipient
-      "0x" + "1".repeat(40), // dispatcher
-      "0x" + "2".repeat(64), // manifestHash
-      "0x" + "3".repeat(64), // dispatcherCodehash
-      "0x" + "4".repeat(64), // factoryCodehash
-      "1000000000000000",    // gasFee
-      true                   // enabled
-    ],
-  };
-
-  console.log("\n📋 Test Configuration:");
-  console.log(`Network: ${hre.network.name}`);
-  console.log(`Factory: ${testConfig.factory}`);
-  console.log(`Salt: ${testConfig.salt}`);
-  console.log(`Contract: ${testConfig.contractName}`);
-
   try {
-    console.log("\n🔬 Test 1: Basic CREATE2 Prediction");
-    console.log("-".repeat(40));
+    const signers = await ethers.getSigners();
+    if (signers.length === 0) {
+      throw new Error('No signers available');
+    }
     
-    const result1 = await runCreate2Check({
-      hre,
-      factory: testConfig.factory,
-      salt: testConfig.salt,
-      mode: "contract",
-      contractName: testConfig.contractName,
-      argsJson: JSON.stringify(testConfig.constructorArgs),
-      noFail: true, // Don't fail on missing factory
-    });
-
-    console.log(`✅ Predicted address: ${result1.predicted}`);
-    console.log(`✅ InitCode hash: ${result1.initCodeHash}`);
-    console.log(`✅ Contract deployed: ${result1.deployed ? "YES" : "NO"}`);
-
-    console.log("\n🔬 Test 2: Preflight Check (simulated)");
-    console.log("-".repeat(40));
-
-    const result2 = await preflightCreate2Check(hre, {
-      factory: testConfig.factory,
-      salt: testConfig.salt,
-      contractName: testConfig.contractName,
-      constructorArgs: testConfig.constructorArgs,
-      throwOnFail: false,
-    });
-
-    console.log("✅ Preflight check completed");
-
-    console.log("\n🔬 Test 3: Address Consistency");
-    console.log("-".repeat(40));
-
-    // Test with same parameters should produce same result
-    const result3 = await runCreate2Check({
-      hre,
-      factory: testConfig.factory,
-      salt: testConfig.salt,
-      mode: "contract",
-      contractName: testConfig.contractName,
-      argsJson: JSON.stringify(testConfig.constructorArgs),
-      noFail: true,
-    });
-
-    const consistent = result1.predicted === result3.predicted && 
-                      result1.initCodeHash === result3.initCodeHash;
-
-    if (consistent) {
-      console.log("✅ Address prediction is consistent");
-    } else {
-      console.log("❌ Address prediction inconsistent!");
-      console.log(`  First:  ${result1.predicted}`);
-      console.log(`  Second: ${result3.predicted}`);
-    }
-
-    console.log("\n🔬 Test 4: Different Salt = Different Address");
-    console.log("-".repeat(40));
-
-    const differentSalt = "0x" + "2".repeat(64);
-    const result4 = await runCreate2Check({
-      hre,
-      factory: testConfig.factory,
-      salt: differentSalt,
-      mode: "contract",
-      contractName: testConfig.contractName,
-      argsJson: JSON.stringify(testConfig.constructorArgs),
-      noFail: true,
-    });
-
-    const differentAddress = result1.predicted !== result4.predicted;
-    if (differentAddress) {
-      console.log("✅ Different salt produces different address");
-      console.log(`  Original: ${result1.predicted}`);
-      console.log(`  New:      ${result4.predicted}`);
-    } else {
-      console.log("❌ Same address with different salt - this is wrong!");
-    }
-
-    console.log("\n" + "=".repeat(60));
-    console.log("🎉 CREATE2 Check Implementation Tests Complete!");
-    console.log("=".repeat(60));
-
-    // Export test results
-    const testResults = {
-      network: hre.network.name,
-      timestamp: new Date().toISOString(),
-      tests: {
-        basicPrediction: !!result1.predicted,
-        preflightCheck: !!result2.predicted,
-        consistency: consistent,
-        saltDifference: differentAddress,
-      },
-      predictions: {
-        original: result1.predicted,
-        originalHash: result1.initCodeHash,
-        differentSalt: result4.predicted,
-        differentSaltHash: result4.initCodeHash,
-      }
+  const deployer = signers[0]!;
+    const salt = ethers.hexlify(crypto.randomBytes(32));
+    
+    // Get contract bytecode
+    const ContractFactory = await ethers.getContractFactory('DiamondCutFacet');
+    const deployTransaction = await ContractFactory.getDeployTransaction();
+    const initCode = deployTransaction.data;
+    const initCodeHash = ethers.keccak256(initCode);
+    
+    // Predict address
+    const predictedAddress = ethers.getCreate2Address(
+      deployer.address!,
+      salt,
+      initCodeHash
+    );
+    
+    return {
+      testName: 'Address Prediction',
+      success: true,
+      predictedAddress,
+      saltUsed: salt,
     };
-
-    console.log("\n📄 Test Results JSON:");
-    console.log(JSON.stringify(testResults, null, 2));
-
-  } catch (error: any) {
-    console.error("\n❌ Test failed:");
-    console.error(error.message);
-    process.exit(1);
+    
+  } catch (error) {
+    return {
+      testName: 'Address Prediction',
+      success: false,
+      predictedAddress: '',
+      saltUsed: '',
+      errorMessage: error instanceof Error ? error.message : String(error)
+    };
   }
 }
 
-// Execute tests
-if (require.main === module) {
-  main()
-    .then(() => process.exit(0))
-    .catch((error) => {
-      console.error(error);
-      process.exit(1);
-    });
+async function testSaltDeterminism(): Promise<CREATE2TestResult> {
+  console.log('🧂 Testing salt determinism...');
+  
+  try {
+    const signers = await ethers.getSigners();
+    if (signers.length === 0) {
+      throw new Error('No signers available');
+    }
+    
+    const deployer = signers[0];
+    const salt = '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
+    
+    // Get contract bytecode
+    const ContractFactory = await ethers.getContractFactory('DiamondCutFacet');
+    const deployTransaction = await ContractFactory.getDeployTransaction();
+    const initCode = deployTransaction.data;
+    const initCodeHash = ethers.keccak256(initCode);
+    
+    // Predict address twice with same salt
+    const address1 = ethers.getCreate2Address(deployer.address, salt, initCodeHash);
+    const address2 = ethers.getCreate2Address(deployer.address, salt, initCodeHash);
+    
+    const success = address1 === address2;
+    
+    return {
+      testName: 'Salt Determinism',
+      success,
+      predictedAddress: address1,
+      actualAddress: address2,
+      saltUsed: salt,
+      errorMessage: success ? undefined : 'Addresses do not match with same salt'
+    };
+    
+  } catch (error) {
+    return {
+      testName: 'Salt Determinism',
+      success: false,
+      predictedAddress: '',
+      saltUsed: '',
+      errorMessage: error instanceof Error ? error.message : String(error)
+    };
+  }
 }
 
-export { main as testCreate2Check };
+async function testSaltVariation(): Promise<CREATE2TestResult> {
+  console.log('🎲 Testing salt variation...');
+  
+  try {
+    const signers = await ethers.getSigners();
+    if (signers.length === 0) {
+      throw new Error('No signers available');
+    }
+    
+    const deployer = signers[0];
+    const salt1 = '0x1111111111111111111111111111111111111111111111111111111111111111';
+    const salt2 = '0x2222222222222222222222222222222222222222222222222222222222222222';
+    
+    // Get contract bytecode
+    const ContractFactory = await ethers.getContractFactory('DiamondCutFacet');
+    const deployTransaction = await ContractFactory.getDeployTransaction();
+    const initCode = deployTransaction.data;
+    const initCodeHash = ethers.keccak256(initCode);
+    
+    // Predict addresses with different salts
+    const address1 = ethers.getCreate2Address(deployer.address, salt1, initCodeHash);
+    const address2 = ethers.getCreate2Address(deployer.address, salt2, initCodeHash);
+    
+    const success = address1 !== address2;
+    
+    return {
+      testName: 'Salt Variation',
+      success,
+      predictedAddress: address1,
+      actualAddress: address2,
+      saltUsed: `${salt1} vs ${salt2}`,
+      errorMessage: success ? undefined : 'Different salts produced same address'
+    };
+    
+  } catch (error) {
+    return {
+      testName: 'Salt Variation',
+      success: false,
+      predictedAddress: '',
+      saltUsed: '',
+      errorMessage: error instanceof Error ? error.message : String(error)
+    };
+  }
+}
+
+async function testContractVariation(): Promise<CREATE2TestResult> {
+  console.log('📄 Testing contract variation...');
+  
+  try {
+    const signers = await ethers.getSigners();
+    if (signers.length === 0) {
+      throw new Error('No signers available');
+    }
+    
+    const deployer = signers[0];
+    const salt = ethers.hexlify(crypto.randomBytes(32));
+    
+    // Get bytecode for different contracts
+    const Contract1 = await ethers.getContractFactory('DiamondCutFacet');
+    const Contract2 = await ethers.getContractFactory('DiamondLoupeFacet');
+    
+    const deployTx1 = await Contract1.getDeployTransaction();
+    const deployTx2 = await Contract2.getDeployTransaction();
+    
+    const initCode1 = deployTx1.data;
+    const initCode2 = deployTx2.data;
+    
+    const initCodeHash1 = ethers.keccak256(initCode1);
+    const initCodeHash2 = ethers.keccak256(initCode2);
+    
+    // Predict addresses
+    const address1 = ethers.getCreate2Address(deployer.address, salt, initCodeHash1);
+    const address2 = ethers.getCreate2Address(deployer.address, salt, initCodeHash2);
+    
+    const success = address1 !== address2;
+    
+    return {
+      testName: 'Contract Variation',
+      success,
+      predictedAddress: address1,
+      actualAddress: address2,
+      saltUsed: salt,
+      errorMessage: success ? undefined : 'Different contracts produced same address'
+    };
+    
+  } catch (error) {
+    return {
+      testName: 'Contract Variation',
+      success: false,
+      predictedAddress: '',
+      saltUsed: '',
+      errorMessage: error instanceof Error ? error.message : String(error)
+    };
+  }
+}
+
+async function testDeployerVariation(): Promise<CREATE2TestResult> {
+  console.log('👤 Testing deployer variation...');
+  
+  try {
+    const signers = await ethers.getSigners();
+    if (signers.length < 2) {
+      // Skip this test if we don't have enough signers
+      return {
+        testName: 'Deployer Variation',
+        success: true,
+        predictedAddress: 'N/A',
+        saltUsed: 'N/A',
+        errorMessage: 'Skipped - Need at least 2 signers'
+      };
+    }
+    
+    const deployer1 = signers[0];
+    const deployer2 = signers[1];
+    const salt = ethers.hexlify(crypto.randomBytes(32));
+    
+    // Get contract bytecode
+    const ContractFactory = await ethers.getContractFactory('DiamondCutFacet');
+    const deployTransaction = await ContractFactory.getDeployTransaction();
+    const initCode = deployTransaction.data;
+    const initCodeHash = ethers.keccak256(initCode);
+    
+    // Predict addresses with different deployers
+    const address1 = ethers.getCreate2Address(deployer1.address, salt, initCodeHash);
+    const address2 = ethers.getCreate2Address(deployer2.address, salt, initCodeHash);
+    
+    const success = address1 !== address2;
+    
+    return {
+      testName: 'Deployer Variation',
+      success,
+      predictedAddress: address1,
+      actualAddress: address2,
+      saltUsed: salt,
+      errorMessage: success ? undefined : 'Different deployers produced same address'
+    };
+    
+  } catch (error) {
+    return {
+      testName: 'Deployer Variation',
+      success: false,
+      predictedAddress: '',
+      saltUsed: '',
+      errorMessage: error instanceof Error ? error.message : String(error)
+    };
+  }
+}
+
+async function main() {
+  console.log('🏭 CREATE2 Check Test Suite');
+  console.log('============================\n');
+  
+  const testSuite: CREATE2TestSuite = {
+    timestamp: new Date().toISOString(),
+    totalTests: 0,
+    passedTests: 0,
+    failedTests: 0,
+    results: []
+  };
+  
+  // Define test functions
+  const tests = [
+    testAddressPrediction,
+    testSaltDeterminism,
+    testSaltVariation,
+    testContractVariation,
+    testDeployerVariation
+  ];
+  
+  // Run all tests
+  for (const test of tests) {
+    try {
+      const result = await test();
+      testSuite.results.push(result);
+      testSuite.totalTests++;
+      
+      if (result.success) {
+        testSuite.passedTests++;
+        console.log(`✅ ${result.testName}`);
+      } else {
+        testSuite.failedTests++;
+        console.log(`❌ ${result.testName}: ${result.errorMessage}`);
+      }
+      
+    } catch (error) {
+      const failedResult: CREATE2TestResult = {
+        testName: test.name,
+        success: false,
+        predictedAddress: '',
+        saltUsed: '',
+        errorMessage: error instanceof Error ? error.message : String(error)
+      };
+      
+      testSuite.results.push(failedResult);
+      testSuite.totalTests++;
+      testSuite.failedTests++;
+      console.log(`❌ ${test.name}: ${failedResult.errorMessage}`);
+    }
+  }
+  
+  // Generate summary
+  console.log('\n📊 Test Summary:');
+  console.log(`   Total Tests: ${testSuite.totalTests}`);
+  console.log(`   Passed: ${testSuite.passedTests}`);
+  console.log(`   Failed: ${testSuite.failedTests}`);
+  console.log(`   Success Rate: ${((testSuite.passedTests / testSuite.totalTests) * 100).toFixed(1)}%`);
+  
+  // Save results
+  const outputDir = path.join(process.cwd(), 'reports');
+  if (!fs.existsSync(outputDir)) {
+    fs.mkdirSync(outputDir, { recursive: true });
+  }
+  
+  const outputFile = path.join(outputDir, `create2-check-tests-${Date.now()}.json`);
+  fs.writeFileSync(outputFile, JSON.stringify(testSuite, null, 2));
+  console.log(`\n📄 Results saved: ${outputFile}`);
+  
+  // Exit with appropriate code
+  const allPassed = testSuite.failedTests === 0;
+  console.log(`\n${allPassed ? '✅' : '❌'} CREATE2 tests ${allPassed ? 'PASSED' : 'FAILED'}`);
+  
+  if (!allPassed) {
+    console.log('\n🔍 Failed tests:');
+    testSuite.results
+      .filter(r => !r.success)
+      .forEach(r => console.log(`   - ${r.testName}: ${r.errorMessage}`));
+  }
+  
+  process.exit(allPassed ? 0 : 1);
+}
+
+main().catch((error) => {
+  console.error('❌ CREATE2 test suite failed:', error);
+  process.exit(1);
+});

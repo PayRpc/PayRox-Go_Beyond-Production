@@ -31,3 +31,4 @@ import type * as test from "./test";
 export type { test };
 import type * as utils from "./utils";
 export type { utils };
+export type { TestSaltPolicyLib } from "./TestSaltPolicyLib";

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PayRox Integration Validation Icons</title>
+    <style>
+        body {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f0f0f0;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+        .icon-container {
+            text-align: center;
+            margin: 10px;
+        }
+        .icon-container svg {
+            margin: 10px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            background-color: #fff;
+        }
+        .icon-container p {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="icon-container">
+        <p>PayRox "P" Logo</p>
+        <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 8 C12 6.9 12.9 6 14 6 L32 6 C42.5 6 51 14.5 51 25 C51 35.5 42.5 44 32 44 L20 44 L20 50 C20 51.1 19.1 52 18 52 L14 52 C12.9 52 12 51.1 12 50 L12 8 Z M20 14 L20 34 L32 34 C36.4 34 40 30.4 40 26 C40 21.6 36.4 18 32 18 L20 18 Z" 
+                  fill="#4ECDC4" stroke="#4ECDC4" stroke-width="2" stroke-linejoin="round"/>
+        </svg>
+    </div>
+    <div class="icon-container">
+        <p>Code Document</p>
+        <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M14 8 C12.9 8 12 8.9 12 10 L12 54 C12 55.1 12.9 56 14 56 L46 56 C47.1 56 48 55.1 48 54 L48 20 L38 10 L14 8 Z M38 10 L38 20 L48 20" 
+                  fill="none" stroke="#4ECDC4" stroke-width="2" stroke-linejoin="round"/>
+            <path d="M20 28 L16 32 L20 36" fill="none" stroke="#4ECDC4" stroke-width="2" stroke-linecap="round"/>
+            <path d="M28 36 L32 32 L28 28" fill="none" stroke="#4ECDC4" stroke-width="2" stroke-linecap="round"/>
+            <line x1="24" y1="26" x2="26" y2="38" stroke="#4ECDC4" stroke-width="2" stroke-linecap="round"/>
+            <line x1="18" y1="42" x2="40" y2="42" stroke="#4ECDC4" stroke-width="2" stroke-linecap="round"/>
+            <line x1="18" y1="46" x2="35" y2="46" stroke="#4ECDC4" stroke-width="2" stroke-linecap="round"/>
+            <line x1="18" y1="50" x2="42" y2="50" stroke="#4ECDC4" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+    </div>
+    <div class="icon-container">
+        <p>Validation Document</p>
+        <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M14 8 C12.9 8 12 8.9 12 10 L12 54 C12 55.1 12.9 56 14 56 L50 56 C51.1 56 52 55.1 52 54 L52 10 C52 8.9 51.1 8 50 8 L14 8 Z" 
+                  fill="none" stroke="#4ECDC4" stroke-width="2" stroke-linejoin="round"/>
+            <path d="M20 32 L26 38 L44 20" fill="none" stroke="#4ECDC4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <line x1="18" y1="44" x2="46" y2="44" stroke="#4ECDC4" stroke-width="2" stroke-linecap="round"/>
+            <line x1="18" y1="48" x2="40" y2="48" stroke="#4ECDC4" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+    </div>
+    <div class="icon-container">
+        <p>Network/Integration</p>
+        <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="32" cy="32" r="6" fill="none" stroke="#4ECDC4" stroke-width="2"/>
+            <circle cx="32" cy="12" r="5" fill="none" stroke="#4ECDC4" stroke-width="2"/>
+            <circle cx="52" cy="32" r="5" fill="none" stroke="#4ECDC4" stroke-width="2"/>
+            <circle cx="32" cy="52" r="5" fill="none" stroke="#4ECDC4" stroke-width="2"/>
+            <circle cx="12" cy="32" r="5" fill="none" stroke="#4ECDC4" stroke-width="2"/>
+            <line x1="32" y1="26" x2="32" y2="17" stroke="#4ECDC4" stroke-width="2"/>
+            <line x1="38" y1="32" x2="47" y2="32" stroke="#4ECDC4" stroke-width="2"/>
+            <line x1="32" y1="38" x2="32" y2="47" stroke="#4ECDC4" stroke-width="2"/>
+            <line x1="26" y1="32" x2="17" y2="32" stroke="#4ECDC4" stroke-width="2"/>
+        </svg>
+    </div>
+</body>
+</html>

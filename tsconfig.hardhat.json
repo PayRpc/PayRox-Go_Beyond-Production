@@ -1,16 +1,73 @@
 {
-  "extends": "./tsconfig.json",
   "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022"],
     "module": "CommonJS",
     "moduleResolution": "node",
-    "target": "ES2022",
-    "types": ["node", "mocha", "chai"]
+    "declaration": true,
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "downlevelIteration": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "outDir": "./dist",
+    "rootDir": "./",
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "exactOptionalPropertyTypes": false,
+    "typeRoots": ["./node_modules/@types"],
+    "types": ["node", "mocha", "chai"],
+    "baseUrl": "./",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@tasks/*": ["./tasks/*"],
+      "@scripts/*": ["./scripts/*"],
+      "@test/*": ["./test/*"],
+      "@contracts/*": ["./contracts/*"],
+      "@typechain/*": ["./typechain-types/*"]
+    }
   },
-  "include": ["hardhat.config.ts", "scripts", "test", "tools", "types"],
+  "include": [
+    "./scripts/**/*",
+    "./test/**/*",
+    "./tests/**/*",
+    "./tasks/**/*",
+    "./tools/**/*",
+    "./hardhat.config.ts",
+    "./src/**/*",
+    "./typechain-types/**/*",
+    "./cli/src/**/*",
+    "./sdk/src/**/*",
+    "./deployable-modules/**/*",
+    "hardhat.config.ts",
+    "scripts",
+    "test",
+    "tools",
+    "types"
+  ],
   "exclude": [
+    "node_modules",
+    "dist",
+    "artifacts",
+    "cache",
+    "coverage",
+    "tools/ai-assistant/frontend",
+    "./contracts/**/*.sol",
+    "**/*.spec.js",
+    "**/*.test.js",
     "scripts/deploy/enhanced-cross-chain-deploy.ts",
-    "scripts/orchestrate-crosschain.ts", 
+    "scripts/orchestrate-crosschain.ts",
     "scripts/validate/cross-chain-validator.ts",
     "test/salt-policy-parity.test.ts"
-  ]
+  ],
+  "ts-node": {
+    "require": ["tsconfig-paths/register"],
+    "files": true,
+    "experimentalSpecifierResolution": "node"
+  }
 }

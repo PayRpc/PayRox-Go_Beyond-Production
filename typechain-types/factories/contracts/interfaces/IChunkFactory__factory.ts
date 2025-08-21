@@ -13,32 +13,6 @@ const _abi = [
     anonymous: false,
     inputs: [
       {
-        indexed: true,
-        internalType: "address",
-        name: "recipient",
-        type: "address",
-      },
-    ],
-    name: "AuthorizedRecipientAdded",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "recipient",
-        type: "address",
-      },
-    ],
-    name: "AuthorizedRecipientRemoved",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
         indexed: false,
         internalType: "uint256",
         name: "newBaseFee",
@@ -328,19 +302,6 @@ const _abi = [
   {
     inputs: [
       {
-        internalType: "address",
-        name: "recipient",
-        type: "address",
-      },
-    ],
-    name: "addAuthorizedRecipient",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
         internalType: "bytes32",
         name: "salt",
         type: "bytes32",
@@ -554,19 +515,6 @@ const _abi = [
   {
     inputs: [
       {
-        internalType: "address",
-        name: "recipient",
-        type: "address",
-      },
-    ],
-    name: "removeAuthorizedRecipient",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
         internalType: "uint256",
         name: "newBase",
         type: "uint256",
@@ -612,19 +560,6 @@ const _abi = [
       },
     ],
     name: "setIdempotentMode",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "newMax",
-        type: "uint256",
-      },
-    ],
-    name: "setMaxSingleTransfer",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",

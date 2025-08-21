@@ -13,7 +13,7 @@ const _abi = [
     inputs: [
       {
         internalType: "bytes4",
-        name: "_functionSelector",
+        name: "selector",
         type: "bytes4",
       },
     ],
@@ -21,7 +21,7 @@ const _abi = [
     outputs: [
       {
         internalType: "address",
-        name: "facetAddress_",
+        name: "facet_",
         type: "address",
       },
     ],
@@ -34,7 +34,7 @@ const _abi = [
     outputs: [
       {
         internalType: "address[]",
-        name: "facetAddresses_",
+        name: "addresses_",
         type: "address[]",
       },
     ],
@@ -45,7 +45,7 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
-        name: "_facet",
+        name: "facet",
         type: "address",
       },
     ],
@@ -53,7 +53,7 @@ const _abi = [
     outputs: [
       {
         internalType: "bytes4[]",
-        name: "facetFunctionSelectors_",
+        name: "selectors_",
         type: "bytes4[]",
       },
     ],

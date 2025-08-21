@@ -19,13 +19,13 @@ const _abi = [
         type: "bytes4",
       },
       {
-        indexed: true,
+        indexed: false,
         internalType: "address",
         name: "existingFacet",
         type: "address",
       },
       {
-        indexed: true,
+        indexed: false,
         internalType: "address",
         name: "newFacet",
         type: "address",
@@ -57,12 +57,12 @@ const _abi = [
     inputs: [
       {
         internalType: "bytes4",
-        name: "functionSelector",
+        name: "selector",
         type: "bytes4",
       },
       {
         internalType: "bytes32",
-        name: "requiredVersion",
+        name: "version",
         type: "bytes32",
       },
     ],
@@ -70,7 +70,7 @@ const _abi = [
     outputs: [
       {
         internalType: "address",
-        name: "facetAddress_",
+        name: "facet_",
         type: "address",
       },
     ],
@@ -81,7 +81,7 @@ const _abi = [
     inputs: [
       {
         internalType: "bytes4[]",
-        name: "functionSelectors",
+        name: "selectors",
         type: "bytes4[]",
       },
     ],
@@ -89,7 +89,7 @@ const _abi = [
     outputs: [
       {
         internalType: "address[]",
-        name: "facetAddresses_",
+        name: "addresses_",
         type: "address[]",
       },
     ],
@@ -108,7 +108,7 @@ const _abi = [
     outputs: [
       {
         internalType: "address[]",
-        name: "facetAddresses_",
+        name: "addresses_",
         type: "address[]",
       },
     ],
@@ -124,7 +124,7 @@ const _abi = [
       },
       {
         internalType: "uint8",
-        name: "minSecurityLevel",
+        name: "minLevel",
         type: "uint8",
       },
     ],
@@ -235,7 +235,7 @@ const _abi = [
       },
       {
         internalType: "uint256",
-        name: "deployTimestamp",
+        name: "timestamp",
         type: "uint256",
       },
     ],

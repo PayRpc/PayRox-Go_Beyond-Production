@@ -92,49 +92,6 @@ task('crosschain:deploy-full', 'Execute complete cross-chain deployment runbook'
     };
 
     try {
-      // CREATE2 Preflight Check (as requested)
-      if (!config.skipFactoryDeployment) {
-        console.log('\n🔍 CREATE2 Preflight Checks');
-        console.log('='.repeat(50));
-        
-        try {
-          const { preDeploymentCreate2Check } = await import('./crosschain-create2-integration');
-          
-          // Example configuration - adapt to your contracts
-          const create2Config = {
-            factory: "0x5FbDB2315678afecb367f032d93F642f64180aa3", // Your factory address
-            dispatcher: "0x1111111111111111111111111111111111111111", // Your dispatcher address  
-            salt: "0x" + "1".repeat(64), // Your deterministic salt
-            contractName: "DeterministicChunkFactory", // Your contract
-            constructorArgs: [
-              "0x0000000000000000000000000000000000000000", // feeRecipient
-              "0x1111111111111111111111111111111111111111", // dispatcherAddress
-              "0x2222222222222222222222222222222222222222222222222222222222222222", // manifestHash
-              "0x3333333333333333333333333333333333333333333333333333333333333333", // dispatcherCodehash
-              "0x4444444444444444444444444444444444444444444444444444444444444444", // factoryCodehash
-              "1000000000000000", // gasFee
-              true // enabled
-            ],
-            // Add these from your config if available:
-            // expectedFactoryCodehash: config.expectedFactoryCodehash,
-            // expectedDispatcherCodehash: config.expectedDispatcherCodehash,
-          };
-
-          const preflightOk = await preDeploymentCreate2Check(hre, create2Config);
-          if (!preflightOk) {
-            throw new Error("CREATE2 preflight check failed");
-          }
-          
-          console.log('✅ CREATE2 preflight checks passed');
-        } catch (error: any) {
-          console.warn('⚠️  CREATE2 preflight check failed:', error.message);
-          if (!config.force) {
-            throw new Error("CREATE2 preflight failed. Use --force to continue anyway.");
-          }
-          console.log('🚨 Continuing with deployment due to --force flag');
-        }
-      }
-
       // Dynamic imports to avoid config loading issues
       const { main: orchestrateDeployment } = await import('../scripts/orchestrate-crosschain');
       const result: any = await orchestrateDeployment(hre, config);

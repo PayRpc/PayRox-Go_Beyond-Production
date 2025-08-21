@@ -86,6 +86,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.PauseFacet__factory>;
     getContractFactory(
+      name: "PaymentsFacet",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.PaymentsFacet__factory>;
+    getContractFactory(
       name: "PayRoxAdminFacet",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.PayRoxAdminFacet__factory>;
@@ -98,6 +102,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.RefactorSafetyFacet__factory>;
     getContractFactory(
+      name: "RewardsFacet",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.RewardsFacet__factory>;
+    getContractFactory(
       name: "SaltViewFacet",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.SaltViewFacet__factory>;
@@ -105,6 +113,10 @@ declare module "hardhat/types/runtime" {
       name: "SecurityFacet",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.SecurityFacet__factory>;
+    getContractFactory(
+      name: "VersionFacet",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.VersionFacet__factory>;
     getContractFactory(
       name: "DeterministicChunkFactory",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -142,6 +154,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IAntiBot__factory>;
     getContractFactory(
+      name: "IAuditRegistry",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IAuditRegistry__factory>;
+    getContractFactory(
       name: "IChunkFactory",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IChunkFactory__factory>;
@@ -158,6 +174,22 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IManifestDispatcher__factory>;
     getContractFactory(
+      name: "IManifestDispatcherView",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IManifestDispatcherView__factory>;
+    getContractFactory(
+      name: "PayRoxProxyRouter",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.PayRoxProxyRouter__factory>;
+    getContractFactory(
+      name: "IPaymentsFacet",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IPaymentsFacet__factory>;
+    getContractFactory(
+      name: "IRewardsFacet",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IRewardsFacet__factory>;
+    getContractFactory(
       name: "ISaltView",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ISaltView__factory>;
@@ -170,6 +202,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.RefactorSafetyLib__factory>;
     getContractFactory(
+      name: "DeterministicDeploymentManager",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.DeterministicDeploymentManager__factory>;
+    getContractFactory(
       name: "ManifestTypes",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ManifestTypes__factory>;
@@ -178,9 +214,9 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Orchestrator__factory>;
     getContractFactory(
-      name: "IManifestDispatcherView",
+      name: "ICrossDomainMessenger",
       signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.IManifestDispatcherView__factory>;
+    ): Promise<Contracts.ICrossDomainMessenger__factory>;
     getContractFactory(
       name: "PayRoxProxyRouter",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -210,6 +246,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IDiamondCut__factory>;
     getContractFactory(
+      name: "MockAuditRegistry",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.MockAuditRegistry__factory>;
+    getContractFactory(
       name: "MockManifestDispatcher",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.MockManifestDispatcher__factory>;
@@ -222,13 +262,21 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.MockManifestDispatcher__factory>;
     getContractFactory(
+      name: "TestSaltPolicyLib",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.TestSaltPolicyLib__factory>;
+    getContractFactory(
       name: "ChunkFactoryLib",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ChunkFactoryLib__factory>;
     getContractFactory(
-      name: "GasOptimizationUtils",
+      name: "CrossChainDeploymentLib",
       signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.GasOptimizationUtils__factory>;
+    ): Promise<Contracts.CrossChainDeploymentLib__factory>;
+    getContractFactory(
+      name: "ManifestDispatcherLib",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.ManifestDispatcherLib__factory>;
     getContractFactory(
       name: "OrderedMerkle",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -325,6 +373,11 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.PauseFacet>;
     getContractAt(
+      name: "PaymentsFacet",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.PaymentsFacet>;
+    getContractAt(
       name: "PayRoxAdminFacet",
       address: string | ethers.Addressable,
       signer?: ethers.Signer
@@ -340,6 +393,11 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.RefactorSafetyFacet>;
     getContractAt(
+      name: "RewardsFacet",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.RewardsFacet>;
+    getContractAt(
       name: "SaltViewFacet",
       address: string | ethers.Addressable,
       signer?: ethers.Signer
@@ -349,6 +407,11 @@ declare module "hardhat/types/runtime" {
       address: string | ethers.Addressable,
       signer?: ethers.Signer
     ): Promise<Contracts.SecurityFacet>;
+    getContractAt(
+      name: "VersionFacet",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.VersionFacet>;
     getContractAt(
       name: "DeterministicChunkFactory",
       address: string | ethers.Addressable,
@@ -395,6 +458,11 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.IAntiBot>;
     getContractAt(
+      name: "IAuditRegistry",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IAuditRegistry>;
+    getContractAt(
       name: "IChunkFactory",
       address: string | ethers.Addressable,
       signer?: ethers.Signer
@@ -415,6 +483,26 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.IManifestDispatcher>;
     getContractAt(
+      name: "IManifestDispatcherView",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IManifestDispatcherView>;
+    getContractAt(
+      name: "PayRoxProxyRouter",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.PayRoxProxyRouter>;
+    getContractAt(
+      name: "IPaymentsFacet",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IPaymentsFacet>;
+    getContractAt(
+      name: "IRewardsFacet",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IRewardsFacet>;
+    getContractAt(
       name: "ISaltView",
       address: string | ethers.Addressable,
       signer?: ethers.Signer
@@ -430,6 +518,11 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.RefactorSafetyLib>;
     getContractAt(
+      name: "DeterministicDeploymentManager",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.DeterministicDeploymentManager>;
+    getContractAt(
       name: "ManifestTypes",
       address: string | ethers.Addressable,
       signer?: ethers.Signer
@@ -440,10 +533,10 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.Orchestrator>;
     getContractAt(
-      name: "IManifestDispatcherView",
+      name: "ICrossDomainMessenger",
       address: string | ethers.Addressable,
       signer?: ethers.Signer
-    ): Promise<Contracts.IManifestDispatcherView>;
+    ): Promise<Contracts.ICrossDomainMessenger>;
     getContractAt(
       name: "PayRoxProxyRouter",
       address: string | ethers.Addressable,
@@ -480,6 +573,11 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.IDiamondCut>;
     getContractAt(
+      name: "MockAuditRegistry",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.MockAuditRegistry>;
+    getContractAt(
       name: "MockManifestDispatcher",
       address: string | ethers.Addressable,
       signer?: ethers.Signer
@@ -495,15 +593,25 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.MockManifestDispatcher>;
     getContractAt(
+      name: "TestSaltPolicyLib",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.TestSaltPolicyLib>;
+    getContractAt(
       name: "ChunkFactoryLib",
       address: string | ethers.Addressable,
       signer?: ethers.Signer
     ): Promise<Contracts.ChunkFactoryLib>;
     getContractAt(
-      name: "GasOptimizationUtils",
+      name: "CrossChainDeploymentLib",
       address: string | ethers.Addressable,
       signer?: ethers.Signer
-    ): Promise<Contracts.GasOptimizationUtils>;
+    ): Promise<Contracts.CrossChainDeploymentLib>;
+    getContractAt(
+      name: "ManifestDispatcherLib",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.ManifestDispatcherLib>;
     getContractAt(
       name: "OrderedMerkle",
       address: string | ethers.Addressable,
@@ -583,6 +691,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.PauseFacet>;
     deployContract(
+      name: "PaymentsFacet",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.PaymentsFacet>;
+    deployContract(
       name: "PayRoxAdminFacet",
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.PayRoxAdminFacet>;
@@ -595,6 +707,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.RefactorSafetyFacet>;
     deployContract(
+      name: "RewardsFacet",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.RewardsFacet>;
+    deployContract(
       name: "SaltViewFacet",
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.SaltViewFacet>;
@@ -602,6 +718,10 @@ declare module "hardhat/types/runtime" {
       name: "SecurityFacet",
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.SecurityFacet>;
+    deployContract(
+      name: "VersionFacet",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.VersionFacet>;
     deployContract(
       name: "DeterministicChunkFactory",
       signerOrOptions?: ethers.Signer | DeployContractOptions
@@ -639,6 +759,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.IAntiBot>;
     deployContract(
+      name: "IAuditRegistry",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.IAuditRegistry>;
+    deployContract(
       name: "IChunkFactory",
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.IChunkFactory>;
@@ -655,6 +779,22 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.IManifestDispatcher>;
     deployContract(
+      name: "IManifestDispatcherView",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.IManifestDispatcherView>;
+    deployContract(
+      name: "PayRoxProxyRouter",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.PayRoxProxyRouter>;
+    deployContract(
+      name: "IPaymentsFacet",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.IPaymentsFacet>;
+    deployContract(
+      name: "IRewardsFacet",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.IRewardsFacet>;
+    deployContract(
       name: "ISaltView",
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.ISaltView>;
@@ -667,6 +807,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.RefactorSafetyLib>;
     deployContract(
+      name: "DeterministicDeploymentManager",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.DeterministicDeploymentManager>;
+    deployContract(
       name: "ManifestTypes",
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.ManifestTypes>;
@@ -675,9 +819,9 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.Orchestrator>;
     deployContract(
-      name: "IManifestDispatcherView",
+      name: "ICrossDomainMessenger",
       signerOrOptions?: ethers.Signer | DeployContractOptions
-    ): Promise<Contracts.IManifestDispatcherView>;
+    ): Promise<Contracts.ICrossDomainMessenger>;
     deployContract(
       name: "PayRoxProxyRouter",
       signerOrOptions?: ethers.Signer | DeployContractOptions
@@ -707,6 +851,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.IDiamondCut>;
     deployContract(
+      name: "MockAuditRegistry",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.MockAuditRegistry>;
+    deployContract(
       name: "MockManifestDispatcher",
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.MockManifestDispatcher>;
@@ -719,13 +867,21 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.MockManifestDispatcher>;
     deployContract(
+      name: "TestSaltPolicyLib",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.TestSaltPolicyLib>;
+    deployContract(
       name: "ChunkFactoryLib",
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.ChunkFactoryLib>;
     deployContract(
-      name: "GasOptimizationUtils",
+      name: "CrossChainDeploymentLib",
       signerOrOptions?: ethers.Signer | DeployContractOptions
-    ): Promise<Contracts.GasOptimizationUtils>;
+    ): Promise<Contracts.CrossChainDeploymentLib>;
+    deployContract(
+      name: "ManifestDispatcherLib",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.ManifestDispatcherLib>;
     deployContract(
       name: "OrderedMerkle",
       signerOrOptions?: ethers.Signer | DeployContractOptions
@@ -822,6 +978,11 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.PauseFacet>;
     deployContract(
+      name: "PaymentsFacet",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.PaymentsFacet>;
+    deployContract(
       name: "PayRoxAdminFacet",
       args: any[],
       signerOrOptions?: ethers.Signer | DeployContractOptions
@@ -837,6 +998,11 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.RefactorSafetyFacet>;
     deployContract(
+      name: "RewardsFacet",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.RewardsFacet>;
+    deployContract(
       name: "SaltViewFacet",
       args: any[],
       signerOrOptions?: ethers.Signer | DeployContractOptions
@@ -846,6 +1012,11 @@ declare module "hardhat/types/runtime" {
       args: any[],
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.SecurityFacet>;
+    deployContract(
+      name: "VersionFacet",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.VersionFacet>;
     deployContract(
       name: "DeterministicChunkFactory",
       args: any[],
@@ -892,6 +1063,11 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.IAntiBot>;
     deployContract(
+      name: "IAuditRegistry",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.IAuditRegistry>;
+    deployContract(
       name: "IChunkFactory",
       args: any[],
       signerOrOptions?: ethers.Signer | DeployContractOptions
@@ -912,6 +1088,26 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.IManifestDispatcher>;
     deployContract(
+      name: "IManifestDispatcherView",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.IManifestDispatcherView>;
+    deployContract(
+      name: "PayRoxProxyRouter",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.PayRoxProxyRouter>;
+    deployContract(
+      name: "IPaymentsFacet",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.IPaymentsFacet>;
+    deployContract(
+      name: "IRewardsFacet",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.IRewardsFacet>;
+    deployContract(
       name: "ISaltView",
       args: any[],
       signerOrOptions?: ethers.Signer | DeployContractOptions
@@ -927,6 +1123,11 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.RefactorSafetyLib>;
     deployContract(
+      name: "DeterministicDeploymentManager",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.DeterministicDeploymentManager>;
+    deployContract(
       name: "ManifestTypes",
       args: any[],
       signerOrOptions?: ethers.Signer | DeployContractOptions
@@ -937,10 +1138,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.Orchestrator>;
     deployContract(
-      name: "IManifestDispatcherView",
+      name: "ICrossDomainMessenger",
       args: any[],
       signerOrOptions?: ethers.Signer | DeployContractOptions
-    ): Promise<Contracts.IManifestDispatcherView>;
+    ): Promise<Contracts.ICrossDomainMessenger>;
     deployContract(
       name: "PayRoxProxyRouter",
       args: any[],
@@ -977,6 +1178,11 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.IDiamondCut>;
     deployContract(
+      name: "MockAuditRegistry",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.MockAuditRegistry>;
+    deployContract(
       name: "MockManifestDispatcher",
       args: any[],
       signerOrOptions?: ethers.Signer | DeployContractOptions
@@ -992,15 +1198,25 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.MockManifestDispatcher>;
     deployContract(
+      name: "TestSaltPolicyLib",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.TestSaltPolicyLib>;
+    deployContract(
       name: "ChunkFactoryLib",
       args: any[],
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.ChunkFactoryLib>;
     deployContract(
-      name: "GasOptimizationUtils",
+      name: "CrossChainDeploymentLib",
       args: any[],
       signerOrOptions?: ethers.Signer | DeployContractOptions
-    ): Promise<Contracts.GasOptimizationUtils>;
+    ): Promise<Contracts.CrossChainDeploymentLib>;
+    deployContract(
+      name: "ManifestDispatcherLib",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.ManifestDispatcherLib>;
     deployContract(
       name: "OrderedMerkle",
       args: any[],

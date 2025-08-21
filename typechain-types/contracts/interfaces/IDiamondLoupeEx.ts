@@ -235,13 +235,13 @@ export interface IDiamondLoupeEx extends BaseContract {
   >;
 
   facetAddressEx: TypedContractMethod<
-    [functionSelector: BytesLike, requiredVersion: BytesLike],
+    [selector: BytesLike, version: BytesLike],
     [string],
     "view"
   >;
 
   facetAddressesBatchEx: TypedContractMethod<
-    [functionSelectors: BytesLike[]],
+    [selectors: BytesLike[]],
     [string[]],
     "view"
   >;
@@ -253,7 +253,7 @@ export interface IDiamondLoupeEx extends BaseContract {
   >;
 
   facetFunctionSelectorsEx: TypedContractMethod<
-    [facet: AddressLike, minSecurityLevel: BigNumberish],
+    [facet: AddressLike, minLevel: BigNumberish],
     [string[]],
     "view"
   >;
@@ -274,7 +274,7 @@ export interface IDiamondLoupeEx extends BaseContract {
 
   facetProvenance: TypedContractMethod<
     [facet: AddressLike],
-    [[string, bigint] & { deployer: string; deployTimestamp: bigint }],
+    [[string, bigint] & { deployer: string; timestamp: bigint }],
     "view"
   >;
 
@@ -296,20 +296,20 @@ export interface IDiamondLoupeEx extends BaseContract {
   getFunction(
     nameOrSignature: "facetAddressEx"
   ): TypedContractMethod<
-    [functionSelector: BytesLike, requiredVersion: BytesLike],
+    [selector: BytesLike, version: BytesLike],
     [string],
     "view"
   >;
   getFunction(
     nameOrSignature: "facetAddressesBatchEx"
-  ): TypedContractMethod<[functionSelectors: BytesLike[]], [string[]], "view">;
+  ): TypedContractMethod<[selectors: BytesLike[]], [string[]], "view">;
   getFunction(
     nameOrSignature: "facetAddressesEx"
   ): TypedContractMethod<[includeUnsafe: boolean], [string[]], "view">;
   getFunction(
     nameOrSignature: "facetFunctionSelectorsEx"
   ): TypedContractMethod<
-    [facet: AddressLike, minSecurityLevel: BigNumberish],
+    [facet: AddressLike, minLevel: BigNumberish],
     [string[]],
     "view"
   >;
@@ -330,7 +330,7 @@ export interface IDiamondLoupeEx extends BaseContract {
     nameOrSignature: "facetProvenance"
   ): TypedContractMethod<
     [facet: AddressLike],
-    [[string, bigint] & { deployer: string; deployTimestamp: bigint }],
+    [[string, bigint] & { deployer: string; timestamp: bigint }],
     "view"
   >;
   getFunction(

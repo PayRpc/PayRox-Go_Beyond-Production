@@ -19,22 +19,6 @@ const _abi = [
     inputs: [
       {
         internalType: "uint256",
-        name: "required",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "available",
-        type: "uint256",
-      },
-    ],
-    name: "InsufficientGas",
-    type: "error",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
         name: "proofLength",
         type: "uint256",
       },
@@ -66,7 +50,7 @@ const _abi = [
 ] as const;
 
 const _bytecode =
-  "0x6080806040523460175760399081601c823930815050f35b5f80fdfe5f80fdfea26469706673582212205af473515e6483ba6aa740f6fcfa568b15a638f6a13c6eb2e06823fd9129837764736f6c634300081e0033";
+  "0x6080806040523460175760399081601c823930815050f35b5f80fdfe5f80fdfea26469706673582212209f7da24f4c788a0bb3408d4ee317bbeba72c1300550f5a165e1512b2e069117e64736f6c634300081e0033";
 
 type OrderedMerkleConstructorParams =
   | [signer?: Signer]

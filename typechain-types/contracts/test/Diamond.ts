@@ -41,6 +41,7 @@ export interface DiamondInterface extends Interface {
       | "facetFunctionSelectors"
       | "facets"
       | "owner"
+      | "supportsInterface"
   ): FunctionFragment;
 
   encodeFunctionData(
@@ -61,6 +62,10 @@ export interface DiamondInterface extends Interface {
   ): string;
   encodeFunctionData(functionFragment: "facets", values?: undefined): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "supportsInterface",
+    values: [BytesLike]
+  ): string;
 
   decodeFunctionResult(functionFragment: "addFacet", data: BytesLike): Result;
   decodeFunctionResult(
@@ -77,6 +82,10 @@ export interface DiamondInterface extends Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "facets", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "supportsInterface",
+    data: BytesLike
+  ): Result;
 }
 
 export interface Diamond extends BaseContract {
@@ -146,6 +155,12 @@ export interface Diamond extends BaseContract {
 
   owner: TypedContractMethod<[], [string], "view">;
 
+  supportsInterface: TypedContractMethod<
+    [_interfaceId: BytesLike],
+    [boolean],
+    "view"
+  >;
+
   getFunction<T extends ContractMethod = ContractMethod>(
     key: string | FunctionFragment
   ): T;
@@ -172,6 +187,9 @@ export interface Diamond extends BaseContract {
   getFunction(
     nameOrSignature: "owner"
   ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "supportsInterface"
+  ): TypedContractMethod<[_interfaceId: BytesLike], [boolean], "view">;
 
   filters: {};
 }

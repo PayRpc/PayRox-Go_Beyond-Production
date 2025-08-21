@@ -335,15 +335,16 @@ class CrossChainDeploymentValidator {
     
     // Check component address consistency
     const componentConsistency: Record<string, boolean> = {}
-    const firstChain = chainResults[chainIds[0]]
-    
+  const firstChain = chainIds.length > 0 ? chainResults[chainIds[0]!] : undefined
+
     if (firstChain) {
-      for (const componentId of Object.keys(firstChain.componentResults)) {
+      const componentIds = Object.keys(firstChain.componentResults || {})
+      for (const componentId of componentIds) {
         const addresses = chainIds.map(chainId => 
           chainResults[chainId]?.componentResults[componentId]?.declaredAddress
         ).filter(Boolean)
         
-        const uniqueAddresses = new Set(addresses.map(addr => addr.toLowerCase()))
+  const uniqueAddresses = new Set(addresses.map(addr => addr ? addr.toLowerCase() : addr))
         const isConsistent = uniqueAddresses.size === 1
         
         componentConsistency[componentId] = isConsistent

@@ -1,0 +1,36 @@
+name: Gas and Determinism Check
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  gas-analysis:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Compile contracts
+      run: npx hardhat compile
+    
+    - name: Run gas analysis
+      run: npx hardhat test --grep "gas"
+    
+    - name: Check deterministic deployment
+      run: npm run check:determinism
+    
+    - name: Generate gas report
+      run: npx hardhat test --reporter gas
+      continue-on-error: true

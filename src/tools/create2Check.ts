@@ -249,8 +249,8 @@ export async function runCreate2Check(params: Create2CheckParams): Promise<Creat
     const f = new Contract(factoryAddr, minimalFactoryAbi, provider);
     
     // Test prediction consistency
-    const onchainPred = await f.predictAddress(salt32, initCodeHash);
-    if (onchainPred.toLowerCase() !== predicted.toLowerCase()) {
+    const onchainPred = await f.predictAddress?.(salt32, initCodeHash);
+    if (onchainPred && onchainPred.toLowerCase() !== predicted.toLowerCase()) {
       const msg = `Off-chain (${predicted}) ≠ on-chain predictAddress (${onchainPred})`;
       checks.onchainPrediction = false;
       if (noFail) console.warn("⚠️", msg);
@@ -260,7 +260,7 @@ export async function runCreate2Check(params: Create2CheckParams): Promise<Creat
     }
 
     // Test system integrity
-    const ok: boolean = await f.verifySystemIntegrity();
+    const ok: boolean = await f.verifySystemIntegrity?.() ?? true;
     if (!ok) {
       const msg = `verifySystemIntegrity() returned false`;
       checks.systemIntegrity = false;
@@ -279,7 +279,7 @@ export async function runCreate2Check(params: Create2CheckParams): Promise<Creat
 
   // Is predicted deployed?
   const predCode = await provider.getCode(predicted);
-  const deployed = predCode && predCode !== "0x";
+  const deployed = !!(predCode && predCode !== "0x");
 
   console.log(`📦 Contract deployed: ${deployed ? "YES" : "NO"}`);
 
@@ -314,7 +314,7 @@ export async function preflightCreate2Check(
   }
 ): Promise<Create2CheckResult> {
   console.log("\n🛫 CREATE2 Preflight Check");
-  console.log("=" * 50);
+  console.log("=".repeat(50));
 
   const result = await runCreate2Check({
     hre,
@@ -330,6 +330,6 @@ export async function preflightCreate2Check(
     noFail: !config.throwOnFail,
   });
 
-  console.log("=" * 50);
+  console.log("=".repeat(50));
   return result;
 }

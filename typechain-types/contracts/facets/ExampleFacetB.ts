@@ -254,12 +254,18 @@ export namespace FacetBExecutedEvent {
 export namespace GovernanceRotatedEvent {
   export type InputTuple = [
     oldGovernance: AddressLike,
-    newGovernance: AddressLike
+    newGovernance: AddressLike,
+    nonce: BigNumberish
   ];
-  export type OutputTuple = [oldGovernance: string, newGovernance: string];
+  export type OutputTuple = [
+    oldGovernance: string,
+    newGovernance: string,
+    nonce: bigint
+  ];
   export interface OutputObject {
     oldGovernance: string;
     newGovernance: string;
+    nonce: bigint;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -268,10 +274,11 @@ export namespace GovernanceRotatedEvent {
 }
 
 export namespace InitializedEvent {
-  export type InputTuple = [operator: AddressLike];
-  export type OutputTuple = [operator: string];
+  export type InputTuple = [operator: AddressLike, nonce: BigNumberish];
+  export type OutputTuple = [operator: string, nonce: bigint];
   export interface OutputObject {
     operator: string;
+    nonce: bigint;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -280,11 +287,20 @@ export namespace InitializedEvent {
 }
 
 export namespace OperatorRotatedEvent {
-  export type InputTuple = [oldOperator: AddressLike, newOperator: AddressLike];
-  export type OutputTuple = [oldOperator: string, newOperator: string];
+  export type InputTuple = [
+    oldOperator: AddressLike,
+    newOperator: AddressLike,
+    nonce: BigNumberish
+  ];
+  export type OutputTuple = [
+    oldOperator: string,
+    newOperator: string,
+    nonce: bigint
+  ];
   export interface OutputObject {
     oldOperator: string;
     newOperator: string;
+    nonce: bigint;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -700,7 +716,7 @@ export interface ExampleFacetB extends BaseContract {
       FacetBExecutedEvent.OutputObject
     >;
 
-    "GovernanceRotated(address,address)": TypedContractEvent<
+    "GovernanceRotated(address,address,uint256)": TypedContractEvent<
       GovernanceRotatedEvent.InputTuple,
       GovernanceRotatedEvent.OutputTuple,
       GovernanceRotatedEvent.OutputObject
@@ -711,7 +727,7 @@ export interface ExampleFacetB extends BaseContract {
       GovernanceRotatedEvent.OutputObject
     >;
 
-    "Initialized(address)": TypedContractEvent<
+    "Initialized(address,uint256)": TypedContractEvent<
       InitializedEvent.InputTuple,
       InitializedEvent.OutputTuple,
       InitializedEvent.OutputObject
@@ -722,7 +738,7 @@ export interface ExampleFacetB extends BaseContract {
       InitializedEvent.OutputObject
     >;
 
-    "OperatorRotated(address,address)": TypedContractEvent<
+    "OperatorRotated(address,address,uint256)": TypedContractEvent<
       OperatorRotatedEvent.InputTuple,
       OperatorRotatedEvent.OutputTuple,
       OperatorRotatedEvent.OutputObject

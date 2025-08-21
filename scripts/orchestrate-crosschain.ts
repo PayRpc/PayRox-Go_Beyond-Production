@@ -162,8 +162,8 @@ export async function main(
         factoryDeployed: true,
         dispatcherDeployed: networkResult.deploymentManager !== '0x0000000000000000000000000000000000000000',
         manifestValidated: true,
+        ...networkResult,
         chainId,
-        ...networkResult
       }
             
             console.log(`  ✅ ${networkName} deployment completed`)

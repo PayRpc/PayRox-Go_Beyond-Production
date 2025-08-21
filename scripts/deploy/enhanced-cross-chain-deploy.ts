@@ -14,8 +14,8 @@
  * - Cross-chain consistency validation
  */
 
-import hre from 'hardhat'
-import { type Contract, type ContractFactory } from 'ethers'
+const hre: any = require('hardhat')
+import type { Contract, ContractFactory } from 'ethers'
 import * as fs from 'fs'
 import * as path from 'path'
 
@@ -216,8 +216,10 @@ class EnhancedCrossChainDeployer {
       const factory = this.artifacts.get(component.id)!
       const constructorArgs = component.constructorArgs || []
 
-      // Get deployment bytecode with constructor args
-      const initCode = factory.getDeployTransaction(...constructorArgs).data!
+  // Get deployment bytecode with constructor args
+  // getDeployTransaction may be async depending on environment; await to ensure .data is available
+  const deployTx = await factory.getDeployTransaction(...constructorArgs)
+  const initCode = deployTx.data!
 
       // Deploy through manager (manager is already connected to signer)
       const tx = await deploymentManager.deployComponent(
@@ -358,7 +360,7 @@ class EnhancedCrossChainDeployer {
     
     // Check component address consistency
     const componentConsistency: Record<string, boolean> = {}
-    const componentIds = Object.keys(results[0].components)
+  const componentIds = Object.keys(results[0]!.components)
     
     for (const componentId of componentIds) {
       const addresses = new Set(
@@ -404,7 +406,7 @@ class EnhancedCrossChainDeployer {
     console.log(`  ✅ Manifest: ${manifestPath}`)
     
     // Save individual chain results
-    for (const [chainId, result] of this.deploymentResults) {
+    for (const [chainId, result] of Array.from(this.deploymentResults)) {
       const resultPath = path.join(deploymentsDir, `chain-${chainId}-${this.config.version}.json`)
       fs.writeFileSync(resultPath, JSON.stringify(result, null, 2))
       console.log(`  ✅ Chain ${chainId}: ${resultPath}`)

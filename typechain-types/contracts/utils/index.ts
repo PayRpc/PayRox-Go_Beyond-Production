@@ -2,5 +2,6 @@
 /* tslint:disable */
 /* eslint-disable */
 export type { ChunkFactoryLib } from "./ChunkFactoryLib";
-export type { GasOptimizationUtils } from "./GasOptimizationUtils";
+export type { CrossChainDeploymentLib } from "./CrossChainDeploymentLib";
+export type { ManifestDispatcherLib } from "./ManifestDispatcherLib";
 export type { OrderedMerkle } from "./OrderedMerkle";

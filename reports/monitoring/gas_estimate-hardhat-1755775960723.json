@@ -1,0 +1,14 @@
+{
+  "ts": 1755775960723,
+  "network": "hardhat",
+  "deployer": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+  "dispatcher": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+  "facet": "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
+  "root": "0x862cb31f783edc6046b2bbb1477847f3174d720dad3c23d5b1ba4aebe7c53d59",
+  "epoch": "0",
+  "activationDelaySeconds": 0,
+  "estimates": {
+    "applyRoutes": "283372",
+    "activateCommittedRoot": "69351"
+  }
+}

@@ -113,16 +113,12 @@ export interface IDiamondLoupe extends BaseContract {
     event?: TCEvent
   ): Promise<this>;
 
-  facetAddress: TypedContractMethod<
-    [_functionSelector: BytesLike],
-    [string],
-    "view"
-  >;
+  facetAddress: TypedContractMethod<[selector: BytesLike], [string], "view">;
 
   facetAddresses: TypedContractMethod<[], [string[]], "view">;
 
   facetFunctionSelectors: TypedContractMethod<
-    [_facet: AddressLike],
+    [facet: AddressLike],
     [string[]],
     "view"
   >;
@@ -135,13 +131,13 @@ export interface IDiamondLoupe extends BaseContract {
 
   getFunction(
     nameOrSignature: "facetAddress"
-  ): TypedContractMethod<[_functionSelector: BytesLike], [string], "view">;
+  ): TypedContractMethod<[selector: BytesLike], [string], "view">;
   getFunction(
     nameOrSignature: "facetAddresses"
   ): TypedContractMethod<[], [string[]], "view">;
   getFunction(
     nameOrSignature: "facetFunctionSelectors"
-  ): TypedContractMethod<[_facet: AddressLike], [string[]], "view">;
+  ): TypedContractMethod<[facet: AddressLike], [string[]], "view">;
   getFunction(
     nameOrSignature: "facets"
   ): TypedContractMethod<[], [IDiamondLoupe.FacetStructOutput[]], "view">;

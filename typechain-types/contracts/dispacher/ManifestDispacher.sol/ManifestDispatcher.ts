@@ -109,6 +109,7 @@ export interface ManifestDispatcherInterface extends Interface {
       | "adminRegisterUnsafe"
       | "applyRouteOne"
       | "applyRoutes"
+      | "auditRegistry"
       | "checkStorageConflicts"
       | "commitRoot"
       | "facetAddress"
@@ -134,6 +135,7 @@ export interface ManifestDispatcherInterface extends Interface {
       | "getManifestVersion"
       | "getRoute"
       | "getRouteCount"
+      | "isDevRegistrarEnabled"
       | "manifest"
       | "pendingEpoch"
       | "pendingRoot"
@@ -145,6 +147,8 @@ export interface ManifestDispatcherInterface extends Interface {
       | "routes"
       | "selectorHash"
       | "setActivationDelay"
+      | "setAuditRegistry"
+      | "setDevRegistrarEnabled"
       | "setFacetSecurityLevel"
       | "setFacetVersionTag"
       | "verifyManifest"
@@ -153,9 +157,12 @@ export interface ManifestDispatcherInterface extends Interface {
   getEvent(
     nameOrSignatureOrTopic:
       | "ActivationDelaySet"
+      | "AuditRegistrySet"
+      | "DevRegistrarToggled"
       | "FacetSecurityLevelSet"
       | "FacetVersionTagSet"
       | "Frozen"
+      | "L2TimestampWarning"
       | "ManifestVersionUpdated"
       | "RootActivated"
       | "RootCommitted"
@@ -211,6 +218,10 @@ export interface ManifestDispatcherInterface extends Interface {
       BytesLike[][],
       boolean[][]
     ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "auditRegistry",
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "checkStorageConflicts",
@@ -294,6 +305,10 @@ export interface ManifestDispatcherInterface extends Interface {
     functionFragment: "getRouteCount",
     values?: undefined
   ): string;
+  encodeFunctionData(
+    functionFragment: "isDevRegistrarEnabled",
+    values?: undefined
+  ): string;
   encodeFunctionData(functionFragment: "manifest", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "pendingEpoch",
@@ -331,6 +346,14 @@ export interface ManifestDispatcherInterface extends Interface {
   encodeFunctionData(
     functionFragment: "setActivationDelay",
     values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setAuditRegistry",
+    values: [AddressLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setDevRegistrarEnabled",
+    values: [boolean]
   ): string;
   encodeFunctionData(
     functionFragment: "setFacetSecurityLevel",
@@ -377,6 +400,10 @@ export interface ManifestDispatcherInterface extends Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "applyRoutes",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "auditRegistry",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -455,6 +482,10 @@ export interface ManifestDispatcherInterface extends Interface {
     functionFragment: "getRouteCount",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "isDevRegistrarEnabled",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "manifest", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "pendingEpoch",
@@ -491,6 +522,14 @@ export interface ManifestDispatcherInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "setAuditRegistry",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "setDevRegistrarEnabled",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "setFacetSecurityLevel",
     data: BytesLike
   ): Result;
@@ -510,6 +549,30 @@ export namespace ActivationDelaySetEvent {
   export interface OutputObject {
     oldDelay: bigint;
     newDelay: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export namespace AuditRegistrySetEvent {
+  export type InputTuple = [registry: AddressLike];
+  export type OutputTuple = [registry: string];
+  export interface OutputObject {
+    registry: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export namespace DevRegistrarToggledEvent {
+  export type InputTuple = [enabled: boolean];
+  export type OutputTuple = [enabled: boolean];
+  export interface OutputObject {
+    enabled: boolean;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -547,6 +610,19 @@ export namespace FrozenEvent {
   export type InputTuple = [];
   export type OutputTuple = [];
   export interface OutputObject {}
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export namespace L2TimestampWarningEvent {
+  export type InputTuple = [activationTime: BigNumberish, delay: BigNumberish];
+  export type OutputTuple = [activationTime: bigint, delay: bigint];
+  export interface OutputObject {
+    activationTime: bigint;
+    delay: bigint;
+  }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
   export type Log = TypedEventLog<Event>;
@@ -765,6 +841,8 @@ export interface ManifestDispatcher extends BaseContract {
     "nonpayable"
   >;
 
+  auditRegistry: TypedContractMethod<[], [string], "view">;
+
   checkStorageConflicts: TypedContractMethod<
     [arg0: AddressLike],
     [string[]],
@@ -881,6 +959,8 @@ export interface ManifestDispatcher extends BaseContract {
 
   getRouteCount: TypedContractMethod<[], [bigint], "view">;
 
+  isDevRegistrarEnabled: TypedContractMethod<[], [boolean], "view">;
+
   manifest: TypedContractMethod<
     [],
     [
@@ -938,6 +1018,18 @@ export interface ManifestDispatcher extends BaseContract {
 
   setActivationDelay: TypedContractMethod<
     [newDelay: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+
+  setAuditRegistry: TypedContractMethod<
+    [registry: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+
+  setDevRegistrarEnabled: TypedContractMethod<
+    [enabled: boolean],
     [void],
     "nonpayable"
   >;
@@ -1018,6 +1110,9 @@ export interface ManifestDispatcher extends BaseContract {
     [void],
     "nonpayable"
   >;
+  getFunction(
+    nameOrSignature: "auditRegistry"
+  ): TypedContractMethod<[], [string], "view">;
   getFunction(
     nameOrSignature: "checkStorageConflicts"
   ): TypedContractMethod<[arg0: AddressLike], [string[]], "view">;
@@ -1136,6 +1231,9 @@ export interface ManifestDispatcher extends BaseContract {
     nameOrSignature: "getRouteCount"
   ): TypedContractMethod<[], [bigint], "view">;
   getFunction(
+    nameOrSignature: "isDevRegistrarEnabled"
+  ): TypedContractMethod<[], [boolean], "view">;
+  getFunction(
     nameOrSignature: "manifest"
   ): TypedContractMethod<
     [],
@@ -1196,6 +1294,12 @@ export interface ManifestDispatcher extends BaseContract {
     nameOrSignature: "setActivationDelay"
   ): TypedContractMethod<[newDelay: BigNumberish], [void], "nonpayable">;
   getFunction(
+    nameOrSignature: "setAuditRegistry"
+  ): TypedContractMethod<[registry: AddressLike], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "setDevRegistrarEnabled"
+  ): TypedContractMethod<[enabled: boolean], [void], "nonpayable">;
+  getFunction(
     nameOrSignature: "setFacetSecurityLevel"
   ): TypedContractMethod<
     [facet: AddressLike, level: BigNumberish],
@@ -1225,6 +1329,20 @@ export interface ManifestDispatcher extends BaseContract {
     ActivationDelaySetEvent.OutputObject
   >;
   getEvent(
+    key: "AuditRegistrySet"
+  ): TypedContractEvent<
+    AuditRegistrySetEvent.InputTuple,
+    AuditRegistrySetEvent.OutputTuple,
+    AuditRegistrySetEvent.OutputObject
+  >;
+  getEvent(
+    key: "DevRegistrarToggled"
+  ): TypedContractEvent<
+    DevRegistrarToggledEvent.InputTuple,
+    DevRegistrarToggledEvent.OutputTuple,
+    DevRegistrarToggledEvent.OutputObject
+  >;
+  getEvent(
     key: "FacetSecurityLevelSet"
   ): TypedContractEvent<
     FacetSecurityLevelSetEvent.InputTuple,
@@ -1244,6 +1362,13 @@ export interface ManifestDispatcher extends BaseContract {
     FrozenEvent.InputTuple,
     FrozenEvent.OutputTuple,
     FrozenEvent.OutputObject
+  >;
+  getEvent(
+    key: "L2TimestampWarning"
+  ): TypedContractEvent<
+    L2TimestampWarningEvent.InputTuple,
+    L2TimestampWarningEvent.OutputTuple,
+    L2TimestampWarningEvent.OutputObject
   >;
   getEvent(
     key: "ManifestVersionUpdated"
@@ -1314,6 +1439,28 @@ export interface ManifestDispatcher extends BaseContract {
       ActivationDelaySetEvent.OutputObject
     >;
 
+    "AuditRegistrySet(address)": TypedContractEvent<
+      AuditRegistrySetEvent.InputTuple,
+      AuditRegistrySetEvent.OutputTuple,
+      AuditRegistrySetEvent.OutputObject
+    >;
+    AuditRegistrySet: TypedContractEvent<
+      AuditRegistrySetEvent.InputTuple,
+      AuditRegistrySetEvent.OutputTuple,
+      AuditRegistrySetEvent.OutputObject
+    >;
+
+    "DevRegistrarToggled(bool)": TypedContractEvent<
+      DevRegistrarToggledEvent.InputTuple,
+      DevRegistrarToggledEvent.OutputTuple,
+      DevRegistrarToggledEvent.OutputObject
+    >;
+    DevRegistrarToggled: TypedContractEvent<
+      DevRegistrarToggledEvent.InputTuple,
+      DevRegistrarToggledEvent.OutputTuple,
+      DevRegistrarToggledEvent.OutputObject
+    >;
+
     "FacetSecurityLevelSet(address,uint8)": TypedContractEvent<
       FacetSecurityLevelSetEvent.InputTuple,
       FacetSecurityLevelSetEvent.OutputTuple,
@@ -1345,6 +1492,17 @@ export interface ManifestDispatcher extends BaseContract {
       FrozenEvent.InputTuple,
       FrozenEvent.OutputTuple,
       FrozenEvent.OutputObject
+    >;
+
+    "L2TimestampWarning(uint64,uint64)": TypedContractEvent<
+      L2TimestampWarningEvent.InputTuple,
+      L2TimestampWarningEvent.OutputTuple,
+      L2TimestampWarningEvent.OutputObject
+    >;
+    L2TimestampWarning: TypedContractEvent<
+      L2TimestampWarningEvent.InputTuple,
+      L2TimestampWarningEvent.OutputTuple,
+      L2TimestampWarningEvent.OutputObject
     >;
 
     "ManifestVersionUpdated(uint64,uint64)": TypedContractEvent<

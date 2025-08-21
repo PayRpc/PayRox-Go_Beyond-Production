@@ -39,7 +39,9 @@ export interface OrchestratorInterface extends Interface {
       | "isAuthorized"
       | "isPlanActive"
       | "noteComponent"
+      | "orchestrateCommitRoot"
       | "orchestrateManifestUpdate"
+      | "orchestrateRemoveRoutes"
       | "orchestrateStage"
       | "orchestrateStageBatch"
       | "plans"
@@ -48,6 +50,7 @@ export interface OrchestratorInterface extends Interface {
       | "setPlanEmergencyPause"
       | "startOrchestration"
       | "startOrchestrationSecure"
+      | "sweep"
       | "validateOrchestration"
   ): FunctionFragment;
 
@@ -105,6 +108,10 @@ export interface OrchestratorInterface extends Interface {
     values: [BytesLike, AddressLike, string]
   ): string;
   encodeFunctionData(
+    functionFragment: "orchestrateCommitRoot",
+    values: [BytesLike, BytesLike, BigNumberish]
+  ): string;
+  encodeFunctionData(
     functionFragment: "orchestrateManifestUpdate",
     values: [
       BytesLike,
@@ -114,6 +121,10 @@ export interface OrchestratorInterface extends Interface {
       BytesLike[][],
       boolean[][]
     ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "orchestrateRemoveRoutes",
+    values: [BytesLike, BytesLike[]]
   ): string;
   encodeFunctionData(
     functionFragment: "orchestrateStage",
@@ -144,6 +155,7 @@ export interface OrchestratorInterface extends Interface {
     functionFragment: "startOrchestrationSecure",
     values: [BytesLike, BigNumberish]
   ): string;
+  encodeFunctionData(functionFragment: "sweep", values: [AddressLike]): string;
   encodeFunctionData(
     functionFragment: "validateOrchestration",
     values: [BytesLike, BigNumberish, AddressLike]
@@ -184,7 +196,15 @@ export interface OrchestratorInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "orchestrateCommitRoot",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "orchestrateManifestUpdate",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "orchestrateRemoveRoutes",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -216,6 +236,7 @@ export interface OrchestratorInterface extends Interface {
     functionFragment: "startOrchestrationSecure",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "sweep", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "validateOrchestration",
     data: BytesLike
@@ -413,6 +434,12 @@ export interface Orchestrator extends BaseContract {
     "nonpayable"
   >;
 
+  orchestrateCommitRoot: TypedContractMethod<
+    [id: BytesLike, newRoot: BytesLike, newEpoch: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+
   orchestrateManifestUpdate: TypedContractMethod<
     [
       id: BytesLike,
@@ -422,6 +449,12 @@ export interface Orchestrator extends BaseContract {
       proofs: BytesLike[][],
       isRight: boolean[][]
     ],
+    [void],
+    "nonpayable"
+  >;
+
+  orchestrateRemoveRoutes: TypedContractMethod<
+    [id: BytesLike, selectors: BytesLike[]],
     [void],
     "nonpayable"
   >;
@@ -479,6 +512,8 @@ export interface Orchestrator extends BaseContract {
     [void],
     "nonpayable"
   >;
+
+  sweep: TypedContractMethod<[to: AddressLike], [void], "nonpayable">;
 
   validateOrchestration: TypedContractMethod<
     [id: BytesLike, gasLimit: BigNumberish, initiator: AddressLike],
@@ -552,6 +587,13 @@ export interface Orchestrator extends BaseContract {
     "nonpayable"
   >;
   getFunction(
+    nameOrSignature: "orchestrateCommitRoot"
+  ): TypedContractMethod<
+    [id: BytesLike, newRoot: BytesLike, newEpoch: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
     nameOrSignature: "orchestrateManifestUpdate"
   ): TypedContractMethod<
     [
@@ -562,6 +604,13 @@ export interface Orchestrator extends BaseContract {
       proofs: BytesLike[][],
       isRight: boolean[][]
     ],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "orchestrateRemoveRoutes"
+  ): TypedContractMethod<
+    [id: BytesLike, selectors: BytesLike[]],
     [void],
     "nonpayable"
   >;
@@ -619,6 +668,9 @@ export interface Orchestrator extends BaseContract {
     [void],
     "nonpayable"
   >;
+  getFunction(
+    nameOrSignature: "sweep"
+  ): TypedContractMethod<[to: AddressLike], [void], "nonpayable">;
   getFunction(
     nameOrSignature: "validateOrchestration"
   ): TypedContractMethod<

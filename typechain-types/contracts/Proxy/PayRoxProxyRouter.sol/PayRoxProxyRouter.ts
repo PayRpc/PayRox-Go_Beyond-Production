@@ -34,6 +34,7 @@ export interface PayRoxProxyRouterInterface extends Interface {
   getFunction(
     nameOrSignature:
       | "MAX_BATCH_SIZE"
+      | "acceptOwnership"
       | "batchCallSameFunction"
       | "batchExecute"
       | "dispatcher"
@@ -45,12 +46,16 @@ export interface PayRoxProxyRouterInterface extends Interface {
       | "initializeProxyRouter"
       | "isDispatcherFrozen"
       | "isForbidden"
+      | "l1Governor"
+      | "l2Messenger"
       | "owner"
       | "paused"
+      | "pendingOwner"
       | "renounceOwnership"
       | "setDispatcher"
       | "setDispatcherCodehash"
       | "setForbiddenSelectors"
+      | "setL2Governor"
       | "setPaused"
       | "setStrictCodehash"
       | "strictCodehash"
@@ -63,6 +68,8 @@ export interface PayRoxProxyRouterInterface extends Interface {
       | "DispatcherCodehashSet"
       | "DispatcherUpdated"
       | "Frozen"
+      | "L2GovernorConfigured"
+      | "OwnershipTransferStarted"
       | "OwnershipTransferred"
       | "PausedSet"
       | "PayRoxProxyRouterInitialized"
@@ -72,6 +79,10 @@ export interface PayRoxProxyRouterInterface extends Interface {
 
   encodeFunctionData(
     functionFragment: "MAX_BATCH_SIZE",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "acceptOwnership",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -99,7 +110,7 @@ export interface PayRoxProxyRouterInterface extends Interface {
   encodeFunctionData(functionFragment: "getRoute", values: [BytesLike]): string;
   encodeFunctionData(
     functionFragment: "initializeProxyRouter",
-    values: [AddressLike, AddressLike, BytesLike, boolean]
+    values: [AddressLike, AddressLike, BytesLike, boolean, BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "isDispatcherFrozen",
@@ -109,8 +120,20 @@ export interface PayRoxProxyRouterInterface extends Interface {
     functionFragment: "isForbidden",
     values: [BytesLike]
   ): string;
+  encodeFunctionData(
+    functionFragment: "l1Governor",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "l2Messenger",
+    values?: undefined
+  ): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(functionFragment: "paused", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "pendingOwner",
+    values?: undefined
+  ): string;
   encodeFunctionData(
     functionFragment: "renounceOwnership",
     values?: undefined
@@ -126,6 +149,10 @@ export interface PayRoxProxyRouterInterface extends Interface {
   encodeFunctionData(
     functionFragment: "setForbiddenSelectors",
     values: [BytesLike[], boolean]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setL2Governor",
+    values: [AddressLike, AddressLike]
   ): string;
   encodeFunctionData(functionFragment: "setPaused", values: [boolean]): string;
   encodeFunctionData(
@@ -143,6 +170,10 @@ export interface PayRoxProxyRouterInterface extends Interface {
 
   decodeFunctionResult(
     functionFragment: "MAX_BATCH_SIZE",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "acceptOwnership",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -177,8 +208,17 @@ export interface PayRoxProxyRouterInterface extends Interface {
     functionFragment: "isForbidden",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "l1Governor", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "l2Messenger",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "paused", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "pendingOwner",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "renounceOwnership",
     data: BytesLike
@@ -193,6 +233,10 @@ export interface PayRoxProxyRouterInterface extends Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "setForbiddenSelectors",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "setL2Governor",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "setPaused", data: BytesLike): Result;
@@ -271,6 +315,32 @@ export namespace FrozenEvent {
   export type InputTuple = [];
   export type OutputTuple = [];
   export interface OutputObject {}
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export namespace L2GovernorConfiguredEvent {
+  export type InputTuple = [l2Messenger: AddressLike, l1Governor: AddressLike];
+  export type OutputTuple = [l2Messenger: string, l1Governor: string];
+  export interface OutputObject {
+    l2Messenger: string;
+    l1Governor: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export namespace OwnershipTransferStartedEvent {
+  export type InputTuple = [previousOwner: AddressLike, newOwner: AddressLike];
+  export type OutputTuple = [previousOwner: string, newOwner: string];
+  export interface OutputObject {
+    previousOwner: string;
+    newOwner: string;
+  }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
   export type Log = TypedEventLog<Event>;
@@ -397,6 +467,8 @@ export interface PayRoxProxyRouter extends BaseContract {
 
   MAX_BATCH_SIZE: TypedContractMethod<[], [bigint], "view">;
 
+  acceptOwnership: TypedContractMethod<[], [void], "nonpayable">;
+
   batchCallSameFunction: TypedContractMethod<
     [selector: BytesLike, datas: BytesLike[]],
     [string[]],
@@ -430,7 +502,8 @@ export interface PayRoxProxyRouter extends BaseContract {
       owner_: AddressLike,
       dispatcher_: AddressLike,
       expectedCodehash: BytesLike,
-      strictCodehash_: boolean
+      strictCodehash_: boolean,
+      initSalt: BytesLike
     ],
     [void],
     "nonpayable"
@@ -440,9 +513,15 @@ export interface PayRoxProxyRouter extends BaseContract {
 
   isForbidden: TypedContractMethod<[selector: BytesLike], [boolean], "view">;
 
+  l1Governor: TypedContractMethod<[], [string], "view">;
+
+  l2Messenger: TypedContractMethod<[], [string], "view">;
+
   owner: TypedContractMethod<[], [string], "view">;
 
   paused: TypedContractMethod<[], [boolean], "view">;
+
+  pendingOwner: TypedContractMethod<[], [string], "view">;
 
   renounceOwnership: TypedContractMethod<[], [void], "nonpayable">;
 
@@ -460,6 +539,12 @@ export interface PayRoxProxyRouter extends BaseContract {
 
   setForbiddenSelectors: TypedContractMethod<
     [selectors: BytesLike[], forbidden: boolean],
+    [void],
+    "nonpayable"
+  >;
+
+  setL2Governor: TypedContractMethod<
+    [l2Messenger_: AddressLike, l1Governor_: AddressLike],
     [void],
     "nonpayable"
   >;
@@ -487,6 +572,9 @@ export interface PayRoxProxyRouter extends BaseContract {
   getFunction(
     nameOrSignature: "MAX_BATCH_SIZE"
   ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "acceptOwnership"
+  ): TypedContractMethod<[], [void], "nonpayable">;
   getFunction(
     nameOrSignature: "batchCallSameFunction"
   ): TypedContractMethod<
@@ -526,7 +614,8 @@ export interface PayRoxProxyRouter extends BaseContract {
       owner_: AddressLike,
       dispatcher_: AddressLike,
       expectedCodehash: BytesLike,
-      strictCodehash_: boolean
+      strictCodehash_: boolean,
+      initSalt: BytesLike
     ],
     [void],
     "nonpayable"
@@ -538,11 +627,20 @@ export interface PayRoxProxyRouter extends BaseContract {
     nameOrSignature: "isForbidden"
   ): TypedContractMethod<[selector: BytesLike], [boolean], "view">;
   getFunction(
+    nameOrSignature: "l1Governor"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "l2Messenger"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
     nameOrSignature: "owner"
   ): TypedContractMethod<[], [string], "view">;
   getFunction(
     nameOrSignature: "paused"
   ): TypedContractMethod<[], [boolean], "view">;
+  getFunction(
+    nameOrSignature: "pendingOwner"
+  ): TypedContractMethod<[], [string], "view">;
   getFunction(
     nameOrSignature: "renounceOwnership"
   ): TypedContractMethod<[], [void], "nonpayable">;
@@ -560,6 +658,13 @@ export interface PayRoxProxyRouter extends BaseContract {
     nameOrSignature: "setForbiddenSelectors"
   ): TypedContractMethod<
     [selectors: BytesLike[], forbidden: boolean],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "setL2Governor"
+  ): TypedContractMethod<
+    [l2Messenger_: AddressLike, l1Governor_: AddressLike],
     [void],
     "nonpayable"
   >;
@@ -603,6 +708,20 @@ export interface PayRoxProxyRouter extends BaseContract {
     FrozenEvent.InputTuple,
     FrozenEvent.OutputTuple,
     FrozenEvent.OutputObject
+  >;
+  getEvent(
+    key: "L2GovernorConfigured"
+  ): TypedContractEvent<
+    L2GovernorConfiguredEvent.InputTuple,
+    L2GovernorConfiguredEvent.OutputTuple,
+    L2GovernorConfiguredEvent.OutputObject
+  >;
+  getEvent(
+    key: "OwnershipTransferStarted"
+  ): TypedContractEvent<
+    OwnershipTransferStartedEvent.InputTuple,
+    OwnershipTransferStartedEvent.OutputTuple,
+    OwnershipTransferStartedEvent.OutputObject
   >;
   getEvent(
     key: "OwnershipTransferred"
@@ -683,6 +802,28 @@ export interface PayRoxProxyRouter extends BaseContract {
       FrozenEvent.InputTuple,
       FrozenEvent.OutputTuple,
       FrozenEvent.OutputObject
+    >;
+
+    "L2GovernorConfigured(address,address)": TypedContractEvent<
+      L2GovernorConfiguredEvent.InputTuple,
+      L2GovernorConfiguredEvent.OutputTuple,
+      L2GovernorConfiguredEvent.OutputObject
+    >;
+    L2GovernorConfigured: TypedContractEvent<
+      L2GovernorConfiguredEvent.InputTuple,
+      L2GovernorConfiguredEvent.OutputTuple,
+      L2GovernorConfiguredEvent.OutputObject
+    >;
+
+    "OwnershipTransferStarted(address,address)": TypedContractEvent<
+      OwnershipTransferStartedEvent.InputTuple,
+      OwnershipTransferStartedEvent.OutputTuple,
+      OwnershipTransferStartedEvent.OutputObject
+    >;
+    OwnershipTransferStarted: TypedContractEvent<
+      OwnershipTransferStartedEvent.InputTuple,
+      OwnershipTransferStartedEvent.OutputTuple,
+      OwnershipTransferStartedEvent.OutputObject
     >;
 
     "OwnershipTransferred(address,address)": TypedContractEvent<

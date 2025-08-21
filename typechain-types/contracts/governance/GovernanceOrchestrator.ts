@@ -70,12 +70,17 @@ export interface GovernanceOrchestratorInterface extends Interface {
       | "castVote"
       | "checkProposalStatus"
       | "createProposal"
+      | "emergencyCancelProposal"
       | "executeProposal"
       | "executedProposals"
       | "getProposal"
       | "getProposalCount"
+      | "getProposalSnapshots"
+      | "isProposalCancelled"
       | "proposals"
       | "quorumThreshold"
+      | "snapshotQuorumThreshold"
+      | "snapshotTotalSupply"
       | "totalVotingSupply"
       | "updateQuorumThreshold"
       | "updateVotingPower"
@@ -87,6 +92,7 @@ export interface GovernanceOrchestratorInterface extends Interface {
   getEvent(
     nameOrSignatureOrTopic:
       | "GovernanceVoteCast"
+      | "ProposalCancelled"
       | "ProposalCreated"
       | "ProposalExecuted"
       | "QuorumThresholdUpdated"
@@ -127,6 +133,10 @@ export interface GovernanceOrchestratorInterface extends Interface {
     values: [BytesLike, string, BytesLike[], BigNumberish]
   ): string;
   encodeFunctionData(
+    functionFragment: "emergencyCancelProposal",
+    values: [BytesLike, string]
+  ): string;
+  encodeFunctionData(
     functionFragment: "executeProposal",
     values: [BytesLike]
   ): string;
@@ -143,12 +153,28 @@ export interface GovernanceOrchestratorInterface extends Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
+    functionFragment: "getProposalSnapshots",
+    values: [BytesLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "isProposalCancelled",
+    values: [BytesLike]
+  ): string;
+  encodeFunctionData(
     functionFragment: "proposals",
     values: [BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "quorumThreshold",
     values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "snapshotQuorumThreshold",
+    values: [BytesLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "snapshotTotalSupply",
+    values: [BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "totalVotingSupply",
@@ -205,6 +231,10 @@ export interface GovernanceOrchestratorInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "emergencyCancelProposal",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "executeProposal",
     data: BytesLike
   ): Result;
@@ -220,9 +250,25 @@ export interface GovernanceOrchestratorInterface extends Interface {
     functionFragment: "getProposalCount",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "getProposalSnapshots",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "isProposalCancelled",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "proposals", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "quorumThreshold",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "snapshotQuorumThreshold",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "snapshotTotalSupply",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -266,6 +312,28 @@ export namespace GovernanceVoteCastEvent {
     voter: string;
     support: boolean;
     weight: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export namespace ProposalCancelledEvent {
+  export type InputTuple = [
+    proposalId: BytesLike,
+    canceller: AddressLike,
+    reason: string
+  ];
+  export type OutputTuple = [
+    proposalId: string,
+    canceller: string,
+    reason: string
+  ];
+  export interface OutputObject {
+    proposalId: string;
+    canceller: string;
+    reason: string;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -450,6 +518,12 @@ export interface GovernanceOrchestrator extends BaseContract {
     "nonpayable"
   >;
 
+  emergencyCancelProposal: TypedContractMethod<
+    [proposalId: BytesLike, reason: string],
+    [void],
+    "nonpayable"
+  >;
+
   executeProposal: TypedContractMethod<
     [proposalId: BytesLike],
     [void],
@@ -465,6 +539,18 @@ export interface GovernanceOrchestrator extends BaseContract {
   >;
 
   getProposalCount: TypedContractMethod<[], [bigint], "view">;
+
+  getProposalSnapshots: TypedContractMethod<
+    [proposalId: BytesLike],
+    [[bigint, bigint] & { totalSupply: bigint; threshold: bigint }],
+    "view"
+  >;
+
+  isProposalCancelled: TypedContractMethod<
+    [proposalId: BytesLike],
+    [boolean],
+    "view"
+  >;
 
   proposals: TypedContractMethod<
     [arg0: BytesLike],
@@ -484,6 +570,14 @@ export interface GovernanceOrchestrator extends BaseContract {
   >;
 
   quorumThreshold: TypedContractMethod<[], [bigint], "view">;
+
+  snapshotQuorumThreshold: TypedContractMethod<
+    [arg0: BytesLike],
+    [bigint],
+    "view"
+  >;
+
+  snapshotTotalSupply: TypedContractMethod<[arg0: BytesLike], [bigint], "view">;
 
   totalVotingSupply: TypedContractMethod<[], [bigint], "view">;
 
@@ -555,6 +649,13 @@ export interface GovernanceOrchestrator extends BaseContract {
     "nonpayable"
   >;
   getFunction(
+    nameOrSignature: "emergencyCancelProposal"
+  ): TypedContractMethod<
+    [proposalId: BytesLike, reason: string],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
     nameOrSignature: "executeProposal"
   ): TypedContractMethod<[proposalId: BytesLike], [void], "nonpayable">;
   getFunction(
@@ -570,6 +671,16 @@ export interface GovernanceOrchestrator extends BaseContract {
   getFunction(
     nameOrSignature: "getProposalCount"
   ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "getProposalSnapshots"
+  ): TypedContractMethod<
+    [proposalId: BytesLike],
+    [[bigint, bigint] & { totalSupply: bigint; threshold: bigint }],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "isProposalCancelled"
+  ): TypedContractMethod<[proposalId: BytesLike], [boolean], "view">;
   getFunction(
     nameOrSignature: "proposals"
   ): TypedContractMethod<
@@ -591,6 +702,12 @@ export interface GovernanceOrchestrator extends BaseContract {
   getFunction(
     nameOrSignature: "quorumThreshold"
   ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "snapshotQuorumThreshold"
+  ): TypedContractMethod<[arg0: BytesLike], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "snapshotTotalSupply"
+  ): TypedContractMethod<[arg0: BytesLike], [bigint], "view">;
   getFunction(
     nameOrSignature: "totalVotingSupply"
   ): TypedContractMethod<[], [bigint], "view">;
@@ -628,6 +745,13 @@ export interface GovernanceOrchestrator extends BaseContract {
     GovernanceVoteCastEvent.InputTuple,
     GovernanceVoteCastEvent.OutputTuple,
     GovernanceVoteCastEvent.OutputObject
+  >;
+  getEvent(
+    key: "ProposalCancelled"
+  ): TypedContractEvent<
+    ProposalCancelledEvent.InputTuple,
+    ProposalCancelledEvent.OutputTuple,
+    ProposalCancelledEvent.OutputObject
   >;
   getEvent(
     key: "ProposalCreated"
@@ -675,6 +799,17 @@ export interface GovernanceOrchestrator extends BaseContract {
       GovernanceVoteCastEvent.InputTuple,
       GovernanceVoteCastEvent.OutputTuple,
       GovernanceVoteCastEvent.OutputObject
+    >;
+
+    "ProposalCancelled(bytes32,address,string)": TypedContractEvent<
+      ProposalCancelledEvent.InputTuple,
+      ProposalCancelledEvent.OutputTuple,
+      ProposalCancelledEvent.OutputObject
+    >;
+    ProposalCancelled: TypedContractEvent<
+      ProposalCancelledEvent.InputTuple,
+      ProposalCancelledEvent.OutputTuple,
+      ProposalCancelledEvent.OutputObject
     >;
 
     "ProposalCreated(bytes32,address,string,uint256)": TypedContractEvent<

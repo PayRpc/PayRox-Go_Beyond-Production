@@ -36,7 +36,7 @@
     "sol:lint:fix": "npx solhint 'contracts/**/*.sol' --fix",
     "preflight": "npx hardhat payrox:preflight",
     "health": "npx hardhat payrox:health",
-    "build": "tsc -p .",
+  "build": "tsc -p tsconfig.hardhat.json",
     "analyze": "node dist/scripts/cli/analyze.js",
     "analyze:light": "node dist/scripts/cli/analyze.js --light",
     "transform:one": "node scripts/transformers/transform-one.js --file",
@@ -78,7 +78,6 @@
     "postinstall": "npm run build:splitter || true",
     "new:facet": "ts-node scripts/generators/new-facet.ts",
     "routes:add": "ts-node scripts/manifest/add-facet-routes.ts"
-  ,"gas:fixture": "npx hardhat run scripts/gas-fixture-applyRoutes.ts"
   },
   "keywords": [],
   "author": "",

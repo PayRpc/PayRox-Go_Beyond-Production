@@ -2,5 +2,6 @@
 /* tslint:disable */
 /* eslint-disable */
 export { ChunkFactoryLib__factory } from "./ChunkFactoryLib__factory";
-export { GasOptimizationUtils__factory } from "./GasOptimizationUtils__factory";
+export { CrossChainDeploymentLib__factory } from "./CrossChainDeploymentLib__factory";
+export { ManifestDispatcherLib__factory } from "./ManifestDispatcherLib__factory";
 export { OrderedMerkle__factory } from "./OrderedMerkle__factory";
