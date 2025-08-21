@@ -337,7 +337,7 @@ export class SolidityAnalyzer {
           ),
           modifiers: this.extractFunctionModifiers(functionNode),
           gasEstimate: this.estimateFunctionGas(functionNode),
-          dependencies: this.findFunctionDependencies(functionNode, sourceCode),
+          dependencies: this.findFunctionDependencies(functionNode),
           codeSize: this.estimateFunctionSize(functionNode, sourceCode),
           sourceLocation: this.getSourceLocation(functionNode, sourceCode)
         }
@@ -373,7 +373,7 @@ export class SolidityAnalyzer {
               slot: slotCounter,
               offset: 0,
               size: this.calculateVariableSize(variable.typeName),
-              dependencies: this.findVariableDependencies(variable, sourceCode),
+              dependencies: this.findVariableDependencies(variable),
               sourceLocation: this.getSourceLocation(variable, sourceCode)
             }
 
@@ -696,8 +696,7 @@ export class SolidityAnalyzer {
    * Find function dependencies (other functions called)
    */
   private findFunctionDependencies (
-    functionNode: any,
-    _sourceCode: string
+    functionNode: any
   ): string[] {
     const dependencies = new Set<string>()
 
@@ -717,8 +716,7 @@ export class SolidityAnalyzer {
    * Find variable dependencies
    */
   private findVariableDependencies (
-    variableNode: any,
-    _sourceCode: string
+    variableNode: any
   ): string[] {
     const dependencies = new Set<string>()
 

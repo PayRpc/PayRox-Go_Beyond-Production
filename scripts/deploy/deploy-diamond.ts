@@ -87,7 +87,7 @@ class DiamondDeployer {
       const facet = await FacetFactory.deploy({ gasLimit: 5000000 })
       await facet.waitForDeployment()
 
-      this.deployedFacets.set(facetName, facet as any)
+      this.deployedFacets.set(facetName, facet as Contract)
 
       // Update manifest with deployed address
       facetData.address = await facet.getAddress()
@@ -142,7 +142,7 @@ class DiamondDeployer {
       'contracts/interfaces/IDiamondCut.sol:IDiamondCut',
       await diamond.getAddress()
     )
-    const loupeSelectors = this.getFunctionSelectors(diamondLoupeFacet as any)
+    const loupeSelectors = this.getFunctionSelectors(diamondLoupeFacet as Contract)
 
     if (!diamondCut || typeof diamondCut.diamondCut !== 'function') {
       throw new Error('DiamondCut function not available')
@@ -237,10 +237,14 @@ class DiamondDeployer {
       this.manifest.facets
     )) {
       for (const selector of facetData.selectors) {
-        if (!diamondLoupe || typeof (diamondLoupe as any).facetAddress !== 'function') {
+        if (!diamondLoupe) {
+          throw new Error('DiamondLoupe not available')
+        }
+        const loupeContract = diamondLoupe as Contract
+        if (typeof loupeContract.facetAddress !== 'function') {
           throw new Error('DiamondLoupe facetAddress function not available')
         }
-        const facetAddress = await (diamondLoupe as any).facetAddress(selector)
+        const facetAddress = await loupeContract.facetAddress(selector)
         if (facetAddress !== facetData.address) {
           throw new Error(
             `Selector routing failed: ${selector} -> ${facetAddress} (expected ${facetData.address})`
