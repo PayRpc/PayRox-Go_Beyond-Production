@@ -7,8 +7,8 @@
   "scripts": {
     "check:ts": "tsc -p tsconfig.hardhat.json --noEmit",
     "smoke:merkle": "ts-node -P tsconfig.hardhat.json scripts/smoke/smoke-merkle.ts",
-    "lint": "eslint scripts hardhat.config.ts --fix",
-    "lint:check": "eslint scripts hardhat.config.ts",
+    "lint": "eslint scripts hardhat.config.ts --config .eslintrc.simple.json --fix",
+    "lint:check": "eslint scripts hardhat.config.ts --config .eslintrc.simple.json",
     "lint:zero": "node tools/zeroIssueLint.cjs",
     "lint:zero:json": "node tools/zeroIssueLint.cjs --json",
     "lint:zero:baseline": "node tools/zeroIssueLint.cjs --write-baseline",
