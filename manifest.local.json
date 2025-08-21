@@ -1,0 +1,53 @@
+{
+  "routes": [
+    {
+      "name": "OPERATOR_ROLE",
+      "path": "/OPERATOR_ROLE",
+      "selector": "0xf5b541a6",
+      "facet": "0xFacetAddressPlaceholder",
+      "functionName": "OPERATOR_ROLE"
+    },
+    {
+      "name": "getConfig",
+      "path": "/getConfig",
+      "selector": "0xc3f909d4",
+      "facet": "0xFacetAddressPlaceholder",
+      "functionName": "getConfig"
+    },
+    {
+      "name": "getFacetInfo",
+      "path": "/getFacetInfo",
+      "selector": "0x7ab7b94b",
+      "facet": "0xFacetAddressPlaceholder",
+      "functionName": "getFacetInfo"
+    },
+    {
+      "name": "getState",
+      "path": "/getState",
+      "selector": "0x1865c57d",
+      "facet": "0xFacetAddressPlaceholder",
+      "functionName": "getState"
+    },
+    {
+      "name": "initializePayments",
+      "path": "/initializePayments",
+      "selector": "0x7baf948f",
+      "facet": "0xFacetAddressPlaceholder",
+      "functionName": "initializePayments"
+    },
+    {
+      "name": "setConfig",
+      "path": "/setConfig",
+      "selector": "0x893bcfbe",
+      "facet": "0xFacetAddressPlaceholder",
+      "functionName": "setConfig"
+    },
+    {
+      "name": "supportsInterface",
+      "path": "/supportsInterface",
+      "selector": "0x01ffc9a7",
+      "facet": "0xFacetAddressPlaceholder",
+      "functionName": "supportsInterface"
+    }
+  ]
+}

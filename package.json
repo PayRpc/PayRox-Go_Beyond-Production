@@ -76,7 +76,9 @@
     "audit:checklist": "ts-node tools/audit/audit-consultant.ts checklist",
     "audit:interactive": "ts-node tools/audit/audit-consultant.ts interactive",
     "build:splitter": "tsup tools/splitter/split-facet.ts --format cjs --platform=node --target=node20 --out-dir scripts/tools/ast/dist --clean",
-    "postinstall": "npm run build:splitter || true"
+    "postinstall": "npm run build:splitter || true",
+    "new:facet": "ts-node scripts/generators/new-facet.ts",
+    "routes:add": "ts-node scripts/manifest/add-facet-routes.ts"
   },
   "keywords": [],
   "author": "",

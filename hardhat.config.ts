@@ -4,6 +4,7 @@ import '@nomicfoundation/hardhat-chai-matchers'
 
 // Import tasks
 import './tasks/prx.chunk'
+import './tasks/facet-init'
 
 const config: HardhatUserConfig = {
   solidity: {
