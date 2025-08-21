@@ -125,6 +125,21 @@ library GasOptimizationUtils {
             }
         }
     }
+
+    /**
+     * @notice Overload accepting uint64[] directly (avoids widening then truncating).
+     * @param messageLengths Array of message lengths (uint64[])
+     * @return packed Packed bytes32 containing the first 4 lengths
+     */
+    function packStorage(uint64[] memory messageLengths) internal pure returns (bytes32 packed) {
+        uint256 len = messageLengths.length;
+        uint256 maxPack = len < 4 ? len : 4;
+        unchecked {
+            for (uint256 i = 0; i < maxPack; ++i) {
+                packed |= bytes32(uint256(messageLengths[i]) << (i * 64));
+            }
+        }
+    }
 }
 
 /**

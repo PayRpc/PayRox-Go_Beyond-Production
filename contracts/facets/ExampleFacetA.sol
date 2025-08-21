@@ -3,7 +3,7 @@ pragma solidity 0.8.30;
 
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
-import {GasOptimizationUtils} from "../utils/GasOptimizationUtils.sol";
+import {GasOptimizationUtils, bytes64Array} from "../utils/GasOptimizationUtils.sol";
 import { PayRoxPauseStorage as PS } from "../libraries/PayRoxPauseStorage.sol";
 
 /**
@@ -132,8 +132,8 @@ contract ExampleFacetA {
 
         l.lastCaller_ = msg.sender;
 
-        // Pack batch metadata for gas optimization analytics
-        bytes32 packedMetadata = GasOptimizationUtils.packStorage(messageLengths);
+    // Pack batch metadata for gas optimization analytics using library
+    bytes32 packedMetadata = GasOptimizationUtils.packStorage(messageLengths);
         uint256 gasUsed = gasBefore - gasleft();
         
         emit BatchExecutedOptimized(n, gasUsed, packedMetadata, block.timestamp);
