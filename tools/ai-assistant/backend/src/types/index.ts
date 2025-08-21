@@ -74,7 +74,7 @@ export class CompilationError extends Error {
   public errors?: any[];
   constructor(message: string, errors?: any[]) {
     super(message);
-    this.name = 'CompilationError';
+    this.name = "CompilationError";
     this.errors = errors;
   }
 }
@@ -83,7 +83,7 @@ export class AnalysisError extends Error {
   public loc?: SourceLocation | any;
   constructor(message: string, loc?: SourceLocation | any) {
     super(message);
-    this.name = 'AnalysisError';
+    this.name = "AnalysisError";
     this.loc = loc;
   }
 }

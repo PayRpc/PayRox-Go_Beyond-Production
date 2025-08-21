@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /* eslint-disable no-console */
-'use strict';
+"use strict";
 
 /**
  * 🪝 Universal Refactor Learning Hook
@@ -8,7 +8,7 @@
  */
 
 function learnUniversalRefactor(data) {
-  console.log('🧠 Learning from universal refactor operation:', data);
+  console.log("🧠 Learning from universal refactor operation:", data);
 
   const learningPoints = {
     monolithSize: !!data?.originalSize,

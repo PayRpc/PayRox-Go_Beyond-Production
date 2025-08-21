@@ -1,4 +1,4 @@
-import { keccak256, concat, AbiCoder, toUtf8Bytes } from 'ethers';
+import { keccak256, concat, AbiCoder, toUtf8Bytes } from 'ethers'
 
 /**
  * Process an ordered Merkle proof using bitfield position encoding (LSB-first)
@@ -7,24 +7,28 @@ import { keccak256, concat, AbiCoder, toUtf8Bytes } from 'ethers';
  * @param positionsHex Bitfield hex string (e.g., "0x01") where bit i = 1 means sibling i is on the right
  * @returns Computed root hash
  */
-export function processOrderedProof(leaf: string, proof: string[], positionsHex: string): string {
+export function processOrderedProof (
+  leaf: string,
+  proof: string[],
+  positionsHex: string
+): string {
   // Mirror Solidity OrderedMerkle.processProof:
   // - computed starts as _hashLeaf(leaf) == keccak256(0x00 || leaf)
   // - at each step: computed = isRight ? keccak256(0x01 || computed || proof[i]) : keccak256(0x01 || proof[i] || computed)
-  const positions = BigInt(positionsHex);
-  let computed = keccak256(concat(['0x00', leaf]));
+  const positions = BigInt(positionsHex)
+  let computed = keccak256(concat(['0x00', leaf]))
 
   for (let i = 0n; i < BigInt(proof.length); i++) {
-    const sib = proof[Number(i)];
-    const isRight = ((positions >> i) & 1n) === 1n;
+    const sib = proof[Number(i)]
+    const isRight = ((positions >> i) & 1n) === 1n
     if (isRight) {
-      computed = keccak256(concat(['0x01', computed, sib]));
+      computed = keccak256(concat(['0x01', computed, sib]))
     } else {
-      computed = keccak256(concat(['0x01', sib, computed]));
+      computed = keccak256(concat(['0x01', sib, computed]))
     }
   }
 
-  return computed;
+  return computed
 }
 
 /**
@@ -35,21 +39,24 @@ export function processOrderedProof(leaf: string, proof: string[], positionsHex:
  * @param root Expected root hash (0x-prefixed hex string)
  * @returns True if proof is valid
  */
-export function verifyOrderedProof(
+export function verifyOrderedProof (
   leaf: string,
   proof: string[],
   positionsHex: string,
-  root: string,
+  root: string
 ): boolean {
   // Schema guardrail: assert no high bits beyond proof length
-  const positions = BigInt(positionsHex);
+  const positions = BigInt(positionsHex)
   if (positions >> BigInt(proof.length) !== 0n) {
     throw new Error(
-      `Invalid positions bitfield: extra high bits detected beyond proof.length=${proof.length}`,
-    );
+      `Invalid positions bitfield: extra high bits detected beyond proof.length=${proof.length}`
+    )
   }
 
-  return processOrderedProof(leaf, proof, positionsHex).toLowerCase() === root.toLowerCase();
+  return (
+    processOrderedProof(leaf, proof, positionsHex).toLowerCase() ===
+    root.toLowerCase()
+  )
 }
 
 /**
@@ -59,10 +66,16 @@ export function verifyOrderedProof(
  * @param codehash Expected codehash (0x-prefixed)
  * @returns Leaf hash for Merkle tree
  */
-export function createRouteLeaf(selector: string, facet: string, codehash: string): string {
+export function createRouteLeaf (
+  selector: string,
+  facet: string,
+  codehash: string
+): string {
   // Use proper ABI encoding: bytes4, address, bytes32 (not padded bytes32s)
-  const abi = AbiCoder.defaultAbiCoder();
-  return keccak256(abi.encode(['bytes4', 'address', 'bytes32'], [selector, facet, codehash]));
+  const abi = AbiCoder.defaultAbiCoder()
+  return keccak256(
+    abi.encode(['bytes4', 'address', 'bytes32'], [selector, facet, codehash])
+  )
 }
 
 /**
@@ -70,6 +83,6 @@ export function createRouteLeaf(selector: string, facet: string, codehash: strin
  * @param version Human-readable version string (e.g., "v1.2.3")
  * @returns 32-byte hash of version string
  */
-export function getVersionBytes32(version: string): string {
-  return keccak256(toUtf8Bytes(version));
+export function getVersionBytes32 (version: string): string {
+  return keccak256(toUtf8Bytes(version))
 }

@@ -1,10 +1,11 @@
-import { parse } from '@solidity-parser/parser';
-import * as solc from 'solc';
-import { keccak256 } from 'ethers';
-import * as crypto from 'crypto';
-import { Command } from 'commander';
-import * as fs from 'fs';
-import * as path from 'path';
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { parse } from "@solidity-parser/parser";
+import * as solc from "solc";
+import { keccak256 } from "ethers";
+import * as crypto from "crypto";
+import { Command } from "commander";
+import * as fs from "fs";
 import {
   ParsedContract,
   FunctionInfo,
@@ -13,197 +14,118 @@ import {
   ModifierInfo,
   ImportInfo,
   ParameterInfo,
-  SourceLocation,
-  StorageSlot,
-  CompilationError,
+  ChunkInfo,
+  FacetCandidate,
   AnalysisError,
   ManifestRoute,
-  FacetCandidate,
-} from '../types/index';
+} from "./types";
 
-// Define AST node types to replace 'any'
+// ===============================================
+// Core AST Node Type Definitions
+// ===============================================
+
 interface ASTNode {
   type: string;
-  name?: string;
-  loc?: {
-    start?: { line: number; column: number };
-    end?: { line: number; column: number };
-  };
   range?: [number, number];
-  [key: string]: unknown;
+  loc?: {
+    start: { line: number; column: number };
+    end: { line: number; column: number };
+  };
+  parent?: ASTNode;
+  [key: string]: any;
 }
 
 interface ContractNode extends ASTNode {
-  type: 'ContractDefinition';
+  type: "ContractStatement";
   name: string;
   baseContracts?: Array<{
     baseName: { namePath: string };
   }>;
+  body?: ASTNode[];
 }
 
 interface FunctionNode extends ASTNode {
-  type: 'FunctionDefinition';
+  type: "FunctionDefinition";
   name?: string;
-  isConstructor?: boolean;
-  visibility?: 'public' | 'external' | 'internal' | 'private';
-  stateMutability?: 'pure' | 'view' | 'payable' | 'nonpayable';
   parameters?: ParameterListNode;
   returnParameters?: ParameterListNode;
   modifiers?: Array<{ name: string }>;
+  stateMutability?: string;
+  visibility?: string;
+  isConstructor?: boolean;
+  isReceiveEther?: boolean;
+  isFallback?: boolean;
   body?: ASTNode;
 }
 
 interface ParameterListNode extends ASTNode {
-  parameters?: Array<{
+  type: "ParameterList";
+  parameters: Array<{
+    typeName: ASTNode;
     name?: string;
-    typeName: TypeNode;
-    isIndexed?: boolean;
+    storageLocation?: string;
   }>;
 }
 
-interface TypeNode extends ASTNode {
-  type: string;
-  name?: string;
-  namePath?: string;
-  baseTypeName?: TypeNode;
-  keyType?: TypeNode;
-  valueType?: TypeNode;
-  length?: string | number;
+interface EventNode extends ASTNode {
+  type: "EventDefinition";
+  name: string;
+  parameters?: ParameterListNode;
 }
 
 interface VariableNode extends ASTNode {
-  name: string;
-  typeName: TypeNode;
-  visibility?: 'public' | 'internal' | 'private';
-  isConstant?: boolean;
-  isImmutable?: boolean;
-  expression?: ASTNode;
+  type: "StateVariableDeclaration";
+  variables: Array<{
+    name: string;
+    typeName: ASTNode;
+    visibility?: string;
+    isDeclaredConst?: boolean;
+    expression?: ASTNode;
+  }>;
 }
 
-interface EventNode extends ASTNode {
-  type: 'EventDefinition';
-  name: string;
-  parameters?: ParameterListNode;
-}
-
-interface ModifierNode extends ASTNode {
-  type: 'ModifierDefinition';
+interface _ModifierDefinitionNode extends ASTNode {
+  type: "ModifierDefinition";
   name: string;
   parameters?: ParameterListNode;
+  body?: ASTNode;
 }
 
-interface ImportNode extends ASTNode {
-  type: 'ImportDirective';
-  path: string;
-  symbolAliases?: Array<{ foreign: string }>;
-}
-
-interface CompilationOutput {
-  contracts?: {
-    [filename: string]: {
-      [contractName: string]: {
-        abi?: unknown[];
-        evm?: {
-          bytecode?: { object?: string };
-          deployedBytecode?: { object?: string };
-          gasEstimates?: unknown;
-        };
-        storageLayout?: {
-          storage?: Array<{
-            slot: string;
-            offset: number;
-            type: string;
-            label: string;
-          }>;
-          types?: Record<string, { numberOfBytes?: number }>;
-        };
-      };
-    };
-  };
-  errors?: Array<{ severity: string; message: string }>;
-}
+// Note: CompilationOutput interface removed as it was unused
+// It was only needed for solc compilation output typing
 
 // Canonical zero hash (256-bit)
-const ZERO_HASH = '0x' + '0'.repeat(64);
-
+const ZERO_HASH = "0x" + "0".repeat(64);
 
 export class SolidityAnalyzer {
   constructor() {
-    // Parser and compiler are used directly
+    // Initialize analyzer
   }
 
-  // --- Internal helpers -------------------------------------------------
-  /**
-   * Convert string to Uint8Array in a runtime-safe way (Node + browser)
-   */
-  private toBytes(s: string): Uint8Array {
-    if (typeof TextEncoder !== 'undefined') {
-      return new TextEncoder().encode(s);
-    }
-    // Fallback for older Node versions
-    return Buffer.from(s, 'utf8');
-  }
+  // ===============================================
+  // Primary Analysis Entry Points
+  // ===============================================
 
-  /**
-   * Keccak256 hash returning 0x-prefixed hex
-   */
-  private keccakHex(s: string | Uint8Array): string {
-    try {
-      if (typeof s === 'string') {
-        return keccak256(this.toBytes(s));
-      }
-      return keccak256(s as Uint8Array);
-    } catch (err) {
-      // Fallback: return zero hash on failure
-      return ZERO_HASH;
-    }
-  }
-
-  /**
-   * SHA256 (hex) using node crypto to match naming expectations
-   */
-  private sha256Hex(s: string): string {
-    try {
-      const hash = crypto.createHash('sha256').update(s, 'utf8').digest('hex');
-      return '0x' + hash;
-    } catch (err) {
-      return ZERO_HASH;
-    }
-  }
-
-  /**
-   * Compute 4-byte selector from function signature
-   */
-  private selectorFromSignature(sig: string): string {
-    if (!sig || typeof sig !== 'string') return '0x00000000';
-    const hash = this.keccakHex(sig);
-    return hash.slice(0, 10); // 0x + 8 hex chars
-  }
-  // ----------------------------------------------------------------------
-
-  /**
-   * Parse and analyze a Solidity contract
-   */
   async parseContract(
     sourceCode: string,
-    contractName?: string
+    contractName?: string,
   ): Promise<ParsedContract> {
     try {
-      // Parse the AST
+      // Parse AST first
       const ast = parse(sourceCode, {
+        range: false,
         loc: true,
-        range: true,
-        tolerant: false,
+        tolerant: true,
       });
 
-      // Compile to get additional metadata (best-effort)
-      let compiled: Record<string, unknown> = {};
+      // Compile contract for additional information
+      let compiled: any = {};
       try {
         compiled = await this.compileContract(sourceCode, contractName);
       } catch (e) {
         console.warn(
-          'Compilation failed, continuing with AST-only analysis:',
-          e instanceof Error ? e.message : e
+          "Compilation failed, continuing with AST-only analysis:",
+          e instanceof Error ? e.message : e,
         );
         compiled = {};
       }
@@ -211,33 +133,44 @@ export class SolidityAnalyzer {
       // Extract contract information
       const contractNode = this.findContractNode(ast, contractName);
       if (!contractNode) {
-        throw new AnalysisError('Contract not found in source code');
+        throw new AnalysisError("Contract not found in source code");
       }
 
+      // Extract all components
       const functions = this.extractFunctions(contractNode, sourceCode);
       const variables = this.extractVariables(contractNode, sourceCode);
       const events = this.extractEvents(contractNode, sourceCode);
-      const modifiers = this.extractModifiers(contractNode, sourceCode);
+      const modifiers = this.extractModifiersFromContract(
+        contractNode,
+        sourceCode,
+      );
       const imports = this.extractImports(ast);
       const inheritance = this.extractInheritance(contractNode);
-      const storageLayout = this.extractStorageLayout(compiled);
-      const totalSize = this.estimateContractSize(compiled);
 
-      // PayRox Go Beyond specific analysis
-      const facetCandidates = this.identifyFacetCandidates(functions);
-      const manifestRoutes = this.generateManifestRoutes(functions, compiled);
-      const chunkingRequired = this.requiresChunking(totalSize);
-      const runtimeCodehash = this.calculateRuntimeCodehash(compiled);
-      const storageCollisions = this.detectStorageCollisions(variables);
+      // Calculate metrics
+      const totalSize = this.calculateTotalSize(functions, variables);
       const deploymentStrategy = this.determineDeploymentStrategy(
         totalSize,
-        functions.length
+        functions.length,
       );
 
-      return {
+      // Analyze storage layout
+      const storageLayout = this.analyzeStorageLayout(variables, compiled);
+
+      // Create diamond-compatible manifest routes
+      const manifestRoutes = this.generateManifestRoutes(functions, compiled);
+
+      // Generate security analysis
+      const securityAnalysis = this.performSecurityAnalysis(
+        functions,
+        variables,
+      );
+
+      const result: ParsedContract = {
         name: contractNode.name,
         sourceCode,
         ast,
+        compiled,
         functions,
         variables,
         events,
@@ -245,181 +178,159 @@ export class SolidityAnalyzer {
         imports,
         inheritance,
         totalSize,
-        storageLayout,
-        facetCandidates,
-        manifestRoutes,
-        chunkingRequired,
-        runtimeCodehash,
-        storageCollisions,
         deploymentStrategy,
-      } as ParsedContract;
-    } catch (error: unknown) {
-      if (error instanceof AnalysisError) {
-        throw error;
-      }
+        storageLayout,
+        manifestRoutes,
+        securityAnalysis,
+        chunkingRequired:
+          deploymentStrategy === "chunked" || deploymentStrategy === "faceted",
+        facetCandidates:
+          deploymentStrategy === "faceted"
+            ? this.identifyFacetCandidates(functions)
+            : new Map(),
+        storageCollisions: storageLayout.collisions || [],
+      };
+
+      return result;
+    } catch (error) {
       const errorMessage =
-        error instanceof Error ? error.message : 'Unknown error';
-      throw new AnalysisError(
-        `Failed to parse contract: ${errorMessage}`
-      );
+        error instanceof Error ? error.message : "Unknown error";
+      throw new AnalysisError(`Failed to parse contract: ${errorMessage}`);
     }
   }
 
-  /**
-   * Compile Solidity source code
-   */
   private async compileContract(
     sourceCode: string,
-    _contractName?: string
-  ): Promise<Record<string, unknown>> {
-    const input = {
-      language: 'Solidity',
-      sources: {
-        'contract.sol': {
-          content: sourceCode,
-        },
-      },
-      settings: {
-        outputSelection: {
-          '*': {
-            '*': [
-              'abi',
-              'evm.bytecode',
-              'evm.deployedBytecode',
-              'evm.gasEstimates',
-              'storageLayout',
-              'devdoc',
-              'userdoc',
-            ],
+    _contractName?: string,
+  ): Promise<any> {
+    try {
+      const input = {
+        language: "Solidity",
+        sources: {
+          "contract.sol": {
+            content: sourceCode,
           },
         },
-        optimizer: {
-          enabled: true,
-          runs: 200,
+        settings: {
+          outputSelection: {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.gasEstimates",
+                "storageLayout",
+              ],
+            },
+          },
         },
-      },
-    };
+      };
 
-    try {
       const output = JSON.parse(solc.compile(JSON.stringify(input)));
 
       if (output.errors) {
         const errors = output.errors.filter(
-          (err: { severity: string }) => err.severity === 'error'
+          (err: { severity: string }) => err.severity === "error",
         );
         if (errors.length > 0) {
-          throw new CompilationError('Compilation failed', errors);
+          throw new Error(`Compilation failed: ${errors[0].message}`);
         }
       }
 
-      return output;
-    } catch (error: unknown) {
-      if (error instanceof CompilationError) {
-        throw error;
-      }
+      return output.contracts?.["contract.sol"] || {};
+    } catch (error) {
       const errorMessage =
-        error instanceof Error ? error.message : 'Unknown error';
-      throw new CompilationError(`Compilation failed: ${errorMessage}`);
+        error instanceof Error ? error.message : "Unknown error";
+      throw new AnalysisError(`Compilation failed: ${errorMessage}`);
     }
   }
 
-  /**
-   * Find the main contract node in AST
-   */
   private findContractNode(
     ast: unknown,
-    contractName?: string
+    contractName?: string,
   ): ContractNode | null {
     const contractNodes: ContractNode[] = [];
 
-    this.visitNode(ast as ASTNode, node => {
-      if (node.type === 'ContractDefinition') {
+    this.visitNode(ast as ASTNode, (node) => {
+      if (node.type === "ContractStatement") {
         contractNodes.push(node as ContractNode);
       }
     });
 
     if (contractName) {
-      const found = contractNodes.find(node => node.name === contractName);
-      if (found) {
-        return found;
-      }
+      const found = contractNodes.find((node) => node.name === contractName);
+      return found || null;
     }
 
-    // Return the last contract (usually the main one)
-    return contractNodes[contractNodes.length - 1] || null;
+    return contractNodes[0] || null;
   }
 
-  /**
-   * Extract function information
-   */
+  // ===============================================
+  // Contract Component Extraction
+  // ===============================================
+
   private extractFunctions(
     contractNode: ContractNode,
-    sourceCode: string
+    sourceCode: string,
   ): FunctionInfo[] {
     const functions: FunctionInfo[] = [];
 
-    this.visitNode(contractNode, node => {
-      if (node.type === 'FunctionDefinition') {
+    this.visitNode(contractNode, (node) => {
+      if (node.type === "FunctionDefinition") {
         const functionNode = node as FunctionNode;
-        const functionInfo: FunctionInfo = {
+        functions.push({
           name:
             functionNode.name ||
-            (functionNode.isConstructor ? 'constructor' : 'fallback'),
-          selector: this.calculateSelector(functionNode),
-          signature: this.buildFunctionSignature(functionNode),
-          visibility: functionNode.visibility || 'public',
-          stateMutability: functionNode.stateMutability || 'nonpayable',
+            (functionNode.isConstructor ? "constructor" : "fallback"),
           parameters: this.extractParameters(functionNode.parameters),
           returnParameters: this.extractParameters(
-            functionNode.returnParameters
+            functionNode.returnParameters,
           ),
-          modifiers: this.extractFunctionModifiers(functionNode),
-          gasEstimate: this.estimateFunctionGas(functionNode),
+          modifiers: this.extractModifiers(functionNode),
+          stateMutability: functionNode.stateMutability || "nonpayable",
+          visibility: functionNode.visibility || "internal",
+          isConstructor: functionNode.isConstructor || false,
+          isReceiveEther: functionNode.isReceiveEther || false,
+          isFallback: functionNode.isFallback || false,
+          signature: this.buildFunctionSignature(functionNode),
+          selector: this.calculateSelector(functionNode),
           dependencies: this.findFunctionDependencies(functionNode, sourceCode),
-          codeSize: this.estimateFunctionSize(functionNode, sourceCode),
-          sourceLocation: this.getSourceLocation(functionNode, sourceCode),
-        };
-
-        functions.push(functionInfo);
+          size: this.estimateFunctionSize(functionNode),
+          gasEstimate: this.estimateFunctionGas(functionNode),
+          securityLevel: this.assessSecurityLevel({
+            name: functionNode.name || "fallback",
+            stateMutability: functionNode.stateMutability || "nonpayable",
+            visibility: functionNode.visibility || "internal",
+            modifiers: this.extractModifiers(functionNode),
+          } as FunctionInfo),
+        });
       }
     });
 
     return functions;
   }
 
-  /**
-   * Extract state variables
-   */
   private extractVariables(
     contractNode: ContractNode,
-    sourceCode: string
+    sourceCode: string,
   ): VariableInfo[] {
     const variables: VariableInfo[] = [];
-    let slotCounter = 0;
 
-    this.visitNode(contractNode, node => {
-      if (node.type === 'StateVariableDeclaration') {
-        const variables_node = node as unknown as { variables: VariableNode[] };
-        if (variables_node.variables) {
-          for (const variable of variables_node.variables) {
-            const variableInfo: VariableInfo = {
+    this.visitNode(contractNode, (node) => {
+      if (node.type === "StateVariableDeclaration") {
+        const variableNode = node as VariableNode;
+        if (variableNode.variables) {
+          for (const variable of variableNode.variables) {
+            variables.push({
               name: variable.name,
               type: this.typeToString(variable.typeName),
-              visibility: variable.visibility || 'internal',
-              constant: variable.isConstant || false,
-              immutable: variable.isImmutable || false,
-              slot: slotCounter,
-              offset: 0,
-              size: this.calculateVariableSize(variable.typeName),
+              visibility: variable.visibility || "internal",
+              isConstant: variable.isDeclaredConst || false,
               dependencies: this.findVariableDependencies(variable, sourceCode),
-              sourceLocation: this.getSourceLocation(variable, sourceCode),
-            };
-
-            // Update slot counter based on variable size (defensive default)
-            const varSize = typeof variableInfo.size === 'number' ? variableInfo.size : 32;
-            slotCounter += Math.ceil(varSize / 32);
-
-            variables.push(variableInfo);
+              size: this.estimateVariableSize(variable.typeName),
+              slot: -1, // Will be calculated later
+              offset: 0,
+            });
           }
         }
       }
@@ -428,160 +339,104 @@ export class SolidityAnalyzer {
     return variables;
   }
 
-  /**
-   * Extract events
-   */
   private extractEvents(
     contractNode: ContractNode,
-    sourceCode: string
+    _sourceCode: string,
   ): EventInfo[] {
     const events: EventInfo[] = [];
 
-    this.visitNode(contractNode, node => {
-      if (node.type === 'EventDefinition') {
-        const eventInfo: EventInfo = {
-          name: node.name || '',
-          signature: this.buildEventSignature(node as unknown as EventNode),
-          parameters: this.extractParameters(
-            (node as any).parameters || {
-              type: 'ParameterList',
-              parameters: [],
-            }
-          ),
+    this.visitNode(contractNode, (node) => {
+      if (node.type === "EventDefinition") {
+        const eventNode = node as EventNode;
+        events.push({
+          name: eventNode.name,
+          parameters: this.extractParameters(eventNode.parameters),
+          signature: this.buildEventSignature(eventNode),
           indexed:
             (node as any).parameters?.map?.(
-              (param: any) => param.isIndexed || false
+              (param: any) => param.isIndexed || false,
             ) || [],
-          sourceLocation: this.getSourceLocation(node, sourceCode),
-        };
-
-        events.push(eventInfo);
+        });
       }
     });
 
     return events;
   }
 
-  /**
-   * Extract modifiers
-   */
-  private extractModifiers(
+  private extractModifiersFromContract(
     contractNode: any,
-    sourceCode: string
+    sourceCode: string,
   ): ModifierInfo[] {
     const modifiers: ModifierInfo[] = [];
 
-    this.visitNode(contractNode, node => {
-      if (node.type === 'ModifierDefinition') {
-        const modifierInfo: ModifierInfo = {
-          name: node.name || '',
-          parameters: this.extractParameters(
-            (node as any).parameters || {
-              type: 'ParameterList',
-              parameters: [],
-            }
-          ),
-          sourceLocation: this.getSourceLocation(node, sourceCode),
-        };
-
-        modifiers.push(modifierInfo);
+    this.visitNode(contractNode, (node) => {
+      if (node.type === "ModifierDefinition") {
+        modifiers.push({
+          name: node.name,
+          parameters: this.extractParameters(node.parameters),
+          dependencies: this.findFunctionDependencies(node, sourceCode),
+        });
       }
     });
 
     return modifiers;
   }
 
-  /**
-   * Extract import statements
-   */
-  private extractImports(ast: any): ImportInfo[] {
+  private extractImports(ast: ASTNode): ImportInfo[] {
     const imports: ImportInfo[] = [];
 
-    this.visitNode(ast, node => {
-      if (node.type === 'ImportDirective') {
-        const importInfo: ImportInfo = {
-          path: (node as any).path || '',
+    this.visitNode(ast, (node) => {
+      if (node.type === "ImportDirective") {
+        imports.push({
+          path: (node as any).path,
           symbols:
             (node as any).symbolAliases?.map?.((alias: any) => alias.foreign) ||
             [],
-          sourceLocation: this.getSourceLocation(node, ''),
-        };
-
-        imports.push(importInfo);
+        });
       }
     });
 
     return imports;
   }
 
-  /**
-   * Extract inheritance information
-   */
-  private extractInheritance(contractNode: any): string[] {
+  private extractInheritance(contractNode: ContractNode): string[] {
     return (
       contractNode.baseContracts?.map((base: any) => base.baseName.namePath) ||
       []
     );
   }
 
-  /**
-   * Extract storage layout from compilation output
-   */
-  private extractStorageLayout(compiled: any): StorageSlot[] {
-    const storageLayout: StorageSlot[] = [];
+  // ===============================================
+  // Signature and Selector Generation
+  // ===============================================
 
-    try {
-      const contracts = compiled.contracts?.['contract.sol'];
-      if (!contracts) {
-        return storageLayout;
-      }
-
-      for (const [contractName, contractData] of Object.entries(contracts)) {
-        const layout = (contractData as any).storageLayout;
-        if (layout?.storage) {
-          for (const storage of layout.storage) {
-            storageLayout.push({
-              slot: parseInt(storage.slot),
-              offset: storage.offset,
-              size: this.calculateTypeSize(storage.type, layout.types),
-              type: storage.type,
-              variable: storage.label,
-              contract: contractName,
-            });
-          }
-        }
-      }
-    } catch (error) {
-      console.warn('Failed to extract storage layout:', error);
-    }
-
-    return storageLayout;
-  }
-
-  /**
-   * Calculate function selector (4-byte hash)
-   */
   private calculateSelector(functionNode: FunctionNode): string {
-    if (!functionNode.name || functionNode.isConstructor) {
-      return '0x00000000';
-    }
+    const signature = this.buildFunctionSignature(functionNode);
+    return this.selectorFromSignature(signature);
+  }
 
-  const signature = this.buildFunctionSignature(functionNode);
-  return this.selectorFromSignature(signature);
+  private selectorFromSignature(signature: string): string {
+    return keccak256(Buffer.from(signature, "utf8")).slice(0, 10);
   }
 
   /**
-   * Build function signature string
+   * Build function signature for function identification
    */
   private buildFunctionSignature(functionNode: FunctionNode): string {
     if (!functionNode.name || functionNode.isConstructor) {
-      return 'constructor';
+      return "constructor";
     }
 
     const params =
       functionNode.parameters?.parameters
-        ?.map(param => this.typeToString(param.typeName))
-        .join(',') || '';
+        ?.map((param: any) => {
+          if (param.typeName) {
+            return this.typeToString(param.typeName);
+          }
+          // Fallback: if no typeName, check if this is a stub with type
+          return param.type || "unknown";
+        })
+        .join(",") || "";
 
     return `${functionNode.name}(${params})`;
   }
@@ -592,101 +447,123 @@ export class SolidityAnalyzer {
   private buildEventSignature(eventNode: EventNode): string {
     const params =
       eventNode.parameters?.parameters
-        ?.map(param => this.typeToString(param.typeName))
-        .join(',') || '';
-
+        ?.map((param) => this.typeToString(param.typeName))
+        .join(",") || "";
     return `${eventNode.name}(${params})`;
   }
 
-  /**
-   * Extract parameters from parameter list
-   */
   private extractParameters(
-    parameterList: ParameterListNode | undefined
+    parameterList: ParameterListNode | undefined,
   ): ParameterInfo[] {
-    if (!parameterList?.parameters) {
+    if (!parameterList || !parameterList.parameters) {
       return [];
     }
 
-    return parameterList.parameters.map(param => ({
-      name: param.name || '',
+    return parameterList.parameters.map((param) => ({
+      name: param.name || "",
       type: this.typeToString(param.typeName),
-      indexed: param.isIndexed || false,
+      storageLocation: param.storageLocation,
     }));
   }
 
-  /**
-   * Extract function modifiers
-   */
-  private extractFunctionModifiers(functionNode: FunctionNode): string[] {
-    return functionNode.modifiers?.map(modifier => modifier.name) || [];
+  private extractModifiers(functionNode: FunctionNode): string[] {
+    return functionNode.modifiers?.map((modifier) => modifier.name) || [];
   }
 
-  /**
-   * Convert type node to string representation
-   */
-  private typeToString(typeNode: TypeNode): string {
-    if (!typeNode) {
-      return 'unknown';
-    }
+  // ===============================================
+  // Type System Utilities
+  // ===============================================
+
+  private typeToString(typeNode: ASTNode): string {
+    if (!typeNode) return "unknown";
 
     switch (typeNode.type) {
-      case 'ElementaryTypeName':
-        return typeNode.name || 'unknown';
-      case 'UserDefinedTypeName':
-        return typeNode.namePath || 'unknown';
-      case 'ArrayTypeName': {
-        const baseType = typeNode.baseTypeName
-          ? this.typeToString(typeNode.baseTypeName)
-          : 'unknown';
-        const length = typeNode.length ? `[${typeNode.length}]` : '[]';
-        return `${baseType}${length}`;
+      case "ElementaryTypeName":
+        return (typeNode as any).name || "unknown";
+
+      case "UserDefinedTypeName":
+        return (typeNode as any).namePath || "unknown";
+
+      case "ArrayTypeName": {
+        const baseType = this.typeToString((typeNode as any).baseTypeName);
+        const length = (typeNode as any).length;
+        return length ? `${baseType}[${length}]` : `${baseType}[]`;
       }
-      case 'MappingTypeName': {
+
+      case "MappingTypeName": {
         const keyType = typeNode.keyType
           ? this.typeToString(typeNode.keyType)
-          : 'unknown';
+          : "unknown";
         const valueType = typeNode.valueType
           ? this.typeToString(typeNode.valueType)
-          : 'unknown';
+          : "unknown";
         return `mapping(${keyType} => ${valueType})`;
       }
+
+      case "Mapping": {
+        const keyType2 = typeNode.keyType
+          ? this.typeToString(typeNode.keyType)
+          : "unknown";
+        const valueType2 = typeNode.valueType
+          ? this.typeToString(typeNode.valueType)
+          : "unknown";
+        return `mapping(${keyType2} => ${valueType2})`;
+      }
+
+      case "FunctionTypeName":
+        return "function";
+
       default:
-        return typeNode.name || 'unknown';
+        return (typeNode as any).name || typeNode.type || "unknown";
     }
   }
 
-  /**
-   * Estimate contract bytecode size
-   */
-  private estimateContractSize(compiled: any): number {
-    try {
-      const contracts = compiled.contracts?.['contract.sol'];
-      if (!contracts) {
-        return 0;
-      }
+  // ===============================================
+  // Size and Gas Estimation
+  // ===============================================
 
-      let maxSize = 0;
-      for (const [, contractData] of Object.entries(contracts)) {
-        const bytecode = (contractData as any).evm?.deployedBytecode?.object;
-        if (bytecode) {
-          const size = Buffer.from(bytecode.replace('0x', ''), 'hex').length;
-          maxSize = Math.max(maxSize, size);
-        }
-      }
+  private estimateFunctionSize(functionNode: FunctionNode): number {
+    if (!functionNode.body) return 0;
 
-      return maxSize;
-    } catch (error) {
-      console.warn('Failed to estimate contract size:', error);
-      return 0;
+    // Try to get size from range if available
+    if (functionNode.range && functionNode.range[1] > functionNode.range[0]) {
+      return functionNode.range[1] - functionNode.range[0];
     }
+
+    // Fallback: estimate based on line count when ranges are disabled
+    if (functionNode.loc) {
+      const lineCount =
+        functionNode.loc.end.line - functionNode.loc.start.line + 1;
+      return lineCount * 50; // Estimate ~50 chars per line
+    }
+
+    // Final fallback: basic node counting
+    let nodeCount = 0;
+    this.visitNode(functionNode.body, () => {
+      nodeCount++;
+    });
+    return nodeCount * 10; // Rough estimate
+  }
+
+  private estimateVariableSize(typeNode: ASTNode): number {
+    const typeString = this.typeToString(typeNode);
+
+    // Basic type size estimation
+    if (typeString.includes("uint256") || typeString.includes("int256"))
+      return 32;
+    if (typeString.includes("address")) return 20;
+    if (typeString.includes("bool")) return 1;
+    if (typeString.includes("bytes32")) return 32;
+    if (typeString.includes("string")) return 64; // Dynamic, estimate
+    if (typeString.includes("mapping")) return 32; // Slot reference
+
+    return 32; // Default slot size
   }
 
   /**
    * Estimate function gas usage
    */
   private estimateFunctionGas(functionNode: any): number {
-    // Basic estimation based on function complexity
     let gasEstimate = 21000; // Base transaction cost
 
     // Add gas for function complexity
@@ -698,69 +575,47 @@ export class SolidityAnalyzer {
     gasEstimate += (functionNode.modifiers?.length || 0) * 5000;
 
     // Add gas for state mutability
-    switch (functionNode.stateMutability) {
-      case 'view':
-      case 'pure':
-        gasEstimate = Math.min(gasEstimate, 10000);
-        break;
-      case 'payable':
-        gasEstimate += 10000;
-        break;
+    if (
+      functionNode.stateMutability === "view" ||
+      functionNode.stateMutability === "pure"
+    ) {
+      gasEstimate = Math.min(gasEstimate, 10000);
+    } else if (functionNode.stateMutability === "payable") {
+      gasEstimate += 10000;
     }
 
     return gasEstimate;
   }
 
-  /**
-   * Estimate function code size in bytes
-   */
-  private estimateFunctionSize(functionNode: any, sourceCode: string): number {
-    if (!functionNode.body) {
-      return 100; // Minimal function
-    }
-
-    const location = this.getSourceLocation(functionNode, sourceCode);
-  const startPos = typeof location.start === 'number' ? location.start : 0;
-  const endPos = typeof location.end === 'number' ? location.end : sourceCode.length;
-  const functionCode = sourceCode.slice(startPos, endPos);
-
-    // Rough estimation: 1 byte per 2 characters of source (accounting for compilation)
-    return Math.ceil(functionCode.length / 2);
-  }
-
-  /**
-   * Find function dependencies (other functions called)
-   */
   private findFunctionDependencies(
     functionNode: any,
-    _sourceCode: string
+    _sourceCode: string,
   ): string[] {
-    const dependencies: Set<string> = new Set();
+    const dependencies = new Set<string>();
 
-    this.visitNode(functionNode, node => {
-      if (node.type === 'FunctionCall' && node.name) {
-        dependencies.add(node.name);
-      }
-      if (node.type === 'MemberAccess' && (node as any).memberName) {
-        dependencies.add((node as any).memberName);
+    this.visitNode(functionNode, (node) => {
+      if (node.type === "FunctionCall") {
+        // Fixed: Use expression-based call detection
+        if (node.expression?.name) {
+          dependencies.add(node.expression.name);
+        } else if (node.expression?.memberName) {
+          dependencies.add(node.expression.memberName);
+        }
       }
     });
 
     return Array.from(dependencies);
   }
 
-  /**
-   * Find variable dependencies
-   */
   private findVariableDependencies(
     variableNode: any,
-    _sourceCode: string
+    _sourceCode: string,
   ): string[] {
-    const dependencies: Set<string> = new Set();
+    const dependencies = new Set<string>();
 
     if (variableNode.expression) {
-      this.visitNode(variableNode.expression, node => {
-        if (node.type === 'Identifier' && node.name) {
+      this.visitNode(variableNode.expression, (node) => {
+        if (node.type === "Identifier") {
           dependencies.add(node.name);
         }
       });
@@ -769,66 +624,490 @@ export class SolidityAnalyzer {
     return Array.from(dependencies);
   }
 
-  /**
-   * Calculate variable storage size in bytes
-   */
-  private calculateVariableSize(typeNode: any): number {
-    const typeString = this.typeToString(typeNode);
+  private calculateTotalSize(
+    functions: FunctionInfo[],
+    variables: VariableInfo[],
+  ): number {
+    const functionSize = functions.reduce((sum, fn) => sum + fn.size, 0);
+    const variableSize = variables.reduce(
+      (sum, variable) => sum + variable.size,
+      0,
+    );
+    return functionSize + variableSize;
+  }
 
-    // Basic size mapping
-    const sizeMap: Record<string, number> = {
-      bool: 1,
-      uint8: 1,
-      uint16: 2,
-      uint32: 4,
-      uint64: 8,
-      uint128: 16,
-      uint256: 32,
-      int8: 1,
-      int16: 2,
-      int32: 4,
-      int64: 8,
-      int128: 16,
-      int256: 32,
-      address: 20,
-      bytes32: 32,
+  // ===============================================
+  // Storage Layout Analysis
+  // ===============================================
+
+  private analyzeStorageLayout(variables: VariableInfo[], _compiled: any): any {
+    const layout = {
+      variables: variables.map((v, index) => ({
+        ...v,
+        slot: index,
+        offset: 0,
+      })),
+      collisions: this.detectStorageCollisions(variables),
+      isDiamondCompliant: this.checkDiamondStorageCompliance(variables),
     };
 
-    // Handle basic types
-    if (sizeMap[typeString]) {
-      return sizeMap[typeString];
-    }
-
-    // Handle dynamic types
-    if (typeString.includes('[]') || typeString.startsWith('mapping')) {
-      return 32; // Storage slot pointer
-    }
-
-    // Handle fixed-size arrays
-    const arrayMatch = typeString.match(/^(.+)\[(\d+)\]$/);
-    if (arrayMatch && arrayMatch[2]) {
-      const baseSize = this.calculateVariableSize({
-        type: 'ElementaryTypeName',
-        name: arrayMatch[1],
-      });
-      const length = parseInt(arrayMatch[2]);
-      return baseSize * length;
-    }
-
-    // Default to 32 bytes for unknown types
-    return 32;
+    return layout;
   }
+
+  private detectStorageCollisions(variables: VariableInfo[]): string[] {
+    const collisions: string[] = [];
+    const slotMap = new Map<number, string[]>();
+
+    // Group variables by slot
+    variables.forEach((v) => {
+      if (!slotMap.has(v.slot)) {
+        slotMap.set(v.slot, []);
+      }
+      slotMap.get(v.slot)!.push(v.name);
+    });
+
+    // Check for collisions
+    slotMap.forEach((vars, slot) => {
+      if (vars.length > 1) {
+        collisions.push(
+          `Potential storage collision at slot ${slot}: ${vars.join(", ")}`,
+        );
+      }
+    });
+
+    if (!this.checkDiamondStorageCompliance(variables)) {
+      collisions.push(
+        "Contract may not be diamond storage compliant - consider using diamond storage pattern",
+      );
+    }
+
+    return collisions;
+  }
+
+  private checkDiamondStorageCompliance(variables: VariableInfo[]): boolean {
+    // Check for diamond storage pattern usage
+    const hasStorageStruct = variables.some(
+      (v) =>
+        v.name.toLowerCase().includes("storage") ||
+        v.type.toLowerCase().includes("storage"),
+    );
+
+    const hasProperIsolation = variables.every(
+      (v) => v.slot >= 0 && v.offset >= 0,
+    );
+
+    return hasStorageStruct && hasProperIsolation;
+  }
+
+  private determineDeploymentStrategy(
+    totalSize: number,
+    functionCount: number,
+  ): string {
+    const SIZE_THRESHOLD = 24576; // 24KB contract size limit
+    const FUNCTION_THRESHOLD = 20; // Reasonable function count for single contract
+
+    if (totalSize <= SIZE_THRESHOLD && functionCount <= FUNCTION_THRESHOLD) {
+      return "monolithic";
+    } else if (
+      totalSize > SIZE_THRESHOLD ||
+      functionCount > FUNCTION_THRESHOLD
+    ) {
+      return "faceted";
+    } else {
+      return "chunked";
+    }
+  }
+
+  // ===============================================
+  // Facet Analysis and Recommendations
+  // ===============================================
+
+  private generateFacetRecommendations(
+    _functions: FunctionInfo[],
+  ): FacetCandidate[] {
+    const _facetRecommendations: FacetCandidate[] = [];
+
+    return (contract.functions || []).map((fn) => ({
+      name: `${contract.name}_${fn.name}`,
+      functions: [fn],
+      size: fn.size,
+      gasEstimate: fn.gasEstimate,
+      securityLevel: fn.securityLevel,
+    }));
+  }
+
+  private identifyFacetCandidates(
+    functions: FunctionInfo[],
+  ): Map<string, FunctionInfo[]> {
+    const facets = new Map<string, FunctionInfo[]>();
+
+    for (const fn of functions) {
+      let facetName = "core";
+
+      if (this.isAccessControlFunction(fn)) {
+        facetName = "access";
+      } else if (
+        fn.stateMutability === "view" ||
+        fn.stateMutability === "pure"
+      ) {
+        facetName = "view";
+      } else if (this.isGovernanceFunction(fn)) {
+        facetName = "governance";
+      } else if (fn.stateMutability === "payable") {
+        facetName = "payment";
+      }
+
+      if (!facets.has(facetName)) {
+        facets.set(facetName, []);
+      }
+      facets.get(facetName)!.push(fn);
+    }
+
+    return facets;
+  }
+
+  private isAccessControlFunction(func: FunctionInfo): boolean {
+    const adminPatterns = [
+      /^set[A-Z]/,
+      /^update[A-Z]/,
+      /^change[A-Z]/,
+      /^grant[A-Z]/,
+      /^revoke[A-Z]/,
+      /admin/i,
+      /owner/i,
+    ];
+
+    return (
+      adminPatterns.some((pattern) => pattern.test(func.name)) ||
+      (func.modifiers || []).some((mod) => /owner|admin|auth|role/i.test(mod))
+    );
+  }
+
+  private isGovernanceFunction(func: FunctionInfo): boolean {
+    const governancePatterns = [
+      /^propose/i,
+      /^vote/i,
+      /^execute/i,
+      /^queue/i,
+      /governance/i,
+      /proposal/i,
+    ];
+
+    return governancePatterns.some((pattern) => pattern.test(func.name));
+  }
+
+  // ===============================================
+  // Security Analysis
+  // ===============================================
+
+  private performSecurityAnalysis(
+    functions: FunctionInfo[],
+    variables: VariableInfo[],
+  ): any {
+    return {
+      vulnerabilities: this.detectVulnerabilities(functions, variables),
+      recommendations: this.generateSecurityRecommendations(
+        functions,
+        variables,
+      ),
+      riskScore: this.calculateRiskScore(functions, variables),
+    };
+  }
+
+  private detectVulnerabilities(
+    functions: FunctionInfo[],
+    _variables: VariableInfo[],
+  ): string[] {
+    const vulnerabilities: string[] = [];
+
+    // Check for reentrancy patterns
+    const payableFunctions = functions.filter(
+      (f) => f.stateMutability === "payable",
+    );
+    if (payableFunctions.length > 0) {
+      vulnerabilities.push("Potential reentrancy risk in payable functions");
+    }
+
+    // Check for unprotected state changes
+    const unprotectedFunctions = functions.filter(
+      (f) =>
+        f.visibility === "public" &&
+        f.stateMutability !== "view" &&
+        f.modifiers.length === 0,
+    );
+    if (unprotectedFunctions.length > 0) {
+      vulnerabilities.push(
+        "Unprotected public state-changing functions detected",
+      );
+    }
+
+    return vulnerabilities;
+  }
+
+  private generateSecurityRecommendations(
+    functions: FunctionInfo[],
+    variables: VariableInfo[],
+  ): string[] {
+    const recommendations: string[] = [];
+
+    // Recommend access control
+    const publicFunctions = functions.filter((f) => f.visibility === "public");
+    if (publicFunctions.length > 5) {
+      recommendations.push("Consider implementing role-based access control");
+    }
+
+    // Recommend diamond storage
+    if (variables.length > 10) {
+      recommendations.push(
+        "Consider using diamond storage pattern for better upgradability",
+      );
+    }
+
+    return recommendations;
+  }
+
+  private calculateRiskScore(
+    functions: FunctionInfo[],
+    variables: VariableInfo[],
+  ): number {
+    let score = 0;
+
+    // Risk factors
+    score +=
+      functions.filter((f) => f.stateMutability === "payable").length * 10;
+    score +=
+      functions.filter(
+        (f) => f.visibility === "public" && f.modifiers.length === 0,
+      ).length * 5;
+    score += variables.filter((v) => v.visibility === "public").length * 3;
+
+    return Math.min(score, 100); // Cap at 100
+  }
+
+  private generateManifestRoutes(
+    functions: FunctionInfo[],
+    _compiled: any,
+  ): ManifestRoute[] {
+    const routes: ManifestRoute[] = [];
+
+    for (const func of functions) {
+      if (func.visibility === "public" || func.visibility === "external") {
+        routes.push({
+          selector: func.selector,
+          facetAddress: "0x0000000000000000000000000000000000000000", // Placeholder
+          functionSignature: func.signature,
+        });
+      }
+    }
+
+    return routes;
+  }
+
+  private assessSecurityLevel(
+    func: FunctionInfo,
+  ): "low" | "medium" | "high" | "critical" {
+    let score = 0;
+
+    // Risk factors
+    if (func.stateMutability === "payable") score += 3;
+    if (func.visibility === "public") score += 2;
+    if (func.modifiers.length === 0) score += 2;
+    if (this.isAccessControlFunction(func)) score += 1;
+
+    if (score >= 6) return "critical";
+    if (score >= 4) return "high";
+    if (score >= 2) return "medium";
+    return "low";
+  }
+
+  // ===============================================
+  // Chunking and Deployment Optimization
+  // ===============================================
+
+  async generateOptimizedChunks(
+    contract: ParsedContract,
+  ): Promise<ChunkInfo[]> {
+    if (!contract.chunkingRequired) {
+      return [
+        {
+          id: 0,
+          name: `${contract.name}_Full`,
+          functions: contract.functions,
+          variables: contract.variables,
+          size: contract.totalSize,
+          gasEstimate: contract.functions.reduce(
+            (sum, f) => sum + f.gasEstimate,
+            0,
+          ),
+          dependencies: [],
+          deploymentAddress: "",
+        },
+      ];
+    }
+
+    return this.createOptimizedChunks(contract);
+  }
+
+  private createOptimizedChunks(contract: ParsedContract): ChunkInfo[] {
+    const chunks: ChunkInfo[] = [];
+    const maxChunkSize = 20000; // Conservative size limit
+
+    // Group functions by feature/access pattern
+    const featureGroups = this.groupFunctionsByFeature(contract.functions);
+
+    for (const [feature, funcs] of Array.from(featureGroups.entries())) {
+      let currentChunk: any = this.createEmptyChunk(chunks.length, feature);
+
+      for (const func of funcs) {
+        if (currentChunk.size + func.size > maxChunkSize) {
+          // Finalize current chunk
+          chunks.push(currentChunk);
+          currentChunk = this.createEmptyChunk(chunks.length, feature);
+        }
+
+        currentChunk.functions.push(func);
+        currentChunk.size += func.size;
+        currentChunk.gasEstimate += func.gasEstimate;
+        currentChunk.dependencies.push(...func.dependencies);
+      }
+
+      if (currentChunk.functions.length > 0) {
+        chunks.push(currentChunk);
+      }
+    }
+
+    return this.optimizeChunkDependencies(chunks);
+  }
+
+  private groupFunctionsByFeature(
+    functions: FunctionInfo[],
+  ): Map<string, FunctionInfo[]> {
+    const groups = new Map<string, FunctionInfo[]>();
+
+    for (const func of functions) {
+      let feature = "core";
+
+      if (this.isAccessControlFunction(func)) {
+        feature = "access";
+      } else if (
+        func.stateMutability === "view" ||
+        func.stateMutability === "pure"
+      ) {
+        feature = "view";
+      } else if (this.isGovernanceFunction(func)) {
+        feature = "governance";
+      }
+
+      if (!groups.has(feature)) {
+        groups.set(feature, []);
+      }
+      groups.get(feature)!.push(func);
+    }
+
+    return groups;
+  }
+
+  private createEmptyChunk(id: number, feature: string): ChunkInfo {
+    return {
+      id,
+      name: `Chunk_${id}_${feature}`,
+      functions: [],
+      variables: [],
+      size: 0,
+      gasEstimate: 0,
+      dependencies: [],
+      deploymentAddress: "",
+    };
+  }
+
+  private optimizeChunkDependencies(chunks: ChunkInfo[]): ChunkInfo[] {
+    // Analyze cross-chunk dependencies and optimize deployment order
+    const dependencyGraph = this.buildDependencyGraph(chunks);
+    return this.reorderChunksByDependencies(chunks, dependencyGraph);
+  }
+
+  private buildDependencyGraph(chunks: ChunkInfo[]): Map<number, number[]> {
+    const graph = new Map<number, number[]>();
+
+    for (let i = 0; i < chunks.length; i++) {
+      graph.set(i, []);
+
+      for (let j = 0; j < chunks.length; j++) {
+        if (i === j) continue;
+
+        const chunk1Deps = new Set(chunks[i].dependencies);
+        const chunk2Funcs = new Set(
+          chunks[j].functions.map((f: any) => f.name),
+        );
+
+        // Count dependencies from chunk1 to chunk2
+        for (const dep of Array.from(chunk1Deps)) {
+          if (chunk2Funcs.has(dep)) {
+            graph.get(i)!.push(j);
+            break;
+          }
+        }
+      }
+    }
+
+    return graph;
+  }
+
+  private reorderChunksByDependencies(
+    chunks: ChunkInfo[],
+    _dependencyGraph: Map<number, number[]>,
+  ): ChunkInfo[] {
+    // Simple topological sort for deployment order
+    // For now, return chunks as-is, but this could be enhanced
+    return chunks;
+  }
+
+  // ===============================================
+  // Merkle Tree Operations
+  // ===============================================
 
   /**
-   * Calculate type size from storage layout
+   * Calculate merkle root from hashes
    */
-  private calculateTypeSize(type: string, types: any): number {
-    const typeInfo = types[type];
-    if (typeInfo) {
-      return typeInfo.numberOfBytes || 32;
+  private calculateMerkleRoot(hashes: string[]): string {
+    if (!hashes || hashes.length === 0) {
+      return ZERO_HASH;
     }
-    return 32;
+    if (hashes.length === 1) {
+      return hashes[0] || ZERO_HASH;
+    }
+
+    const nextLevel: string[] = [];
+    for (let i = 0; i < hashes.length; i += 2) {
+      const left = hashes[i] ?? hashes[i - 1];
+      const right = hashes[i + 1] ?? left;
+
+      // Convert hex strings to bytes for proper hashing
+      const leftBytes = Buffer?.from(left?.replace(/^0x/, ""), "hex");
+      const rightBytes = Buffer?.from(right?.replace(/^0x/, ""), "hex");
+      const combined = Buffer.concat([leftBytes, rightBytes]);
+      const hash = crypto.createHash("sha256").update(combined).digest("hex");
+
+      nextLevel.push("0x" + hash);
+    }
+
+    return this.calculateMerkleRoot(nextLevel);
   }
+
+  private buildFunctionMerkleTree(functions: FunctionInfo[]): any {
+    const hashes = functions.map((fn) =>
+      keccak256(Buffer.from(fn.signature, "utf8")),
+    );
+    return {
+      root: this.calculateMerkleRoot(hashes),
+      leaves: hashes,
+      functions: functions.map((fn) => fn.signature),
+    };
+  }
+
+  // ===============================================
+  // Gas and Size Optimization
+  // ===============================================
 
   /**
    * Estimate gas usage for a code block
@@ -836,20 +1115,27 @@ export class SolidityAnalyzer {
   private estimateBlockGas(blockNode: any): number {
     let gasEstimate = 0;
 
-    this.visitNode(blockNode, node => {
+    this.visitNode(blockNode, (node) => {
       switch (node.type) {
-        case 'AssignmentOperator':
+        case "Assignment": // Correct AST node type
+        case "AssignmentOperator":
           gasEstimate += 5; // SSTORE cost
           break;
-        case 'FunctionCall':
+        case "FunctionCall":
           gasEstimate += 3; // CALL cost
           break;
-        case 'IfStatement':
+        case "IfStatement":
           gasEstimate += 1; // JUMPI cost
           break;
-        case 'ForStatement':
-        case 'WhileStatement':
+        case "ForStatement":
+        case "WhileStatement":
           gasEstimate += 10; // Loop overhead
+          break;
+        case "BinaryOperation":
+          gasEstimate += 0.5; // Mathematical operations
+          break;
+        case "UnaryOperation":
+          gasEstimate += 0.3; // Unary operations
           break;
         default:
           gasEstimate += 0.1; // Basic operations
@@ -862,46 +1148,41 @@ export class SolidityAnalyzer {
   /**
    * Get source location information
    */
-  private getSourceLocation(node: any, sourceCode: string): SourceLocation {
-    if (node.loc) {
-      return {
-        start: node.range?.[0] || 0,
-        end: node.range?.[1] || 0,
-        line: node.loc.start?.line || 0,
-        column: node.loc.start?.column || 0,
-      };
+  private getSourceLocation(
+    node: ASTNode,
+  ): { start: number; end: number } | null {
+    if (node.range) {
+      return { start: node.range[0], end: node.range[1] };
     }
-
-    return {
-      start: 0,
-      end: sourceCode.length,
-      line: 1,
-      column: 1,
-    };
+    return null;
   }
+
+  // ===============================================
+  // Utilities and Helpers
+  // ===============================================
 
   /**
    * Generic AST node visitor
    */
-  private visitNode(node: ASTNode, callback: (node: ASTNode) => void): void {
-    if (!node) {
+  private visitNode(_node: ASTNode, callback: (_node: ASTNode) => void): void {
+    if (!_node) {
       return;
     }
 
-    callback(node);
+    callback(_node);
 
     // Visit child nodes
-    for (const [key, value] of Object.entries(node)) {
+    for (const [key, value] of Object.entries(_node)) {
       if (Array.isArray(value)) {
-        value.forEach(child => {
-          if (typeof child === 'object' && child !== null) {
+        value.forEach((child) => {
+          if (typeof child === "object" && child !== null) {
             this.visitNode(child as ASTNode, callback);
           }
         });
       } else if (
-        typeof value === 'object' &&
+        typeof value === "object" &&
         value !== null &&
-        key !== 'parent'
+        key !== "parent"
       ) {
         this.visitNode(value as ASTNode, callback);
       }
@@ -913,1667 +1194,388 @@ export class SolidityAnalyzer {
   // ===============================================
 
   /**
-   * Identify facet candidates based on function grouping strategies
+   * Calculate SHA256 hash for merkle operations
    */
-  private identifyFacetCandidates(
-    functions: FunctionInfo[]
-  ): Map<string, FunctionInfo[]> {
-    const facets = new Map<string, FunctionInfo[]>();
-
-    for (const fn of functions) {
-      let facetKey = 'UtilityFacet';
-
-      // Categorize by function patterns and access levels
-      if (this.isAdminFunction(fn)) {
-        facetKey = 'AdminFacet';
-      } else if (this.isGovernanceFunction(fn)) {
-        facetKey = 'GovernanceFacet';
-      } else if (
-        fn.stateMutability === 'view' ||
-        fn.stateMutability === 'pure'
-      ) {
-        facetKey = 'ViewFacet';
-      } else if (this.isCoreFunction(fn)) {
-        facetKey = 'CoreFacet';
-      }
-
-      if (!facets.has(facetKey)) {
-        facets.set(facetKey, []);
-      }
-      const facetFunctions = facets.get(facetKey);
-      if (facetFunctions) {
-        facetFunctions.push(fn);
-      }
-    }
-
-    return facets;
+  private calculateSHA256(data: string): string {
+    return "0x" + crypto.createHash("sha256").update(data, "hex").digest("hex");
   }
 
   /**
-   * Check if function is an admin function
+   * Generate dependency graph for functions
    */
-  private isAdminFunction(func: FunctionInfo): boolean {
-    const adminPatterns = [
-      /^set[A-Z]/, // setX functions
-      /^update[A-Z]/, // updateX functions
-      /^change[A-Z]/, // changeX functions
-      /^withdraw/, // withdraw functions
-      /^pause/, // pause functions
-      /^unpause/, // unpause functions
-      /^emergency/, // emergency functions
-      /^admin/, // admin functions
-      /^owner/, // owner functions
-      /^manage/, // management functions
-      /^initialize/, // initialization
-      /^configure/, // configuration
-    ];
+  generateDependencyGraph(functions: FunctionInfo[]): Map<string, string[]> {
+    const graph = new Map<string, string[]>();
 
-    return (
-      adminPatterns.some(pattern => pattern.test(func.name)) ||
-      (func.modifiers || []).some(mod => /owner|admin|auth|role/i.test(mod))
-    );
-  }
-
-  /**
-   * Check if function is a governance function
-   */
-  private isGovernanceFunction(func: FunctionInfo): boolean {
-    const governancePatterns = [
-      /^propose/,
-      /^vote/,
-      /^execute/,
-      /^delegate/,
-      /^governance/,
-      /^timelock/,
-    ];
-
-    return governancePatterns.some(pattern => pattern.test(func.name));
-  }
-
-  /**
-   * Check if function is a core business logic function
-   */
-  private isCoreFunction(func: FunctionInfo): boolean {
-    // Functions that are not admin, governance, or view are considered core
-    return (
-      !this.isAdminFunction(func) &&
-      !this.isGovernanceFunction(func) &&
-      func.stateMutability !== 'view' &&
-      func.stateMutability !== 'pure'
-    );
-  }
-
-  /**
-   * Generate manifest routes for PayRox Go Beyond deployment
-   */
-  private generateManifestRoutes(
-    functions: FunctionInfo[],
-    compiled: any
-  ): ManifestRoute[] {
-    const routes: ManifestRoute[] = [];
-
-    for (const func of functions) {
-      // Skip constructor and fallback functions
-      if (func.name === 'constructor' || func.name === 'fallback') {
-        continue;
-      }
-
-      const route: ManifestRoute = {
-        // include minimal required fields for ManifestRoute
-        name: func.name,
-        path: `/${func.name}`,
-        selector: func.selector,
-        facet: '<predicted_facet_address>', // Will be filled during deployment
-        codehash: this.calculateRuntimeCodehash(compiled),
-        functionName: func.name,
-        gasEstimate: func.gasEstimate,
-        securityLevel: this.assessSecurityLevel(func),
-        // Optional fields for compatibility
-        signature: func.signature,
-        chunkId: undefined,
-      } as ManifestRoute;
-
-      routes.push(route);
-    }
-
-    return routes;
-  }
-
-  /**
-   * Assess security level of a function
-   */
-  private assessSecurityLevel(
-    func: FunctionInfo
-  ): 'low' | 'medium' | 'high' | 'critical' {
-    // Critical: Admin functions, fund transfers
-    if (
-      this.isAdminFunction(func) ||
-      func.name.includes('transfer') ||
-      func.name.includes('withdraw')
-    ) {
-      return 'critical';
-    }
-
-    // High: State-changing functions with modifiers
-    if (
-      func.stateMutability !== 'view' &&
-      func.stateMutability !== 'pure' &&
-      (func.modifiers?.length || 0) > 0
-    ) {
-      return 'high';
-    }
-
-    // Medium: State-changing functions without modifiers
-    if (func.stateMutability !== 'view' && func.stateMutability !== 'pure') {
-      return 'medium';
-    }
-
-    // Low: View and pure functions
-    return 'low';
-  }
-
-  /**
-   * Calculate runtime codehash for bytecode integrity verification
-   */
-  private calculateRuntimeCodehash(compiled: any): string {
-    try {
-      const contracts = compiled.contracts?.['contract.sol'];
-      if (!contracts) {
-        return '0x0000000000000000000000000000000000000000000000000000000000000000';
-      }
-
-      // Get the first contract's deployed bytecode
-      for (const [, contractData] of Object.entries(contracts)) {
-        const deployedBytecode = (contractData as any).evm?.deployedBytecode
-          ?.object;
-        if (deployedBytecode) {
-          const cleanBytecode = deployedBytecode.startsWith('0x')
-            ? deployedBytecode
-            : `0x${deployedBytecode}`;
-          return keccak256(cleanBytecode);
+    for (const func of functions || []) {
+      for (const dep of func.dependencies || []) {
+        if (!graph.has(func.name)) {
+          graph.set(func.name, []);
         }
-      }
-
-      return '0x0000000000000000000000000000000000000000000000000000000000000000';
-    } catch (error) {
-      console.warn('Failed to calculate runtime codehash:', error);
-      return '0x0000000000000000000000000000000000000000000000000000000000000000';
-    }
-  }
-
-  /**
-   * Determine if contract requires chunking for DeterministicChunkFactory
-   */
-  private requiresChunking(totalSize: number): boolean {
-    const SAFE_CHUNK_LIMIT = 24000; // Safe limit below EIP-170 (24,576 bytes)
-    return totalSize > SAFE_CHUNK_LIMIT;
-  }
-
-  /**
-   * Detect storage layout collisions for facet isolation
-   */
-  private detectStorageCollisions(variables: VariableInfo[]): string[] {
-    const slotMap = new Map<number, string[]>();
-    const collisions: string[] = [];
-
-    for (const variable of variables) {
-      if (!slotMap.has(variable.slot)) {
-        slotMap.set(variable.slot, []);
-      }
-      const slotVars = slotMap.get(variable.slot);
-      if (slotVars) {
-        slotVars.push(variable.name);
+        graph.get(func.name)!.push(dep);
       }
     }
 
-    // Check for collisions
-    for (const [slot, vars] of Array.from(slotMap.entries())) {
-      if (vars.length > 1) {
-        collisions.push(
-          `Potential storage collision at slot ${slot}: ${vars.join(', ')}`
+    return graph;
+  }
+
+  /**
+   * Detect circular dependencies in function calls
+   */
+  detectCircularDependencies(functions: FunctionInfo[]): string[] {
+    const graph = this.generateDependencyGraph(functions);
+    const visiting = new Set<string>();
+    const visited = new Set<string>();
+    const cycles: string[] = [];
+
+    const dfs = (node: string, path: string[]): void => {
+      if (visiting.has(node)) {
+        const cycleStart = path.indexOf(node);
+        cycles.push(
+          `Circular dependency: ${path.slice(cycleStart).join(" -> ")} -> ${node}`,
         );
+        return;
       }
-    }
 
-    // Check for diamond storage pattern compliance
-    if (variables.length > 0 && !this.isDiamondStorageCompliant(variables)) {
-      collisions.push(
-        'Contract may not be diamond storage compliant - consider using diamond storage pattern'
-      );
-    }
+      if (visited.has(node)) {
+        return;
+      }
 
-    return collisions;
-  }
+      visiting.add(node);
+      const dependencies = graph.get(node) || [];
 
-  /**
-   * Check if storage layout follows diamond storage patterns
-   */
-  private isDiamondStorageCompliant(variables: VariableInfo[]): boolean {
-    // Look for diamond storage struct patterns
-    const hasStorageStruct = variables.some(
-      v =>
-        v.name.toLowerCase().includes('storage') ||
-        v.type.toLowerCase().includes('storage')
-    );
+      for (const dep of dependencies) {
+        dfs(dep, [...path, node]);
+      }
 
-    // Check if variables are properly isolated
-    const hasProperIsolation = variables.every(
-      v => v.slot >= 0 && v.offset >= 0
-    );
-
-    return hasStorageStruct && hasProperIsolation;
-  }
-
-  /**
-   * Determine optimal deployment strategy based on contract characteristics
-   */
-  private determineDeploymentStrategy(
-    totalSize: number,
-    functionCount: number
-  ): 'single' | 'faceted' | 'chunked' {
-    const SIZE_THRESHOLD = 20000; // Threshold for considering faceting
-    const FUNCTION_THRESHOLD = 10; // Threshold for considering faceting
-    const CHUNK_THRESHOLD = 24000; // Threshold for chunking
-
-    if (totalSize > CHUNK_THRESHOLD) {
-      return 'chunked';
-    } else if (
-      totalSize > SIZE_THRESHOLD ||
-      functionCount > FUNCTION_THRESHOLD
-    ) {
-      return 'faceted';
-    } else {
-      return 'single';
-    }
-  }
-
-  /**
-   * Generate PayRox Go Beyond deployment manifest entry
-   */
-  generateManifestEntries(contract: ParsedContract): Record<string, unknown>[] {
-    return (contract.functions || []).map(fn => ({
-      selector: fn.selector,
-      facet: '<predicted_facet_address>',
-      codehash: contract.runtimeCodehash || '<runtime_codehash>',
-      functionName: fn.name,
-      gasEstimate: fn.gasEstimate,
-      securityLevel: this.assessSecurityLevel(fn),
-    }));
-  }
-
-  /**
-   * Generate facet-specific analysis report
-   */
-  generateFacetAnalysisReport(contract: ParsedContract): {
-    facetRecommendations: FacetCandidate[];
-    deploymentStrategy: string;
-    gasOptimizations: string[];
-    securityConsiderations: string[];
-    chunkingStrategy?: string;
-  } {
-  const facetRecommendations: FacetCandidate[] = [];
-
-    // Convert facet candidates to structured recommendations
-    const facetEntries: Array<[string, any[]]> = contract.facetCandidates
-      ? Array.from((contract.facetCandidates as any).entries()) as Array<[string, any[]]>
-      : [];
-
-    for (const [facetName, functions] of facetEntries) {
-      const safeFunctions = functions || [];
-      const candidate: FacetCandidate = {
-        name: facetName,
-        functions: safeFunctions,
-        estimatedSize: safeFunctions.reduce((total, fn) => total + (fn.codeSize || 0), 0),
-        category: this.categorizeFacet(facetName),
-        dependencies: this.analyzeFacetDependencies(safeFunctions),
-        storageRequirements: this.analyzeFacetStorage(safeFunctions),
-      };
-
-      facetRecommendations.push(candidate);
-    }
-
-    const gasOptimizations = this.generateGasOptimizations(contract);
-    const securityConsiderations = this.generateSecurityConsiderations(contract);
-
-    return {
-      facetRecommendations,
-      deploymentStrategy: contract.deploymentStrategy || 'unknown',
-      gasOptimizations,
-      securityConsiderations,
-      ...(contract.chunkingRequired && {
-        chunkingStrategy: 'DeterministicChunkFactory staging required',
-      }),
+      visiting.delete(node);
+      visited.add(node);
     };
-  }
 
-  /**
-   * Categorize facet by name
-   */
-  private categorizeFacet(
-    facetName: string
-  ): 'admin' | 'governance' | 'view' | 'utility' | 'core' {
-    const name = facetName.toLowerCase();
-    if (name.includes('admin')) {
-      return 'admin';
-    }
-    if (name.includes('governance')) {
-      return 'governance';
-    }
-    if (name.includes('view')) {
-      return 'view';
-    }
-    if (name.includes('core')) {
-      return 'core';
-    }
-    return 'utility';
-  }
-
-  /**
-   * Analyze facet dependencies
-   */
-  private analyzeFacetDependencies(functions: FunctionInfo[]): string[] {
-    const dependencies = new Set<string>();
-
-    for (const func of (functions || [])) {
-      for (const dep of (func.dependencies || [])) {
-        dependencies.add(dep);
+    for (const func of functions) {
+      if (!visited.has(func.name)) {
+        dfs(func.name, []);
       }
     }
 
-    return Array.from(dependencies);
+    return cycles;
   }
 
   /**
-   * Analyze facet storage requirements
+   * Advanced chunking with dependency resolution
    */
-  private analyzeFacetStorage(_functions: FunctionInfo[]): string[] {
-    // This would analyze which storage variables are accessed by facet functions
-    // For now, return a placeholder
-    return ['Isolated diamond storage required'];
+  async generateDependencyAwareChunks(
+    contract: ParsedContract,
+  ): Promise<ChunkInfo[]> {
+    const cycles = this.detectCircularDependencies(contract.functions);
+    if (cycles.length > 0) {
+      console.warn("Circular dependencies detected:", cycles);
+    }
+
+    return this.createOptimizedChunks(contract);
   }
 
   /**
-   * Generate gas optimization suggestions
+   * Generate comprehensive analysis report
    */
-  private generateGasOptimizations(contract: ParsedContract): string[] {
-    const optimizations: string[] = [];
+  async generateAnalysisReport(contract: ParsedContract): Promise<any> {
+    const chunks = await this.generateOptimizedChunks(contract);
+    const merkleTree = this.buildFunctionMerkleTree(contract.functions);
+    const dependencyGraph = this.generateDependencyGraph(contract.functions);
+    const circularDeps = this.detectCircularDependencies(contract.functions);
 
-  if (contract.chunkingRequired) {
-      optimizations.push(
-        'Deploy via DeterministicChunkFactory to avoid contract size limits'
-      );
-    }
-
-  if ((contract.facetCandidates?.size || 0) > 1) {
-      optimizations.push(
-        'Modular facet deployment reduces individual deployment costs'
-      );
-    }
-
-  if ((contract.storageCollisions || []).length > 0) {
-      optimizations.push(
-        'Implement diamond storage pattern to avoid storage collisions'
-      );
-    }
-
-    const viewFunctions = (contract.functions || []).filter(
-      f => f.stateMutability === 'view' || f.stateMutability === 'pure'
-    );
-    if (viewFunctions.length > 5) {
-      optimizations.push(
-        'Consider separate ViewFacet for read-only operations'
-      );
-    }
-
-    return optimizations;
-  }
-
-  /**
-   * Generate security considerations
-   */
-  private generateSecurityConsiderations(contract: ParsedContract): string[] {
-    const considerations: string[] = [];
-
-    const criticalFunctions = (contract.functions || []).filter(
-      (f: FunctionInfo) => this.assessSecurityLevel(f) === 'critical'
-    );
-
-    if (criticalFunctions.length > 0) {
-      considerations.push(
-        `${criticalFunctions.length} critical functions require enhanced access control`
-      );
-    }
-
-    if ((contract.storageCollisions || []).length > 0) {
-      considerations.push(
-        'Storage collisions detected - implement proper facet isolation'
-      );
-    }
-    const adminFunctions = (contract.functions || []).filter((f: FunctionInfo) =>
-      this.isAdminFunction(f)
-    );
-    if (adminFunctions.length > 0) {
-      considerations.push(
-        'Separate AdminFacet recommended for privileged functions'
-      );
-    }
-
-    if (contract.deploymentStrategy === 'chunked') {
-      considerations.push(
-        'Chunked deployment requires additional integrity verification'
-      );
-    }
-
-    return considerations;
-  }
-
-  /**
-   * Initialize CLI commands
-   */
-  initializeCLI(): Command {
-    const program = new Command();
-    
-    program
-      .name('solidity-analyzer')
-      .description('PayRox Go Beyond Solidity Analyzer')
-      .version('1.0.0');
-
-    program
-      .command('analyze')
-      .description('Analyze a Solidity contract')
-      .argument('<contractPath>', 'Path to the Solidity contract file')
-      .option('-o, --output <file>', 'Output file for analysis results', 'analysis.json')
-      .option('-v, --verbose', 'Verbose output')
-      .option('--contract-name <name>', 'Specific contract name to analyze')
-      .action(async (contractPath: string, options: { output: string; verbose?: boolean; contractName?: string }) => {
-        try {
-          console.log(`Analyzing contract: ${contractPath}`);
-          
-          // Check if file exists
-          if (!fs.existsSync(contractPath)) {
-            console.error(`Error: Contract file not found at ${contractPath}`);
-            process.exit(1);
-          }
-          
-          // Read contract source
-          const sourceCode = fs.readFileSync(contractPath, 'utf8');
-          
-          // Analyze contract
-          const analysis = await this.parseContract(sourceCode, options.contractName);
-          
-          if (options.verbose) {
-            console.log('Analysis Results:');
-            console.log(`- Contract name: ${analysis.name}`);
-            console.log(`- Functions found: ${(analysis.functions || []).length}`);
-            console.log(`- State variables: ${(analysis.variables || []).length}`);
-            console.log(`- Events: ${(analysis.events || []).length}`);
-            console.log(`- Modifiers: ${(analysis.modifiers || []).length}`);
-            console.log(`- Total size: ${analysis.totalSize}`);
-            console.log(`- Deployment strategy: ${analysis.deploymentStrategy || 'unknown'}`);
-            console.log(`- Chunking required: ${analysis.chunkingRequired}`);
-          }
-          
-          // Write output
-          fs.writeFileSync(options.output, JSON.stringify(analysis, null, 2));
-          console.log(`Analysis saved to: ${options.output}`);
-        } catch (error) {
-          console.error('Analysis failed:', error instanceof Error ? error.message : 'Unknown error');
-          process.exit(1);
-        }
-      });
-
-    program
-      .command('refactor')
-      .description('Plan a non-destructive refactor for a solidity file (dry-run)')
-      .argument('<file>', 'solidity file to plan refactor for')
-      .option('-m, --maxChunkSize <n>', 'maximum chunk size', '24576')
-      .option('-s, --strategy <strategy>', "strategy: 'function' | 'feature' | 'gas'", 'function')
-      .action(async (file, opts) => {
-        const src = fs.readFileSync(file, 'utf8');
-        const result = await this.refactorContract(src, {
-          maxChunkSize: Number(opts.maxChunkSize),
-          strategy: opts.strategy,
-        });
-        console.log(JSON.stringify(result, null, 2));
-      });
-
-    program
-      .command('chunk')
-      .description('Plan optimal chunking strategy for a contract')
-      .argument('<contractPath>', 'Path to the Solidity contract file')
-      .option('-s, --max-size <bytes>', 'Maximum chunk size in bytes', '24576')
-      .option('-o, --output <file>', 'Output file for chunk plan', 'chunk-plan.json')
-      .option('--strategy <type>', 'Chunking strategy (function|feature|gas)', 'function')
-      .option('-g, --gas-limit <gas>', 'Maximum gas limit for gas-based chunking')
-      .option('--contract-name <name>', 'Specific contract name to analyze')
-      .action(async (contractPath: string, options: {
-        maxSize: string;
-        output: string;
-        strategy: 'function' | 'feature' | 'gas';
-        gasLimit?: string;
-        contractName?: string;
-      }) => {
-        try {
-          console.log(`Planning chunks for: ${contractPath}`);
-          
-          // Check if file exists
-          if (!fs.existsSync(contractPath)) {
-            console.error(`Error: Contract file not found at ${contractPath}`);
-            process.exit(1);
-          }
-          
-          // Read contract source
-          const sourceCode = fs.readFileSync(contractPath, 'utf8');
-          
-          // Analyze contract
-          const analysis = await this.parseContract(sourceCode, options.contractName);
-          
-          // Generate chunk plan using our enhanced logic
-          const chunkPlan = this.generateChunkPlan(analysis, {
-            maxChunkSize: parseInt(options.maxSize),
-            strategy: options.strategy,
-            gasLimit: options.gasLimit ? parseInt(options.gasLimit) : undefined
-          });
-          
-          console.log(`Generated ${chunkPlan.chunks.length} chunks:`);
-          console.log(`Strategy: ${chunkPlan.strategy}`);
-          console.log(`Total functions: ${chunkPlan.totalFunctions}`);
-          console.log(`Total estimated size: ${chunkPlan.totalEstimatedSize} bytes`);
-          
-          if (chunkPlan.optimization) {
-            console.log(`Optimization efficiency: ${chunkPlan.optimization.efficiency}`);
-            console.log(`Gas optimized: ${chunkPlan.optimization.gasOptimized}`);
-            console.log(`Dependency score: ${chunkPlan.optimization.dependencyScore}`);
-
-            if ((chunkPlan.optimization.recommendations || []).length > 0) {
-              console.log('Recommendations:');
-              (chunkPlan.optimization.recommendations || []).forEach((rec: any) => {
-                console.log(`  - ${rec}`);
-              });
-            }
-          }
-          
-          chunkPlan.chunks.forEach((chunk: any, i: number) => {
-            console.log(
-              `  Chunk ${i + 1} (${chunk.id}): ${chunk.functions.length} functions, ~${
-                chunk.estimatedSize
-              } bytes, ${chunk.gasEstimate} gas`
-            );
-          });
-          
-          fs.writeFileSync(options.output, JSON.stringify(chunkPlan, null, 2));
-          console.log(`Chunk plan saved to: ${options.output}`);
-        } catch (error) {
-          console.error('Chunking failed:', error instanceof Error ? error.message : 'Unknown error');
-          process.exit(1);
-        }
-      });
-
-    program
-      .command('manifest')
-      .description('Build complete deployment manifest')
-      .argument('<contractPath>', 'Path to the Solidity contract file')
-      .option('-o, --output <file>', 'Output manifest file', 'deployment.manifest.json')
-      .option('--network <name>', 'Target network', 'hardhat')
-      .option('--factory <address>', 'Factory contract address')
-      .option('--dispatcher <address>', 'Dispatcher contract address')
-      .option('--contract-name <name>', 'Specific contract name to analyze')
-      .action(async (contractPath: string, options: {
-        output: string;
-        network: string;
-        factory?: string;
-        dispatcher?: string;
-        contractName?: string;
-      }) => {
-        try {
-          console.log(`Building manifest for: ${contractPath}`);
-          
-          // Check if file exists
-          if (!fs.existsSync(contractPath)) {
-            console.error(`Error: Contract file not found at ${contractPath}`);
-            process.exit(1);
-          }
-          
-          // Read contract source
-          const sourceCode = fs.readFileSync(contractPath, 'utf8');
-          
-          // Analyze contract
-          const analysis = await this.parseContract(sourceCode, options.contractName);
-          
-          // Generate manifest using our existing logic
-          const manifest = this.generateManifest(analysis, {
-            network: options.network,
-            factory: options.factory,
-            dispatcher: options.dispatcher
-          });
-          
-          fs.writeFileSync(options.output, JSON.stringify(manifest, null, 2));
-          console.log(`Manifest saved to: ${options.output}`);
-          console.log(
-            `Manifest contains ${manifest.routes.length} routes`
-          );
-        } catch (error) {
-          console.error('Manifest building failed:', error instanceof Error ? error.message : 'Unknown error');
-          process.exit(1);
-        }
-      });
-
-    program
-      .command('report')
-      .description('Generate comprehensive analysis report')
-      .argument('<contractPath>', 'Path to the Solidity contract file')
-      .option('-o, --output <file>', 'Output report file', 'report.md')
-      .option('--format <type>', 'Report format (markdown|json)', 'markdown')
-      .option('--contract-name <name>', 'Specific contract name to analyze')
-      .action(async (contractPath: string, options: {
-        output: string;
-        format: 'markdown' | 'json';
-        contractName?: string;
-      }) => {
-        try {
-          console.log(`Generating report for: ${contractPath}`);
-          
-          // Check if file exists
-          if (!fs.existsSync(contractPath)) {
-            console.error(`Error: Contract file not found at ${contractPath}`);
-            process.exit(1);
-          }
-          
-          // Read contract source
-          const sourceCode = fs.readFileSync(contractPath, 'utf8');
-          
-          // Analyze contract
-          const analysis = await this.parseContract(sourceCode, options.contractName);
-          
-          // Generate report
-          let report: string;
-          switch (options.format) {
-            case 'json':
-              report = JSON.stringify(analysis, null, 2);
-              break;
-            case 'markdown':
-            default:
-              report = this.generateMarkdownReport(analysis);
-              break;
-          }
-          
-          fs.writeFileSync(options.output, report);
-          console.log(`Report saved to: ${options.output}`);
-        } catch (error) {
-          console.error('Report generation failed:', error instanceof Error ? error.message : 'Unknown error');
-          process.exit(1);
-        }
-      });
-
-    return program;
-  }
-
-  /**
-   * Generate chunk plan for contract
-   */
-  private generateChunkPlan(
-    analysis: ParsedContract,
-    options: { maxChunkSize: number; strategy: string; gasLimit?: number }
-  ): any {
-    // Convert analysis functions to chunk functions
-  const chunkFunctions = (analysis.functions || []).map((func: any) => ({
-      name: func.name,
-      signature: func.signature,
-      estimatedSize: func.codeSize,
-      gasEstimate: func.gasEstimate,
-      complexity: this.calculateFunctionComplexity(func),
-      dependencies: func.dependencies,
-    }));
-    
-    let chunks: any[] = [];
-    
-    // Group functions based on strategy
-    switch (options.strategy) {
-      case 'feature':
-        chunks = this.planChunksByFeature(chunkFunctions, options.maxChunkSize);
-        break;
-        
-      case 'gas':
-        chunks = this.planChunksByGasUsage(chunkFunctions, options.maxChunkSize, options.gasLimit);
-        break;
-        
-      case 'function':
-      default:
-        chunks = this.planChunksByFunction(chunkFunctions, options.maxChunkSize);
-        break;
-    }
-    
-    // Calculate optimization metrics
-    const optimization = this.calculateChunkOptimization(chunks, options);
-    
     return {
-      chunks,
-  totalFunctions: (analysis.functions || []).length,
-      totalEstimatedSize: chunks.reduce(
-        (sum, chunk) => sum + chunk.estimatedSize,
-        0
+      contract: {
+        name: contract.name,
+        totalSize: contract.totalSize,
+        deploymentStrategy: contract.deploymentStrategy,
+        chunkingRequired: contract.chunkingRequired,
+        functionCount: contract.functions.length,
+        variableCount: contract.variables.length,
+        eventCount: contract.events.length,
+      },
+      chunks: chunks.map((chunk) => ({
+        id: chunk.id,
+        name: chunk.name,
+        functionCount: chunk.functions.length,
+        size: chunk.size,
+        gasEstimate: chunk.gasEstimate,
+        dependencies: chunk.dependencies.length,
+      })),
+      security: {
+        riskScore: contract.securityAnalysis?.riskScore || 0,
+        vulnerabilities: contract.securityAnalysis?.vulnerabilities || [],
+        recommendations: contract.securityAnalysis?.recommendations || [],
+      },
+      optimization: {
+        merkleRoot: merkleTree.root,
+        dependencyComplexity: dependencyGraph.size,
+        circularDependencies: circularDeps,
+        storageCollisions: contract.storageCollisions?.length || 0,
+      },
+      facets: Array.from(contract.facetCandidates?.entries() || []).map(
+        ([name, funcs]) => ({
+          name,
+          functionCount: funcs.length,
+          totalSize: funcs.reduce((sum, f) => sum + f.size, 0),
+        }),
       ),
-      strategy: options.strategy,
-      optimization
     };
   }
 
   /**
-   * Plan and produce non-destructive refactor suggestions for a large contract.
-   * This returns chunk plan plus suggested patch operations (dry-run) that
-   * can be applied manually or reviewed by a developer/AI assistant.
+   * Generate PayRox-compatible manifest
    */
-  async refactorContract(
-    sourceCode: string,
-    options: { maxChunkSize?: number; strategy?: 'function' | 'feature' | 'gas'; dryRun?: boolean } = {}
-  ): Promise<{ chunks: any[]; patches: Array<{ file: string; snippet: string }>; summary: string }> {
-    // Lightweight parse to avoid expensive compilation during refactor planning
-    const analysis = await this.parseContractLightweight(sourceCode);
+  generateManifest(contract: ParsedContract, chunks: ChunkInfo[]): any {
+    const facetRecommendations: FacetCandidate[] = [];
 
-    const chunkPlan = this.generateChunkPlan(analysis as ParsedContract, {
-      maxChunkSize: options.maxChunkSize || 24576,
-      strategy: options.strategy || 'function',
-    });
-
-    // Create human-reviewable patches (suggested new facet files per chunk)
-    const patches: Array<{ file: string; snippet: string }> = [];
-
-    for (const chunk of chunkPlan.chunks) {
-      const fileName = `${(analysis.name || 'Contract')}-${chunk.id}.facet.sol`;
-      // Heuristic snippet: export minimal interface with function signatures
-  const funcs = (chunk.functions || []).map((f: any) => `function ${f.name}(${(f.signature || '')}) external;`).join('\n');
-      const snippet = `// Suggested facet: ${chunk.id}\n// Functions:\n${funcs}\n`;
-      patches.push({ file: fileName, snippet });
-    }
-
-    const summary = `Refactor plan: ${chunkPlan.chunks.length} chunks suggested; ${patches.length} facet stubs prepared.`;
-
-    return { chunks: chunkPlan.chunks, patches, summary };
-  }
-  
-  /**
-   * Calculate function complexity score
-   */
-  private calculateFunctionComplexity(func: FunctionInfo): number {
-    let complexity = 1; // Base complexity
-    
-  // Add complexity for parameters
-  complexity += (func.parameters || []).length * 0.5;
-    
-    // Add complexity for return parameters
-  complexity += (func.returnParameters || []).length * 0.5;
-    
-    // Add complexity for modifiers
-  complexity += (func.modifiers || []).length;
-    
-    // Add complexity for state mutability
-    if (func.stateMutability !== 'view' && func.stateMutability !== 'pure') {
-      complexity += 1;
-    }
-    
-    // Add complexity for dependencies
-  complexity += (func.dependencies || []).length * 0.2;
-    
-    return Math.round(complexity * 10) / 10;
-  }
-  
-  /**
-   * Plan chunks by individual functions (simple strategy)
-   */
-  private planChunksByFunction(functions: any[], maxChunkSize: number): any[] {
-    const chunks: any[] = [];
-    let currentChunk: any = this.createEmptyChunk(chunks.length);
-    
-    for (const func of functions) {
-      // Check if adding this function would exceed size limit
-      if (
-        currentChunk.estimatedSize + func.estimatedSize >
-        maxChunkSize
-      ) {
-        if (currentChunk.functions.length > 0) {
-          chunks.push(currentChunk);
-          currentChunk = this.createEmptyChunk(chunks.length);
-        }
-      }
-      
-      currentChunk.functions.push(func);
-      currentChunk.estimatedSize += func.estimatedSize;
-      currentChunk.gasEstimate += func.gasEstimate;
-      currentChunk.dependencies.push(...func.dependencies);
-    }
-    
-    if (currentChunk.functions.length > 0) {
-      chunks.push(currentChunk);
-    }
-    
-    return chunks;
-  }
-  
-  /**
-   * Plan chunks by gas usage optimization
-   */
-  private planChunksByGasUsage(functions: any[], maxChunkSize: number, gasLimit?: number): any[] {
-    // Sort functions by gas usage (ascending)
-    const sortedFunctions = [...functions].sort(
-      (a, b) => a.gasEstimate - b.gasEstimate
-    );
-    
-    const chunks: any[] = [];
-    let currentChunk: any = this.createEmptyChunk(chunks.length);
-    
-    for (const func of sortedFunctions) {
-      // Check both size and gas limits
-      if (
-        currentChunk.estimatedSize + func.estimatedSize >
-          maxChunkSize ||
-        (gasLimit && currentChunk.gasEstimate + func.gasEstimate >
-          gasLimit)
-      ) {
-        if (currentChunk.functions.length > 0) {
-          chunks.push(currentChunk);
-          currentChunk = this.createEmptyChunk(chunks.length);
-        }
-      }
-      
-      currentChunk.functions.push(func);
-      currentChunk.estimatedSize += func.estimatedSize;
-      currentChunk.gasEstimate += func.gasEstimate;
-      currentChunk.dependencies.push(...func.dependencies);
-    }
-    
-    if (currentChunk.functions.length > 0) {
-      chunks.push(currentChunk);
-    }
-    
-    return chunks;
-  }
-  
-  /**
-   * Plan chunks by feature grouping (advanced strategy)
-   */
-  private planChunksByFeature(functions: any[], maxChunkSize: number): any[] {
-    const featureGroups = this.groupFunctionsByFeature(functions);
-    const chunks: any[] = [];
-    
-    for (const [feature, funcs] of featureGroups) {
-      let currentChunk: any = this.createEmptyChunk(
-        chunks.length,
-        feature
-      );
-      
-      for (const func of funcs) {
-        if (
-          currentChunk.estimatedSize + func.estimatedSize >
-          maxChunkSize
-        ) {
-          if (currentChunk.functions.length > 0) {
-            chunks.push(currentChunk);
-            currentChunk = this.createEmptyChunk(chunks.length, feature);
-          }
-        }
-        
-        currentChunk.functions.push(func);
-        currentChunk.estimatedSize += func.estimatedSize;
-        currentChunk.gasEstimate += func.gasEstimate;
-        currentChunk.dependencies.push(...func.dependencies);
-      }
-      
-      if (currentChunk.functions.length > 0) {
-        chunks.push(currentChunk);
-      }
-    }
-    
-    return chunks;
-  }
-  
-  /**
-   * Group functions by detected features
-   */
-  private groupFunctionsByFeature(
-    functions: any[]
-  ): Map<string, any[]> {
-    const groups = new Map<string, any[]>();
-    
-    for (const func of functions) {
-      const feature = this.detectFunctionFeature(func);
-      
-      if (!groups.has(feature)) {
-        groups.set(feature, []);
-      }
-      
-      const group = groups.get(feature);
-      if (group) {
-        group.push(func);
-      }
-    }
-    
-    return groups;
-  }
-  
-  /**
-   * Detect feature category for a function
-   */
-  private detectFunctionFeature(func: any): string {
-    const name = func.name.toLowerCase();
-    
-    // ERC20-like functions
-    if (
-      ['transfer', 'approve', 'allowance', 'balanceof', 'totalsupply'].some(
-        pattern => name.includes(pattern)
-      )
-    ) {
-      return 'erc20';
-    }
-    
-    // Access control functions
-    if (
-      ['onlyowner', 'onlyadmin', 'onlyauthorized', 'require'].some(pattern =>
-        name.includes(pattern)
-      ) ||
-      func.name.includes('Role')
-    ) {
-      return 'access-control';
-    }
-    
-    // View/pure functions
-    if (func.gasEstimate < 10000) {
-      return 'read-only';
-    }
-    
-    // Administrative functions
-    if (
-      ['mint', 'burn', 'pause', 'unpause', 'withdraw', 'emergency'].some(
-        pattern => name.includes(pattern)
-      )
-    ) {
-      return 'administrative';
-    }
-    
-    return 'core';
-  }
-  
-  /**
-   * Create empty chunk with proper initialization
-   */
-  private createEmptyChunk(index: number, feature?: string): any {
-    const id = feature ? `${feature}-${index}` : `chunk-${index}`;
     return {
-      id,
-      functions: [],
-      estimatedSize: 0,
-      gasEstimate: 0,
-      dependencies: [],
+      name: contract.name,
+      version: "1.0.0",
+      description: `Auto-generated manifest for ${contract.name}`,
+      deployment: {
+        strategy: contract.deploymentStrategy,
+        chunks: chunks.map((chunk) => ({
+          id: chunk.id,
+          name: chunk.name,
+          size: chunk.size,
+          functions: chunk.functions.map((f) => f.signature),
+          gasEstimate: chunk.gasEstimate,
+        })),
+      },
+      diamond: {
+        facets: Array.from(contract.facetCandidates?.entries() || []).map(
+          ([name, funcs]) => ({
+            name,
+            functions: funcs.map((f) => f.signature),
+            selectors: funcs.map((f) => f.selector),
+          }),
+        ),
+      },
+      security: {
+        analysis: contract.securityAnalysis,
+        recommendations: facetRecommendations,
+      },
+      storage: {
+        layout: contract.storageLayout,
+        collisions: contract.storageCollisions,
+      },
     };
   }
-  
+
   /**
-   * Calculate optimization metrics for chunk plan
+   * Cross-reference analysis for function dependencies
    */
-  private calculateChunkOptimization(chunks: any[], options: { maxChunkSize: number; gasLimit?: number }): any {
-    const totalSize = chunks.reduce(
-      (sum, chunk) => sum + chunk.estimatedSize,
-      0
-    );
-    const averageChunkSize = totalSize / chunks.length;
-    const sizeEfficiency = averageChunkSize / options.maxChunkSize;
-    
-    const totalGas = chunks.reduce((sum, chunk) => sum + chunk.gasEstimate, 0);
-    const gasOptimized = options.gasLimit ? totalGas <= options.gasLimit : true;
-    
-    // Calculate dependency score (lower is better)
-    const crossChunkDependencies = this.calculateCrossChunkDependencies(chunks);
-    const dependencyScore =
-      crossChunkDependencies / Math.max(chunks.length - 1, 1);
-    
-    const recommendations: string[] = [];
-    
-    if (sizeEfficiency < 0.7) {
-      recommendations.push(
-        'Consider merging smaller chunks for better size efficiency'
-      );
+  crossReferenceFunctions(functions: FunctionInfo[]): Map<string, string[]> {
+    const references = new Map<string, string[]>();
+
+    for (const func of functions) {
+      references.set(func.name, []);
+
+      for (const otherFunc of functions) {
+        if (otherFunc.dependencies.includes(func.name)) {
+          references.get(func.name)!.push(otherFunc.name);
+        }
+      }
     }
-    
-    if (!gasOptimized) {
-      recommendations.push(
-        'Gas usage exceeds recommended limits - consider function optimization'
-      );
-    }
-    
-    if (dependencyScore > 0.3) {
-      recommendations.push(
-        'High cross-chunk dependencies detected - consider reorganizing features'
-      );
-    }
-    
-    if (chunks.length > 10) {
-      recommendations.push(
-        'Large number of chunks may increase deployment complexity'
-      );
-    }
-    
-    return {
-      efficiency: Math.round(sizeEfficiency * 100) / 100,
-      gasOptimized,
-      dependencyScore: Math.round(dependencyScore * 100) / 100,
-      recommendations,
-    };
+
+    return references;
   }
-  
+
   /**
-   * Calculate cross-chunk dependencies
+   * Calculate cross-chunk communication overhead
    */
-  private calculateCrossChunkDependencies(chunks: any[]): number {
-    // Simplified dependency calculation
-    // In practice, this would analyze actual function call relationships
+  calculateCommunicationOverhead(chunks: ChunkInfo[]): number {
     let crossDependencies = 0;
-    
+
     for (let i = 0; i < chunks.length; i++) {
       for (let j = i + 1; j < chunks.length; j++) {
         const chunk1Deps = new Set(chunks[i].dependencies);
-        const chunk2Funcs = new Set(chunks[j].functions.map((f: any) => f.name));
-        
+        const chunk2Funcs = new Set(
+          chunks[j].functions.map((f: any) => f.name),
+        );
+
         // Count dependencies from chunk1 to chunk2
-        for (const dep of chunk1Deps) {
+        for (const dep of Array.from(chunk1Deps)) {
           if (chunk2Funcs.has(dep)) {
             crossDependencies++;
           }
         }
       }
     }
-    
+
     return crossDependencies;
   }
 
   /**
-   * Generate manifest for contract
+   * Flatten dependencies for deployment ordering
    */
-  private generateManifest(
-    analysis: ParsedContract,
-    options: { network: string; factory?: string; dispatcher?: string; deployer?: string }
-  ): any {
-    // Generate chunk plan for the manifest
-    const chunkPlan = this.generateChunkPlan(analysis, {
-      maxChunkSize: 24576, // EIP-170 limit
-      strategy: 'function'
+  flattenDependencies(functions: FunctionInfo[]): string[] {
+    const dependencies = new Set<string>();
+
+    functions.forEach((func) => {
+      func.dependencies.forEach((dep) => dependencies.add(dep));
     });
-    
-    // Build routes from analysis and chunk plan
-    const routes = this.buildManifestRoutes(analysis, chunkPlan);
-    
-    // Calculate verification data
-    const verification = this.calculateManifestVerification(chunkPlan.chunks, routes);
-    
-    // Extract dependencies
-    const dependencies = this.extractManifestDependencies(analysis);
-    
-    // Check security features
-    const security = this.checkManifestSecurity(analysis);
-    
-    return {
-      metadata: {
-        version: '1.0.0',
-        timestamp: new Date().toISOString(),
-        network: options.network,
-        creator: 'SolidityAnalyzer',
-      },
-      target: {
-        factory: options.factory,
-        dispatcher: options.dispatcher,
-        deployer: options.deployer,
-      },
-      chunks: chunkPlan.chunks,
-      routes,
-      verification,
-      dependencies,
-      security,
-    };
+
+    return Array.from(new Set(dependencies)); // Remove duplicates
   }
-  
+
   /**
-   * Build manifest routes from analysis and chunk plan
+   * Enhanced validation with comprehensive checks
    */
-  private buildManifestRoutes(analysis: ParsedContract, chunkPlan: any): any[] {
-    const routes: any[] = [];
-    
-    // Create a map of function names to chunk IDs
-    const functionToChunkMap = new Map<string, string>();
-    chunkPlan.chunks.forEach((chunk: any) => {
-      chunk.functions.forEach((func: any) => {
-        functionToChunkMap.set(func.name, chunk.id);
-      });
-    });
-    
-    // Build routes from manifest routes in analysis
-    (analysis.manifestRoutes || []).forEach((route: any) => {
-      const chunkId = functionToChunkMap.get(route.functionName || '') || 'unknown-chunk';
-      routes.push({
-        selector: route.selector,
-        signature: this.findFunctionSignature(analysis.functions || [], route.functionName || ''),
-        chunkId,
-        functionName: route.functionName || '',
-        // In a real implementation, we would calculate actual facet addresses
-        facet: '<predicted_facet_address>'
-      });
-    });
-    
-    return routes;
-  }
-  
-  /**
-   * Find function signature by name
-   */
-  private findFunctionSignature(functions: FunctionInfo[] = [], functionName: string = ''): string {
-    const func = (functions || []).find(f => f && f.name === functionName);
-    return func ? (func.signature || '') : '';
-  }
-  
-  /**
-   * Calculate verification data for manifest
-   */
-  private calculateManifestVerification(chunks: any[], routes: any[]): any {
-    const chunkHashes: { [chunkId: string]: string } = {};
-    let totalSize = 0;
-    
-    // Calculate hash for each chunk
-    chunks.forEach(chunk => {
-      const chunkData = JSON.stringify({
-        id: chunk.id,
-        functions: chunk.functions.map((f: any) => f.name).sort(),
-        estimatedSize: chunk.estimatedSize,
-      });
-      chunkHashes[chunk.id] = this.calculateSHA256(chunkData);
-      totalSize += chunk.estimatedSize;
-    });
-    
-    // Calculate merkle root from chunk hashes
-    const sortedHashes = Object.values(chunkHashes).sort();
-    const merkleRoot = this.calculateMerkleRoot(sortedHashes);
-    
-    return {
-      merkleRoot,
-      chunkHashes,
-      routeCount: routes.length,
-      totalSize,
-    };
-  }
-  
-  /**
-   * Calculate SHA256 hash
-   */
-  private calculateSHA256(data: string): string {
-    // Use real SHA256 (node crypto) and return 0x-prefixed hex
-    return this.sha256Hex(data);
-  }
-  
-  /**
-   * Calculate merkle root from hashes
-   */
-  private calculateMerkleRoot(hashes: string[]): string {
-    if (!hashes || hashes.length === 0) {
-      return ZERO_HASH;
+  private validateAnalysis(contract: ParsedContract): boolean {
+    // Validate basic structure
+    if (!contract.name || !contract.functions) {
+      return false;
     }
-    if (hashes.length === 1) {
-      return hashes[0] || ZERO_HASH;
-    }
-    
-    const nextLevel: string[] = [];
-    for (let i = 0; i < hashes.length; i += 2) {
-      const left = hashes[i];
-      const right = hashes[i + 1] || left; // Duplicate last hash if odd number
-  // combine raw hex strings; strip 0x if present
-  const leftRaw = left.startsWith('0x') ? left.slice(2) : left;
-  const rightRaw = right.startsWith('0x') ? right.slice(2) : right;
-  const combined = this.calculateSHA256(leftRaw + rightRaw);
-      nextLevel.push(combined);
-    }
-    
-    return this.calculateMerkleRoot(nextLevel);
-  }
-  
-  /**
-   * Extract dependencies for manifest
-   */
-  private extractManifestDependencies(analysis: ParsedContract): string[] {
-    const dependencies: string[] = [];
-    
-    // Extract from imports
-    (analysis.imports || []).forEach((imp: any) => {
-      if ((imp.path || '').startsWith('@openzeppelin') || (imp.path || '').startsWith('@')) {
-        dependencies.push(imp.path);
+
+    // Validate function signatures
+    for (const func of contract.functions) {
+      if (!func.signature || !func.selector) {
+        return false;
       }
-    });
-    
-    // Extract from inheritance
-    (analysis.inheritance || []).forEach((inh: string) => {
-      dependencies.push(inh);
-    });
-    
-  return [...new Set(dependencies)]; // Remove duplicates
-  }
-  
-  /**
-   * Check security features for manifest
-   */
-  private checkManifestSecurity(analysis: ParsedContract): any {
-    return {
-      pausable: (analysis.functions || []).some((func: FunctionInfo) =>
-        func.name === 'pause' || func.name === 'unpause' || func.name === 'paused'
-      ),
-      upgradeable: true, // Assume upgradeable in PayRox context
-    };
-  }
-
-  /**
-   * Calculate verification data for manifest
-   */
-  private calculateVerification(analysis: ParsedContract, routes: any[]): any {
-    // This is a simplified version - in a real implementation, this would be more complex
-    return {
-      merkleRoot: '0x0000000000000000000000000000000000000000000000000000000000000000',
-      routeCount: routes.length,
-      totalSize: analysis.totalSize,
-    };
-  }
-
-  /**
-   * Generate markdown report for contract analysis
-   */
-  private generateMarkdownReport(analysis: ParsedContract): string {
-    let report = `# Contract Analysis Report\n\n`;
-    report += `Generated: ${new Date().toISOString()}\n\n`;
-    
-    report += `## Overview\n`;
-    report += `- Contract Name: ${analysis.name}\n`;
-  report += `- Functions: ${(analysis.functions || []).length}\n`;
-  report += `- State Variables: ${(analysis.variables || []).length}\n`;
-  report += `- Events: ${(analysis.events || []).length}\n`;
-  report += `- Modifiers: ${(analysis.modifiers || []).length}\n`;
-    report += `- Total Size: ${analysis.totalSize} bytes\n`;
-    report += `- Deployment Strategy: ${analysis.deploymentStrategy}\n`;
-    report += `- Chunking Required: ${analysis.chunkingRequired}\n\n`;
-    
-    report += `## Functions\n`;
-    (analysis.functions || []).forEach((func: FunctionInfo) => {
-      report += `- **${func.name}** (${func.visibility} ${func.stateMutability})\n`;
-      report += `  - Selector: ${func.selector}\n`;
-      report += `  - Signature: ${func.signature}\n`;
-      report += `  - Gas Estimate: ${func.gasEstimate}\n`;
-      report += `  - Code Size: ${func.codeSize} bytes\n\n`;
-    });
-    
-    report += `## State Variables\n`;
-    (analysis.variables || []).forEach((variable: any) => {
-      report += `- **${variable.name}** (${variable.type})\n`;
-      report += `  - Visibility: ${variable.visibility}\n`;
-      report += `  - Slot: ${variable.slot}\n`;
-      report += `  - Size: ${variable.size} bytes\n\n`;
-    });
-    
-    report += `## Facet Recommendations\n`;
-    const facetEntriesReport: Array<[string, any[]]> = analysis.facetCandidates
-      ? Array.from((analysis.facetCandidates as any).entries()) as Array<[string, any[]]>
-      : [];
-
-    for (const [facetName, functions] of facetEntriesReport) {
-      const fnList = functions || [];
-      report += `- **${facetName}**: ${fnList.length} functions\n`;
     }
-    
-    return report;
-  }
 
-  /**
-   * Parse contract with lightweight mode for UI performance
-   */
-  async parseContractLightweight(
-    sourceCode: string,
-    contractName?: string
-  ): Promise<ParsedContract> {
-    try {
-      // Parse the AST with tolerant mode for better performance
-      const ast = parse(sourceCode, {
-        loc: true,
-        range: false, // Disable range for performance
-        tolerant: true, // Enable tolerant mode for performance
-      });
-
-      // Extract contract information without full compilation for performance
-      const contractNode = this.findContractNode(ast, contractName);
-      if (!contractNode) {
-        throw new AnalysisError('Contract not found in source code');
+    // Validate chunk consistency
+    if (contract.chunkingRequired) {
+      if (!contract.facetCandidates || contract.facetCandidates.size === 0) {
+        return false;
       }
+    }
 
-      const functions = this.extractFunctions(contractNode, sourceCode);
-      const variables = this.extractVariables(contractNode, sourceCode);
-      const events = this.extractEvents(contractNode, sourceCode);
-      const modifiers = this.extractModifiers(contractNode, sourceCode);
-      const imports = this.extractImports(ast);
-      const inheritance = this.extractInheritance(contractNode);
-      
-      // Estimate size without full compilation for performance
-      const totalSize = this.estimateContractSizeLightweight(sourceCode);
-
-      // PayRox Go Beyond specific analysis (lightweight)
-      const facetCandidates = this.identifyFacetCandidates(functions);
-      const chunkingRequired = this.requiresChunking(totalSize);
-      const storageCollisions = this.detectStorageCollisions(variables);
-      const deploymentStrategy = this.determineDeploymentStrategy(
-        totalSize,
-        functions.length
-      );
-
-      return {
-        name: contractNode.name,
-        sourceCode,
-        ast,
-        functions,
-        variables,
-        events,
-        modifiers,
-        imports,
-        inheritance,
-        totalSize,
-        storageLayout: [], // Skip storage layout for performance
-        facetCandidates,
-        manifestRoutes: [], // Skip manifest routes for performance
-        chunkingRequired,
-        runtimeCodehash: '', // Skip codehash for performance
-        storageCollisions,
-        deploymentStrategy,
-      };
-    } catch (error: unknown) {
-      if (error instanceof AnalysisError) {
-        throw error;
-      }
-      const errorMessage =
-        error instanceof Error ? error.message : 'Unknown error';
-      throw new AnalysisError(
-        `Failed to parse contract: ${errorMessage}`
-      );
-    }
-  }
-
-  /**
-   * Estimate contract size without full compilation for UI performance
-   */
-  private estimateContractSizeLightweight(sourceCode: string): number {
-    // Rough estimation: 1 byte per 2 characters of source
-    return Math.ceil(sourceCode.length / 2);
-  }
-/**
-   * Parse functions using regex for lightweight analysis
-   * Based on the Deployment Analysis Route implementation
-   */
-  private parseFunctionsLightweight(sourceCode: string): any[] {
-    const re = /function\s+([A-Za-z_]\w*)\s*\(([^)]*)\)\s*([^{};]*)({|;)/g;
-    const functions: any[] = [];
-    let m: RegExpExecArray | null;
-    const indices: number[] = [];
-    
-    // Find all function matches
-    while ((m = re.exec(sourceCode)) !== null) {
-      indices.push(m.index);
-      const name = m[1];
-      const paramsRaw = m[2] ?? '';
-      const afterSigBlob = (m[3] ?? '').trim();
-      const open = m[4]; // '{' or ';'
-      functions.push({
-        name,
-        paramsRaw,
-        afterSigBlob,
-        bodyOrDecl: open,
-        signature: '',
-        selector: '0x00000000',
-        modifiers: [],
-      });
-    }
-    
-    // Derive slices (rough): from this match index to next match index
-    for (let i = 0; i < functions.length; i++) {
-      const start = indices[i];
-      const end = i + 1 < indices.length ? indices[i + 1] : sourceCode.length;
-      functions[i].bodyOrDecl = sourceCode.slice(start, end);
-    }
-    
-    // Enrich with signatures/selectors and attribute heuristics
-    for (const func of functions) {
-      const types = this.parseParamTypes(func.paramsRaw);
-      func.signature = `${func.name}(${types.join(',')})`;
-      func.selector = this.calculateSelectorFromSignature(func.signature);
-      
-      const blob = func.afterSigBlob;
-      // visibility
-      const vis = blob.match(/\b(public|external|internal|private)\b/);
-      func.visibility = (vis?.[1] as any) || 'public';
-      // state mutability
-      const mut = blob.match(/\b(pure|view|payable)\b/);
-      func.stateMutability = (mut?.[1] as any) || 'nonpayable';
-      // modifiers (heuristic): words that aren't vis/mut/returns/virtual/override
-      const mods = blob
-        .replace(
-          /\b(public|external|internal|private|pure|view|payable|virtual|override|returns)\b/g,
-          ' '
-        )
-        .trim()
-        .split(/\s+/)
-        .filter(Boolean);
-      func.modifiers = mods;
-    }
-    
-    return functions;
-  }
-  
-  /**
-   * Parse parameter types from raw parameter string
-   * Based on the Deployment Analysis Route implementation
-   */
-  private parseParamTypes(raw: string): string[] {
-    if (!raw.trim()) return [];
-    return raw.split(',').map(p => {
-      const t = p
-        .trim()
-        // strip names & storage when detectible
-        .replace(/\b(memory|calldata|storage|payable)\b/g, '')
-        .replace(/\s+/g, ' ')
-        .trim();
-      // Keep the last word as name? We want types → drop trailing identifier if present
-      // Heuristic: if there's a space and the last token looks like an identifier, drop it.
-      const parts = t.split(' ');
-      if (parts.length > 1) {
-        const last = parts[parts.length - 1];
-        if (/^[A-Za-z_]\w*$/.test(last)) {
-          return parts.slice(0, -1).join(' ');
-        }
-      }
-      return t;
-    });
-  }
-  
-  /**
-   * Calculate selector from function signature
-   * Based on the Deployment Analysis Route implementation
-   */
-  private calculateSelectorFromSignature(sig: string): string {
-    try {
-  return this.selectorFromSignature(sig);
-    } catch (err) {
-      console.warn('Failed to calculate selector from signature:', sig, err);
-      return '0x00000000';
-    }
-  }
-  
-  /**
-   * Check if function is an admin function
-   * Based on the Deployment Analysis Route implementation
-   */
-  private isAdminFunctionLightweight(name: string, modifiers: string[]): boolean {
-    const adminPatterns = [
-      /^set[A-Z]/,
-      /^update[A-Z]/,
-      /^change[A-Z]/,
-      /^withdraw/,
-      /^pause/,
-      /^unpause/,
-      /^emergency/,
-      /^admin/,
-      /^owner/,
-      /^manage/,
-      /^initialize/,
-      /^configure/,
-    ];
-    return (
-      adminPatterns.some(rx => rx.test(name)) ||
-      modifiers.some(m => /owner|admin|auth|role/i.test(m))
-    );
-  }
-  
-  /**
-   * Parse contract with ultra-lightweight mode for maximum UI performance
-   * Based on the Deployment Analysis Route implementation
-   */
-  async parseContractUltraLightweight(
-    sourceCode: string,
-    contractName?: string
-  ): Promise<any> {
-    try {
-      // Get basic contract info without AST parsing
-      const sizeBytes = new TextEncoder().encode(sourceCode).length;
-      const parsedFunctions = this.parseFunctionsLightweight(sourceCode);
-      const functions = parsedFunctions.length;
-      
-      // rough per-function size weights by slice length (in bytes)
-      const fnSizes: Record<string, number> = {};
-      const fnSigs: Record<string, string> = {};
-      const fnSels: Record<string, string> = {};
-      
-      let totalSliceBytes = 0;
-      const sliceBytes = parsedFunctions.map(
-        f => new TextEncoder().encode(f.bodyOrDecl).length
-      );
-      totalSliceBytes = sliceBytes.reduce((a, b) => a + b, 0) || 1;
-      
-      parsedFunctions.forEach((f, i) => {
-        // weight by share of code slice; cap at source size
-        const est = Math.max(
-          300,
-          Math.floor((sliceBytes[i] / totalSliceBytes) * sizeBytes)
-        );
-        // Key by name (UI expects this); if overloads exist, we aggregate
-        fnSizes[f.name] = (fnSizes[f.name] || 0) + est;
-        if (!fnSigs[f.name]) fnSigs[f.name] = f.signature;
-        if (!fnSels[f.name]) fnSels[f.name] = f.selector;
-      });
-      
-      // Complexity (heuristic): size + loops + write vs read mix
-      const loopCount = (sourceCode.match(/\b(for|while)\s*\(/g) || []).length;
-      const writeCount = parsedFunctions.filter(
-        f => f.stateMutability !== 'view' && f.stateMutability !== 'pure'
-      ).length;
-      
-      // EIP-170 runtime bytecode limit
-      const RUNTIME_LIMIT = 24_576;
-      const WARNING_THRESHOLD = Math.floor(RUNTIME_LIMIT * 0.8333);
-      
-      let complexity: 'low' | 'medium' | 'high' = 'low';
-      if (
-        sizeBytes > WARNING_THRESHOLD ||
-        functions > 20 ||
-        loopCount > 0 ||
-        writeCount > 10
-      ) {
-        complexity =
-          sizeBytes > RUNTIME_LIMIT || functions > 35 ? 'high' : 'medium';
-      }
-      
-      // Deployment strategy
-      let deploymentStrategy: 'single' | 'faceted' | 'chunked' = 'single';
-      if (sizeBytes > RUNTIME_LIMIT) {
-        deploymentStrategy = 'chunked';
-      } else if (complexity !== 'low' || functions > 15 || writeCount > 8) {
-        deploymentStrategy = 'faceted';
-      }
-      
-      // Group functions → facet candidates (admin/read/write)
-      const adminFns = parsedFunctions
-        .filter(f => this.isAdminFunctionLightweight(f.name, f.modifiers))
-        .map(f => f.name);
-      const readFns = parsedFunctions
-        .filter(
-          f =>
-            !adminFns.includes(f.name) &&
-            (f.stateMutability === 'view' || f.stateMutability === 'pure')
-        )
-        .map(f => f.name);
-      const writeFns = parsedFunctions
-        .filter(f => !adminFns.includes(f.name) && !readFns.includes(f.name))
-        .map(f => f.name);
-      
-      const mkFacet = (name: string, list: string[]): any => {
-        if (!list.length) return null;
-        const estimatedSize = list.reduce((sum, n) => sum + (fnSizes[n] || 0), 0);
-        const signatures = list.map(n => fnSigs[n]).filter(Boolean) as string[];
-        const selectors = list
-          .map(n => fnSels[n])
-          .filter(Boolean) as string[];
-        const functionSizes: Record<string, number> = Object.fromEntries(
-          list.map(n => [n, fnSizes[n] || 0])
-        );
-        return {
-          name,
-          functions: list,
-          estimatedSize,
-          signatures,
-          selectors,
-          functionSizes,
-        };
-      };
-      
-      const facetCandidates = [
-        mkFacet('AdminFacet', adminFns),
-        mkFacet('ReadFacet', readFns),
-        mkFacet('WriteFacet', writeFns),
-      ].filter(Boolean);
-      
-      if (!facetCandidates.length && parsedFunctions.length) {
-        const list = parsedFunctions.map(f => f.name);
-        facetCandidates.push(mkFacet('MainFacet', list));
-      }
-      
-      // Warnings
-      const warnings: string[] = [];
-      if (sizeBytes > RUNTIME_LIMIT)
-        warnings.push(
-          `Source size hint ${sizeBytes}B exceeds EIP-170 runtime limit (${RUNTIME_LIMIT}B).`
-        );
-      if (functions !== (sourceCode.match(/function\s+\w+/g) || []).length)
-        warnings.push(
-          'Function parser found patterns beyond simple regex; results are heuristic.'
-        );
-      if (Object.keys(fnSizes).length === 0)
-        warnings.push(
-          'Could not derive per-function sizes; estimates will be uniform.'
-        );
-      
-      return {
-        contractName: contractName || 'Unknown',
-        functions,
-        size: sizeBytes,
-        complexity,
-        deploymentStrategy,
-        facetCandidates,
-        functionSizes: fnSizes,
-        functionSignatures: fnSigs,
-        selectors: fnSels,
-        warnings,
-      };
-    } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'Unknown error';
-      throw new AnalysisError(
-        `Failed to parse contract: ${errorMessage}`
-      );
-    }
+    return true;
   }
 }
 
+// ===============================================
+// CLI Interface
+// ===============================================
+
+export function createCLI(): Command {
+  const program = new Command();
+
+  program
+    .name("solidity-analyzer")
+    .description("Advanced Solidity contract analyzer for PayRox Go Beyond")
+    .version("1.0.0");
+
+  program
+    .command("analyze")
+    .description("Analyze a Solidity contract")
+    .argument("<file>", "Path to the Solidity contract file")
+    .option(
+      "-o, --output <file>",
+      "Output file for analysis results",
+      "analysis.json",
+    )
+    .option("-c, --contract <name>", "Specific contract name to analyze")
+    .option("-v, --verbose", "Enable verbose output")
+    .option("--max-size <size>", "Maximum contract size threshold", "24576")
+    .action(async (contractPath: string, options: any) => {
+      try {
+        console.log(`Analyzing contract: ${contractPath}`);
+
+        // Check if file exists
+        if (!fs.existsSync(contractPath)) {
+          console.error(`Error: Contract file not found at ${contractPath}`);
+          process.exit(1);
+        }
+
+        // Read contract source
+        const sourceCode = fs.readFileSync(contractPath, "utf8");
+
+        // Analyze contract
+        const analyzer = new SolidityAnalyzer();
+        const analysis = await analyzer.parseContract(
+          sourceCode,
+          options.contractName,
+        );
+
+        if (options.verbose) {
+          console.log("Analysis Results:");
+          console.log(`- Contract name: ${analysis.name}`);
+          console.log(
+            `- Functions found: ${(analysis.functions || []).length}`,
+          );
+          console.log(
+            `- State variables: ${(analysis.variables || []).length}`,
+          );
+          console.log(`- Events: ${(analysis.events || []).length}`);
+          console.log(`- Modifiers: ${(analysis.modifiers || []).length}`);
+          console.log(`- Total size: ${analysis.totalSize}`);
+          console.log(
+            `- Deployment strategy: ${analysis.deploymentStrategy || "unknown"}`,
+          );
+          console.log(`- Chunking required: ${analysis.chunkingRequired}`);
+        }
+
+        // Write output
+        fs.writeFileSync(options.output, JSON.stringify(analysis, null, 2));
+        console.log(`Analysis saved to: ${options.output}`);
+      } catch (error) {
+        console.error("Analysis failed:", error);
+        process.exit(1);
+      }
+    });
+
+  program
+    .command("manifest")
+    .description("Generate PayRox-compatible manifest")
+    .argument("<file>", "Path to the Solidity contract file")
+    .option("-o, --output <file>", "Output file for manifest", "manifest.json")
+    .option("-c, --contract <name>", "Specific contract name to analyze")
+    .action(async (contractPath: string, options: any) => {
+      try {
+        if (!fs.existsSync(contractPath)) {
+          console.error(`Error: Contract file not found at ${contractPath}`);
+          process.exit(1);
+        }
+
+        // Read contract source
+        const sourceCode = fs.readFileSync(contractPath, "utf8");
+
+        // Analyze and generate manifest
+        const analyzer = new SolidityAnalyzer();
+        const analysis = await analyzer.parseContract(
+          sourceCode,
+          options.contractName,
+        );
+        const chunks = await analyzer.generateOptimizedChunks(analysis);
+        const manifest = analyzer.generateManifest(analysis, chunks);
+
+        fs.writeFileSync(options.output, JSON.stringify(manifest, null, 2));
+        console.log(`Manifest saved to: ${options.output}`);
+      } catch (error) {
+        console.error("Manifest generation failed:", error);
+        process.exit(1);
+      }
+    });
+
+  return program;
+}
+
+// Export types and main analyzer
+export type {
+  ParsedContract,
+  FunctionInfo,
+  VariableInfo,
+  EventInfo,
+  ModifierInfo,
+  ImportInfo,
+  ParameterInfo,
+  ChunkInfo,
+  FacetCandidate,
+  ManifestRoute,
+};
+
+export { AnalysisError };
+
+// ===============================================
+// Default export and CLI entry point
+// ===============================================
+
 export default SolidityAnalyzer;
+
+if (require.main === module) {
+  const cli = createCLI();
+  cli.parse();
+}

@@ -1,10 +1,10 @@
-import { expect } from 'chai';
-import { ethers } from 'hardhat';
-import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
-import * as fs from 'fs';
-import * as path from 'path';
+import { expect } from "chai";
+import { ethers } from "hardhat";
+import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
+import * as fs from "fs";
+import * as path from "path";
 
-const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
+const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
 function getTarget(c: any) {
   return c?.target ?? c?.address ?? null;
@@ -19,7 +19,7 @@ function getTarget(c: any) {
  * - Interface support (ERC-165)
  */
 
-describe('Loupe and Selectors', function () {
+describe("Loupe and Selectors", function () {
   let diamond: any;
   let facets: any[];
   let expectedSelectors: string[];
@@ -28,8 +28,8 @@ describe('Loupe and Selectors', function () {
     const [owner, addr1] = await ethers.getSigners();
 
     // Deploy facets
-    const FacetA = await ethers.getContractFactory('FacetA');
-    const FacetB = await ethers.getContractFactory('FacetB');
+    const FacetA = await ethers.getContractFactory("FacetA");
+    const FacetB = await ethers.getContractFactory("FacetB");
 
     const facetA = await FacetA.deploy();
     await facetA.waitForDeployment();
@@ -37,7 +37,7 @@ describe('Loupe and Selectors', function () {
     await facetB.waitForDeployment();
 
     // Deploy the main Diamond contract
-    const Diamond = await ethers.getContractFactory('Diamond');
+    const Diamond = await ethers.getContractFactory("Diamond");
     const diamond = await Diamond.deploy(await owner.getAddress());
     await diamond.waitForDeployment();
 
@@ -46,7 +46,7 @@ describe('Loupe and Selectors', function () {
     const facetBSelectors = getSelectors(facetB);
 
     // Deploy ERC165Facet and register it so the diamond supports ERC-165 for tests
-    const ERC165Facet = await ethers.getContractFactory('ERC165Facet');
+    const ERC165Facet = await ethers.getContractFactory("ERC165Facet");
     const erc165Facet = await ERC165Facet.deploy();
     await erc165Facet.waitForDeployment();
     const erc165Selectors = getSelectors(erc165Facet);
@@ -76,10 +76,10 @@ describe('Loupe and Selectors', function () {
     expectedSelectors = fixture.expectedSelectors;
   });
 
-  describe('IDiamondLoupe Implementation', function () {
-    it('Should implement facets() function', async function () {
+  describe("IDiamondLoupe Implementation", function () {
+    it("Should implement facets() function", async function () {
       const diamondLoupe = await ethers.getContractAt(
-        'contracts/interfaces/IDiamondLoupe.sol:IDiamondLoupe',
+        "contracts/interfaces/IDiamondLoupe.sol:IDiamondLoupe",
         getTarget(diamond),
       );
 
@@ -93,14 +93,16 @@ describe('Loupe and Selectors', function () {
       }
     });
 
-    it('Should implement facetFunctionSelectors()', async function () {
+    it("Should implement facetFunctionSelectors()", async function () {
       const diamondLoupe = await ethers.getContractAt(
-        'contracts/interfaces/IDiamondLoupe.sol:IDiamondLoupe',
+        "contracts/interfaces/IDiamondLoupe.sol:IDiamondLoupe",
         getTarget(diamond),
       );
 
       for (const facet of facets) {
-        const selectors = await diamondLoupe.facetFunctionSelectors(getTarget(facet));
+        const selectors = await diamondLoupe.facetFunctionSelectors(
+          getTarget(facet),
+        );
         expect(selectors.length).to.be.greaterThan(0);
 
         // Verify selectors are valid bytes4
@@ -110,9 +112,9 @@ describe('Loupe and Selectors', function () {
       }
     });
 
-    it('Should implement facetAddresses()', async function () {
+    it("Should implement facetAddresses()", async function () {
       const diamondLoupe = await ethers.getContractAt(
-        'contracts/interfaces/IDiamondLoupe.sol:IDiamondLoupe',
+        "contracts/interfaces/IDiamondLoupe.sol:IDiamondLoupe",
         getTarget(diamond),
       );
 
@@ -126,9 +128,9 @@ describe('Loupe and Selectors', function () {
       }
     });
 
-    it('Should implement facetAddress(bytes4)', async function () {
+    it("Should implement facetAddress(bytes4)", async function () {
       const diamondLoupe = await ethers.getContractAt(
-        'contracts/interfaces/IDiamondLoupe.sol:IDiamondLoupe',
+        "contracts/interfaces/IDiamondLoupe.sol:IDiamondLoupe",
         getTarget(diamond),
       );
 
@@ -138,22 +140,22 @@ describe('Loupe and Selectors', function () {
       }
     });
 
-    it('Should return zero address for unknown selectors', async function () {
+    it("Should return zero address for unknown selectors", async function () {
       const diamondLoupe = await ethers.getContractAt(
-        'contracts/interfaces/IDiamondLoupe.sol:IDiamondLoupe',
+        "contracts/interfaces/IDiamondLoupe.sol:IDiamondLoupe",
         getTarget(diamond),
       );
 
-      const unknownSelector = '0x12345678';
+      const unknownSelector = "0x12345678";
       const facetAddress = await diamondLoupe.facetAddress(unknownSelector);
       expect(facetAddress).to.equal(ZERO_ADDRESS);
     });
   });
 
-  describe('Selector Routing', function () {
-    it('Should route all selectors correctly', async function () {
+  describe("Selector Routing", function () {
+    it("Should route all selectors correctly", async function () {
       const diamondLoupe = await ethers.getContractAt(
-        'contracts/interfaces/IDiamondLoupe.sol:IDiamondLoupe',
+        "contracts/interfaces/IDiamondLoupe.sol:IDiamondLoupe",
         getTarget(diamond),
       );
 
@@ -163,14 +165,15 @@ describe('Loupe and Selectors', function () {
         expect(facetAddress).to.not.equal(ZERO_ADDRESS);
 
         // Verify the facet actually has this selector
-        const facetSelectors = await diamondLoupe.facetFunctionSelectors(facetAddress);
+        const facetSelectors =
+          await diamondLoupe.facetFunctionSelectors(facetAddress);
         expect(facetSelectors).to.include(selector);
       }
     });
 
-    it('Should have no selector collisions', async function () {
+    it("Should have no selector collisions", async function () {
       const diamondLoupe = await ethers.getContractAt(
-        'contracts/interfaces/IDiamondLoupe.sol:IDiamondLoupe',
+        "contracts/interfaces/IDiamondLoupe.sol:IDiamondLoupe",
         getTarget(diamond),
       );
       const allFacets = await diamondLoupe.facets();
@@ -195,42 +198,53 @@ describe('Loupe and Selectors', function () {
       expect(uniqueSelectors.length).to.equal(allSelectors.length);
     });
 
-    it('Should maintain selector parity with original contract', async function () {
-      const combinedPath = path.join(process.cwd(), 'artifacts', 'splits', 'combined.json');
+    it("Should maintain selector parity with original contract", async function () {
+      const combinedPath = path.join(
+        process.cwd(),
+        "artifacts",
+        "splits",
+        "combined.json",
+      );
       if (!fs.existsSync(combinedPath)) this.skip();
-      const combined = JSON.parse(fs.readFileSync(combinedPath, 'utf-8'));
-      if (!Array.isArray(combined.parts) || combined.parts.length === 0) this.skip();
+      const combined = JSON.parse(fs.readFileSync(combinedPath, "utf-8"));
+      if (!Array.isArray(combined.parts) || combined.parts.length === 0)
+        this.skip();
 
       // Build expected selectors from original function signatures in combined.json
       const { keccak256, toUtf8Bytes } = ethers as any;
       const expected: string[] = [];
       for (const part of combined.parts) {
-        const sigs: string[] = Array.isArray(part.selectors) ? part.selectors : [];
+        const sigs: string[] = Array.isArray(part.selectors)
+          ? part.selectors
+          : [];
         for (const sig of sigs) {
-          const norm = String(sig).replace(/\s+/g, ' ').trim();
-          const selector = (keccak256(toUtf8Bytes(norm)) || '').slice(0, 10);
+          const norm = String(sig).replace(/\s+/g, " ").trim();
+          const selector = (keccak256(toUtf8Bytes(norm)) || "").slice(0, 10);
           expected.push(selector);
         }
       }
       // Deduplicate & sort expected
-      const expectedUnique = [...new Set(expected.map((s) => s.toLowerCase()))].sort();
+      const expectedUnique = [
+        ...new Set(expected.map((s) => s.toLowerCase())),
+      ].sort();
 
       const diamondLoupe = await ethers.getContractAt(
-        'contracts/interfaces/IDiamondLoupe.sol:IDiamondLoupe',
+        "contracts/interfaces/IDiamondLoupe.sol:IDiamondLoupe",
         getTarget(diamond),
       );
       const diamondFacets = await diamondLoupe.facets();
       const diamondSelectors: string[] = [];
-      for (const facet of diamondFacets) diamondSelectors.push(...facet.functionSelectors);
+      for (const facet of diamondFacets)
+        diamondSelectors.push(...facet.functionSelectors);
 
       // Remove loupe / diamond management selectors (not defined in original source signatures)
       const ignore = new Set(
         [
-          '0x1f931c1c', // facets()
-          '0xcdffacc6', // facetFunctionSelectors()
-          '0x52ef6b2c', // facetAddresses()
-          '0xadfca15e', // facetAddress()
-          '0x01ffc9a7', // supportsInterface()
+          "0x1f931c1c", // facets()
+          "0xcdffacc6", // facetFunctionSelectors()
+          "0x52ef6b2c", // facetAddresses()
+          "0xadfca15e", // facetAddress()
+          "0x01ffc9a7", // supportsInterface()
         ].map((s) => s.toLowerCase()),
       );
 
@@ -243,48 +257,48 @@ describe('Loupe and Selectors', function () {
     });
   });
 
-  describe('ERC-165 Support', function () {
-    it('Should support IDiamondLoupe interface', async function () {
+  describe("ERC-165 Support", function () {
+    it("Should support IDiamondLoupe interface", async function () {
       const diamond165 = await ethers.getContractAt(
-        'contracts/facets/ERC165Facet.sol:IERC165',
+        "contracts/facets/ERC165Facet.sol:IERC165",
         getTarget(diamond),
       );
 
       // IDiamondLoupe interface ID: 0x48e2b093
-      expect(await diamond165.supportsInterface('0x48e2b093')).to.be.true;
+      expect(await diamond165.supportsInterface("0x48e2b093")).to.be.true;
     });
 
-    it('Should support ERC-165 interface', async function () {
+    it("Should support ERC-165 interface", async function () {
       const diamond165 = await ethers.getContractAt(
-        'contracts/facets/ERC165Facet.sol:IERC165',
+        "contracts/facets/ERC165Facet.sol:IERC165",
         getTarget(diamond),
       );
 
       // ERC-165 interface ID: 0x01ffc9a7
-      expect(await diamond165.supportsInterface('0x01ffc9a7')).to.be.true;
+      expect(await diamond165.supportsInterface("0x01ffc9a7")).to.be.true;
     });
 
-    it('Should not support unknown interfaces', async function () {
+    it("Should not support unknown interfaces", async function () {
       const diamond165 = await ethers.getContractAt(
-        'contracts/facets/ERC165Facet.sol:IERC165',
+        "contracts/facets/ERC165Facet.sol:IERC165",
         getTarget(diamond),
       );
 
       // Random interface ID
-      expect(await diamond165.supportsInterface('0x12345678')).to.be.false;
+      expect(await diamond165.supportsInterface("0x12345678")).to.be.false;
     });
   });
 
-  describe('Facet Constraints', function () {
-    it('Facets should NOT implement loupe functions', async function () {
+  describe("Facet Constraints", function () {
+    it("Facets should NOT implement loupe functions", async function () {
       // This test ensures facets don't claim loupe interface support
       for (const facet of facets) {
         try {
           const facet165 = await ethers.getContractAt(
-            'contracts/facets/ERC165Facet.sol:IERC165',
+            "contracts/facets/ERC165Facet.sol:IERC165",
             getTarget(facet),
           );
-          const supportsLoupe = await facet165.supportsInterface('0x48e2b093');
+          const supportsLoupe = await facet165.supportsInterface("0x48e2b093");
           expect(supportsLoupe).to.be.false;
         } catch (error) {
           // If facet doesn't implement ERC-165, that's acceptable
@@ -293,13 +307,15 @@ describe('Loupe and Selectors', function () {
 
         // Check that facet contracts don't have loupe function signatures
         const facetInterface = facet.interface;
-        const facetFunctions = Object.keys((facetInterface as any).functions || {});
+        const facetFunctions = Object.keys(
+          (facetInterface as any).functions || {},
+        );
 
         const loupeFunctions = [
-          'facets()',
-          'facetFunctionSelectors(address)',
-          'facetAddresses()',
-          'facetAddress(bytes4)',
+          "facets()",
+          "facetFunctionSelectors(address)",
+          "facetAddresses()",
+          "facetAddress(bytes4)",
         ];
 
         for (const loupeFunc of loupeFunctions) {
@@ -318,16 +334,21 @@ function getSelectors(contract: any): string[] {
   // ethers v5: iface.functions is an object; ethers v6: it may be a Map
   const funcs = iface.functions;
   if (funcs) {
-    if (typeof funcs.entries === 'function' && typeof funcs.get === 'function') {
+    if (
+      typeof funcs.entries === "function" &&
+      typeof funcs.get === "function"
+    ) {
       // Map-like
       for (const f of funcs.values()) {
-        if (f && f.type === 'function' && f.selector) selectors.push(f.selector);
+        if (f && f.type === "function" && f.selector)
+          selectors.push(f.selector);
       }
     } else {
       // plain object
       for (const func of Object.values(funcs || {})) {
         const f: any = func;
-        if (f && f.type === 'function' && f.selector) selectors.push(f.selector);
+        if (f && f.type === "function" && f.selector)
+          selectors.push(f.selector);
       }
     }
   }
@@ -335,12 +356,12 @@ function getSelectors(contract: any): string[] {
   // Fallback: derive selectors from fragments if present
   if (selectors.length === 0 && Array.isArray(iface.fragments)) {
     for (const frag of iface.fragments) {
-      if (frag.type === 'function') {
+      if (frag.type === "function") {
         const inputs = (frag.inputs || []).map((i: any) => i.type || i);
-        const sig = `${frag.name}(${inputs.join(',')})`;
+        const sig = `${frag.name}(${inputs.join(",")})`;
         // ethers v6: use keccak256 + toUtf8Bytes
         const { keccak256, toUtf8Bytes } = ethers as any;
-        const sel = (keccak256(toUtf8Bytes(sig)) || '').slice(0, 10);
+        const sel = (keccak256(toUtf8Bytes(sig)) || "").slice(0, 10);
         selectors.push(sel);
       }
     }

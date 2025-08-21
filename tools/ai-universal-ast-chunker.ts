@@ -44,7 +44,7 @@ interface ContractChunk {
 interface FunctionInfo {
   name: string;
   signature: string; // canonical "name(type1,type2)"
-  selector: string;  // 0xNNNNNNNN
+  selector: string; // 0xNNNNNNNN
   stateMutability: "pure" | "view" | "nonpayable" | "payable";
   inputs?: Array<{ name: string; type: string }>;
   outputs?: Array<{ name: string; type: string }>;
@@ -93,7 +93,7 @@ export class AIUniversalASTChunker {
   private hre: HardhatRuntimeEnvironment;
   private maxRuntimeBytes = 24_576; // EIP-170
   private maxGasLimit = 8_000_000;
-  private pragmaVersion = '0.8.30'; // Default Solidity version
+  private pragmaVersion = "0.8.30"; // Default Solidity version
 
   constructor(hre: HardhatRuntimeEnvironment) {
     this.hre = hre;
@@ -101,10 +101,10 @@ export class AIUniversalASTChunker {
     try {
       const compilers = hre.config.solidity.compilers || [];
       if (compilers.length > 0) {
-        this.pragmaVersion = compilers[0].version;
+        this.pragmaVersion = compilers?.[0].version;
       }
     } catch (e) {
-      console.log('Using default pragma version:', this.pragmaVersion);
+      console.log("Using default pragma version:", this.pragmaVersion);
     }
   }
 
@@ -125,23 +125,26 @@ export class AIUniversalASTChunker {
 
     // Find all function fragments
     const fns: FunctionInfo[] = [];
-    const functionFragments = artifact.abi.filter((item: any) => item.type === 'function');
-    
+    const functionFragments = artifact.abi.filter(
+      (item: any) => item.type === "function",
+    );
+
     for (const fragment of functionFragments) {
       try {
         // Get function name and signature (like "transfer(address,uint256)")
         const name = fragment.name;
         const signature = `${name}(${(fragment.inputs || [])
           .map((input: any) => input.type)
-          .join(',')})`;
-          
+          .join(",")})`;
+
         // Compute selector (keccak256 hash of signature)
-        const selector = iface.getFunction(signature)?.selector || 
-                        `0x${iface.getFunction(name)?.selector}`;
-        
+        const selector =
+          iface.getFunction(signature)?.selector ||
+          `0x${iface.getFunction(name)?.selector}`;
+
         // Get stateMutability (view, pure, payable, or nonpayable)
         const stateMutability = fragment.stateMutability;
-        
+
         fns.push({
           name,
           signature,
@@ -149,18 +152,18 @@ export class AIUniversalASTChunker {
           stateMutability: stateMutability as FunctionInfo["stateMutability"],
           inputs: (fragment.inputs || []).map((input: any) => ({
             name: input.name || "",
-            type: input.type || ""
+            type: input.type || "",
           })),
           outputs: (fragment.outputs || []).map((output: any) => ({
             name: output.name || "",
-            type: output.type || ""
-          }))
+            type: output.type || "",
+          })),
         });
       } catch (e) {
         console.warn(`Skipped function in ${name}:`, e);
       }
     }
-    
+
     return { name, artifact, iface, functions: fns };
   }
 
@@ -185,11 +188,14 @@ export class AIUniversalASTChunker {
         stats.size,
         lines,
         abiData,
-        runtimeBytes
+        runtimeBytes,
       );
     }
 
-    const chunks = await this.generateOptimalChunks(abiData, path.basename(filePath));
+    const chunks = await this.generateOptimalChunks(
+      abiData,
+      path.basename(filePath),
+    );
     const { diamondCut, manifest } = this.buildCutAndManifest(chunks);
     const validation = this.validateChunks(abiData.functions, chunks);
     const gasEstimates = await this.estimateGasCosts(chunks);
@@ -214,7 +220,7 @@ export class AIUniversalASTChunker {
    */
   private async generateOptimalChunks(
     abiData: { name: string; functions: FunctionInfo[] },
-    originalName: string
+    originalName: string,
   ): Promise<ContractChunk[]> {
     const baseName = originalName.replace(".sol", "");
     const chunks: ContractChunk[] = [];
@@ -237,30 +243,41 @@ export class AIUniversalASTChunker {
     }
 
     // Init contract
-    const initChunk = this.createInitContract(baseName, chunks.filter((c) => c.type === "facet"));
+    const initChunk = this.createInitContract(
+      baseName,
+      chunks.filter((c) => c.type === "facet"),
+    );
     if (initChunk) chunks.push(initChunk);
 
     return chunks;
   }
 
   private groupFunctionsByDomain(functions: FunctionInfo[]) {
-    const groups: Array<{ name: string; functions: FunctionInfo[]; type: string }> = [];
+    const groups: Array<{
+      name: string;
+      functions: FunctionInfo[];
+      type: string;
+    }> = [];
 
-    const core = functions.filter(
-      (f) =>
-        /init|owner|admin|pause|upgrade/i.test(f.name)
+    const core = functions.filter((f) =>
+      /init|owner|admin|pause|upgrade/i.test(f.name),
     );
-    if (core.length) groups.push({ name: "Core", functions: core, type: "core" });
+    if (core.length)
+      groups.push({ name: "Core", functions: core, type: "core" });
 
     const views = functions.filter(
-      (f) => (f.stateMutability === "view" || f.stateMutability === "pure") && !core.includes(f)
+      (f) =>
+        (f.stateMutability === "view" || f.stateMutability === "pure") &&
+        !core.includes(f),
     );
-    if (views.length) groups.push({ name: "View", functions: views, type: "view" });
+    if (views.length)
+      groups.push({ name: "View", functions: views, type: "view" });
 
     const state = functions.filter(
       (f) =>
-        (f.stateMutability === "nonpayable" || f.stateMutability === "payable") &&
-        !core.includes(f)
+        (f.stateMutability === "nonpayable" ||
+          f.stateMutability === "payable") &&
+        !core.includes(f),
     );
     if (state.length > 20) {
       const parts = Math.ceil(state.length / 20);
@@ -281,7 +298,7 @@ export class AIUniversalASTChunker {
 
   private async packFunctionsIntoFacets(
     group: { name: string; functions: FunctionInfo[]; type: string },
-    baseName: string
+    baseName: string,
   ): Promise<ContractChunk[]> {
     const facets: ContractChunk[] = [];
     let buf: FunctionInfo[] = [];
@@ -289,7 +306,10 @@ export class AIUniversalASTChunker {
 
     for (const f of group.functions) {
       const test = [...buf, f];
-      const code = this.generateFacetCode(`${baseName}${group.name}${idx}Facet`, test);
+      const code = this.generateFacetCode(
+        `${baseName}${group.name}${idx}Facet`,
+        test,
+      );
       const srcBytes = Buffer.byteLength(code, "utf8");
 
       if (srcBytes * 3 > this.maxRuntimeBytes && buf.length > 0) {
@@ -312,7 +332,11 @@ export class AIUniversalASTChunker {
     return facets;
   }
 
-  private mkFacetChunk(name: string, content: string, fns: FunctionInfo[]): ContractChunk {
+  private mkFacetChunk(
+    name: string,
+    content: string,
+    fns: FunctionInfo[],
+  ): ContractChunk {
     return {
       name,
       type: "facet",
@@ -334,7 +358,9 @@ export class AIUniversalASTChunker {
     const interfaceName = `I${name}`;
     const storageLibName = `Lib${name}Storage`;
 
-    const body = functions.map((f) => this.generateFunctionStub(f)).join("\n\n");
+    const body = functions
+      .map((f) => this.generateFunctionStub(f))
+      .join("\n\n");
 
     return `// SPDX-License-Identifier: MIT
 pragma solidity ${this.pragmaVersion};
@@ -365,18 +391,24 @@ ${body}
    * Generate a compilable stub with correct signature/visibility/mutability/returns.
    */
   private generateFunctionStub(f: FunctionInfo): string {
-    const params = (f.inputs || []).map((p, i) => `${p.type} ${p.name || `arg${i}`}`).join(", ");
-    const rets = (f.outputs || []).map((o, i) => `${o.type} ${o.name || `ret${i}`}`).join(", ");
+    const params = (f.inputs || [])
+      .map((p, i) => `${p.type} ${p.name || `arg${i}`}`)
+      .join(", ");
+    const rets = (f.outputs || [])
+      .map((o, i) => `${o.type} ${o.name || `ret${i}`}`)
+      .join(", ");
 
     const vis = "external";
     const mut =
       f.stateMutability === "view" || f.stateMutability === "pure"
         ? f.stateMutability
         : f.stateMutability === "payable"
-        ? "payable"
-        : ""; // nonpayable => omit
+          ? "payable"
+          : ""; // nonpayable => omit
     const mod =
-      f.stateMutability === "view" || f.stateMutability === "pure" ? "" : " onlyDispatcher";
+      f.stateMutability === "view" || f.stateMutability === "pure"
+        ? ""
+        : " onlyDispatcher";
 
     const returnsClause = rets.length ? ` returns (${rets})` : "";
 
@@ -425,7 +457,10 @@ library ${libName} {
     };
   }
 
-  private createInterfaceChunk(facetName: string, functions: FunctionInfo[]): ContractChunk {
+  private createInterfaceChunk(
+    facetName: string,
+    functions: FunctionInfo[],
+  ): ContractChunk {
     const interfaceName = `I${facetName}`;
     const defs = functions
       .map((f) => {
@@ -439,8 +474,8 @@ library ${libName} {
           f.stateMutability === "view" || f.stateMutability === "pure"
             ? ` ${f.stateMutability}`
             : f.stateMutability === "payable"
-            ? " payable"
-            : "";
+              ? " payable"
+              : "";
         const returnsClause = rets.length ? ` returns (${rets})` : "";
         return `    function ${f.name}(${params}) external${mut}${returnsClause};`;
       })
@@ -471,11 +506,17 @@ ${defs}
     };
   }
 
-  private createInitContract(baseName: string, facets: ContractChunk[]): ContractChunk | null {
+  private createInitContract(
+    baseName: string,
+    facets: ContractChunk[],
+  ): ContractChunk | null {
     if (!facets.length) return null;
     const initName = `Init${baseName}`;
     const imports = facets
-      .map((c) => `import {I${c.name}} from "../interfaces/facets/I${c.name}.sol";`)
+      .map(
+        (c) =>
+          `import {I${c.name}} from "../interfaces/facets/I${c.name}.sol";`,
+      )
       .join("\n");
 
     // NOTE: We do NOT set 165 bits here if ERC-165 is centralized elsewhere.
@@ -507,7 +548,12 @@ contract ${initName} {
       estimatedGas: this.estimateDeploymentGas(content),
       dependencies: ["LibDiamond", ...facets.map((c) => `I${c.name}`)],
       functions: [
-        { name: "init", signature: "init()", selector: "0x8129fc1c", stateMutability: "nonpayable" },
+        {
+          name: "init",
+          signature: "init()",
+          selector: "0x8129fc1c",
+          stateMutability: "nonpayable",
+        },
       ],
       storageSlots: [],
       interfaceId: "0x00000000",
@@ -535,13 +581,18 @@ contract ${initName} {
     return { diamondCut, manifest };
   }
 
-  private validateChunks(originalFns: FunctionInfo[], chunks: ContractChunk[]): ValidationResult {
+  private validateChunks(
+    originalFns: FunctionInfo[],
+    chunks: ContractChunk[],
+  ): ValidationResult {
     const errors: string[] = [];
     const warnings: string[] = [];
 
     // selector parity
     const a = new Set(originalFns.map((f) => f.selector.toLowerCase()));
-    const b = new Set(chunks.flatMap((c) => c.functions.map((f) => f.selector.toLowerCase())));
+    const b = new Set(
+      chunks.flatMap((c) => c.functions.map((f) => f.selector.toLowerCase())),
+    );
     const selectorParity = a.size === b.size && [...a].every((x) => b.has(x));
     if (!selectorParity) errors.push("Selector parity failed");
 
@@ -553,9 +604,16 @@ contract ${initName} {
     if (!runtimeSizeOk) errors.push("One or more facets exceed EIP-170");
 
     // loupe ban in facets
-    const loupe = new Set(["0x1f931c1c", "0xcdffacc6", "0x52ef6b2c", "0xadfca15e"]);
+    const loupe = new Set([
+      "0x1f931c1c",
+      "0xcdffacc6",
+      "0x52ef6b2c",
+      "0xadfca15e",
+    ]);
     const bad = chunks.some(
-      (c) => c.type === "facet" && c.functions.some((f) => loupe.has(f.selector.toLowerCase()))
+      (c) =>
+        c.type === "facet" &&
+        c.functions.some((f) => loupe.has(f.selector.toLowerCase())),
     );
     const noLoupeInFacets = !bad;
     if (!noLoupeInFacets) errors.push("Loupe selectors found in a facet");
@@ -563,7 +621,9 @@ contract ${initName} {
     return { selectorParity, runtimeSizeOk, noLoupeInFacets, errors, warnings };
   }
 
-  private async estimateGasCosts(chunks: ContractChunk[]): Promise<GasEstimate[]> {
+  private async estimateGasCosts(
+    chunks: ContractChunk[],
+  ): Promise<GasEstimate[]> {
     return chunks
       .filter((c) => c.type === "facet" || c.type === "init")
       .map((c) => ({
@@ -575,16 +635,25 @@ contract ${initName} {
       }));
   }
 
-  private createDeploymentStrategy(chunks: ContractChunk[]): DeploymentStrategy {
+  private createDeploymentStrategy(
+    chunks: ContractChunk[],
+  ): DeploymentStrategy {
     const facets = chunks.filter((c) => c.type === "facet").map((c) => c.name);
-    const libraries = chunks.filter((c) => c.type === "storage").map((c) => c.name);
+    const libraries = chunks
+      .filter((c) => c.type === "storage")
+      .map((c) => c.name);
     const initC = chunks.find((c) => c.type === "init")?.name;
 
     return {
       mainContract: "Diamond",
       facets,
       libraries,
-      deploymentOrder: [...libraries, ...facets, "Diamond", ...(initC ? [initC] : [])],
+      deploymentOrder: [
+        ...libraries,
+        ...facets,
+        "Diamond",
+        ...(initC ? [initC] : []),
+      ],
       crossReferences: {},
     };
   }
@@ -620,7 +689,7 @@ contract ${initName} {
     size: number,
     lines: number,
     abiData: { name: string; functions: FunctionInfo[] },
-    runtimeBytes: number
+    runtimeBytes: number,
   ): ChunkAnalysis {
     const name = abiData.name;
 
@@ -689,7 +758,9 @@ contract ${initName} {
   async saveChunks(analysis: ChunkAnalysis, outputDir: string): Promise<void> {
     const chunksDir = path.join(outputDir, "chunks");
     fs.mkdirSync(path.join(chunksDir, "facets"), { recursive: true });
-    fs.mkdirSync(path.join(chunksDir, "interfaces", "facets"), { recursive: true });
+    fs.mkdirSync(path.join(chunksDir, "interfaces", "facets"), {
+      recursive: true,
+    });
     fs.mkdirSync(path.join(chunksDir, "libraries"), { recursive: true });
 
     for (const c of analysis.recommendedChunks) {
@@ -714,7 +785,10 @@ contract ${initName} {
     await this.generateDeploymentScript(analysis, chunksDir);
   }
 
-  private async generateDeploymentScript(analysis: ChunkAnalysis, outputDir: string): Promise<void> {
+  private async generateDeploymentScript(
+    analysis: ChunkAnalysis,
+    outputDir: string,
+  ): Promise<void> {
     const script = `// SPDX-License-Identifier: MIT
 // Auto-generated by AIUniversalASTChunker
 
@@ -768,7 +842,7 @@ export async function main(hre: HardhatRuntimeEnvironment) {
       await chunker.saveChunks(a, out);
 
       console.log(
-        `✅ ${rel}: size ${(a.originalSize / 1024).toFixed(2)}KB, runtime ${a.originalRuntimeBytes} bytes`
+        `✅ ${rel}: size ${(a.originalSize / 1024).toFixed(2)}KB, runtime ${a.originalRuntimeBytes} bytes`,
       );
     } catch (e) {
       console.log(`❌ Error processing ${rel}:`, e);

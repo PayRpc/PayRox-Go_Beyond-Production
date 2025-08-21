@@ -1,9 +1,9 @@
-import { expect } from 'chai';
-import { ethers } from 'hardhat';
+import { expect } from "chai";
+import { ethers } from "hardhat";
 
-describe('VersionFacet (validation)', () => {
-  it('exposes version() and versionNumber()', async () => {
-    const Fac = await ethers.getContractFactory('VersionFacet');
+describe("VersionFacet (validation)", () => {
+  it("exposes version() and versionNumber()", async () => {
+    const Fac = await ethers.getContractFactory("VersionFacet");
     const f = await Fac.deploy();
     await f.waitForDeployment();
 

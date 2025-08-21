@@ -9,7 +9,7 @@ export interface FunctionInfo {
   parameters?: any[];
   returnParameters?: any[];
   returns?: string;
-  stateMutability?: 'view' | 'pure' | 'payable' | 'nonpayable' | string;
+  stateMutability?: "view" | "pure" | "payable" | "nonpayable" | string;
   visibility?: string;
   modifiers?: string[];
   gasEstimate?: number;
@@ -80,12 +80,13 @@ export class CompilationErrorClass extends Error {
   errors?: any;
   constructor(message?: string, errors?: any) {
     super(message);
-    this.name = 'CompilationError';
+    this.name = "CompilationError";
     this.errors = errors;
   }
 }
 
-export const CompilationError = CompilationErrorClass;
+// Remove duplicate export - using class directly
+// export const CompilationError = CompilationErrorClass;
 
 export class AnalysisError extends Error {}
 

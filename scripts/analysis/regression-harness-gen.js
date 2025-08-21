@@ -19,24 +19,29 @@
  *   (Then:)
  *   $env:ORIGINAL_ADDRESS=0x...; $env:DIAMOND_ADDRESS=0x...; node <out>/harness.js
  */
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 
 function parseArgs() {
   const a = process.argv.slice(2);
-  const out = { orig: 'artifacts', diamond: 'artifacts', contract: null, out: null };
+  const out = {
+    orig: "artifacts",
+    diamond: "artifacts",
+    contract: null,
+    out: null,
+  };
   for (let i = 0; i < a.length; i++) {
-    if (a[i] === '--orig') out.orig = a[++i];
-    else if (a[i] === '--diamond') out.diamond = a[++i];
-    else if (a[i] === '--contract') out.contract = a[++i];
-    else if (a[i] === '--out') out.out = a[++i];
+    if (a[i] === "--orig") out.orig = a[++i];
+    else if (a[i] === "--diamond") out.diamond = a[++i];
+    else if (a[i] === "--contract") out.contract = a[++i];
+    else if (a[i] === "--out") out.out = a[++i];
   }
-  if (!out.contract) throw new Error('Missing --contract <Name>');
+  if (!out.contract) throw new Error("Missing --contract <Name>");
   return out;
 }
 
 function isoTs() {
-  return new Date().toISOString().replace(/[:]/g, '-');
+  return new Date().toISOString().replace(/[:]/g, "-");
 }
 
 function mkdirp(p) {
@@ -50,13 +55,19 @@ function findArtifactByName(root, name) {
     for (const ent of fs.readdirSync(dir, { withFileTypes: true })) {
       const p = path.join(dir, ent.name);
       if (ent.isDirectory()) walk(p);
-      else if (ent.isFile() && p.endsWith('.json') && ent.name === `${name}.json`) {
+      else if (
+        ent.isFile() &&
+        p.endsWith(".json") &&
+        ent.name === `${name}.json`
+      ) {
         try {
-          const j = JSON.parse(fs.readFileSync(p, 'utf8'));
+          const j = JSON.parse(fs.readFileSync(p, "utf8"));
           if (j && j.contractName === name && Array.isArray(j.abi)) {
             found = { path: p, abi: j.abi, bytecode: j.bytecode || null };
           }
-        } catch {}
+        } catch (e) {
+          // swallow JSON parse errors; non-matching artifact
+        }
       }
       if (found) return;
     }
@@ -69,13 +80,17 @@ function filterZeroArgViews(abi) {
   return abi
     .filter(
       (x) =>
-        x.type === 'function' &&
-        (x.stateMutability === 'view' || x.stateMutability === 'pure') &&
+        x.type === "function" &&
+        (x.stateMutability === "view" || x.stateMutability === "pure") &&
         (x.inputs || []).length === 0,
     )
     .map((x) => {
       const sig = `${x.name}()`;
-      return { name: x.name, signature: sig, stateMutability: x.stateMutability };
+      return {
+        name: x.name,
+        signature: sig,
+        stateMutability: x.stateMutability,
+      };
     });
 }
 
@@ -129,12 +144,14 @@ const path = require('path');
   console.log(JSON.stringify(report, null, 2));
 })();
 `;
-  fs.writeFileSync(path.join(outDir, 'harness.js'), content);
+  fs.writeFileSync(path.join(outDir, "harness.js"), content);
 }
 
 function main() {
   const opts = parseArgs();
-  const outDir = opts.out || path.join('.payrox', 'generated', 'analysis', isoTs(), 'harness');
+  const outDir =
+    opts.out ||
+    path.join(".payrox", "generated", "analysis", isoTs(), "harness");
   mkdirp(outDir);
 
   const artO = findArtifactByName(opts.orig, opts.contract);
@@ -152,19 +169,21 @@ function main() {
 
   if (!artO || !artD) {
     report.ok = false;
-    report.warnings.push('Artifact not found for one or both targets; ensure hardhat compile ran.');
+    report.warnings.push(
+      "Artifact not found for one or both targets; ensure hardhat compile ran.",
+    );
     console.log(JSON.stringify(report, null, 2));
     process.exit(0);
   }
 
   const zeroViews = filterZeroArgViews(artO.abi);
   const probes = { zeroArgViews: zeroViews };
-  const probesPath = path.join(outDir, 'probes.json');
+  const probesPath = path.join(outDir, "probes.json");
   fs.writeFileSync(probesPath, JSON.stringify(probes, null, 2));
   report.files.push(probesPath);
 
   generateHarnessJS(outDir, opts.contract, artO.abi, path.basename(probesPath));
-  report.files.push(path.join(outDir, 'harness.js'));
+  report.files.push(path.join(outDir, "harness.js"));
 
   const readme =
     `# Regression Harness (auto-generated)
@@ -174,7 +193,7 @@ Contract: **${opts.contract}**
 ## What it does
 - Calls all zero-argument view/pure functions on both ORIGINAL and DIAMOND addresses and compares results.
 - Writes a JSON report to ` +
-    '`report.json`' +
+    "`report.json`" +
     `.
 
 ## How to run
@@ -196,7 +215,7 @@ Get-Content ${path.basename(outDir)}/report.json
 - For non-zero-arg functions, add inputs in \`probes.json\` (future extension).
 - Ensure the ABI in artifacts matches deployed bytecode.
 `;
-  const readmePath = path.join(outDir, 'README.md');
+  const readmePath = path.join(outDir, "README.md");
   fs.writeFileSync(readmePath, readme);
   report.files.push(readmePath);
 
@@ -206,6 +225,8 @@ Get-Content ${path.basename(outDir)}/report.json
 try {
   main();
 } catch (e) {
-  console.error(JSON.stringify({ ok: false, error: String((e && e.message) || e) }));
+  console.error(
+    JSON.stringify({ ok: false, error: String((e && e.message) || e) }),
+  );
   process.exit(1);
 }

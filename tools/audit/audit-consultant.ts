@@ -5,9 +5,9 @@
  * Automates communication with external auditors and structures audit preparation
  */
 
-import * as fs from 'fs';
-import * as path from 'path';
-import { execSync } from 'child_process';
+import * as fs from "fs";
+import * as path from "path";
+import { execSync } from "child_process";
 
 interface AuditScope {
   contracts: string[];
@@ -27,7 +27,7 @@ interface AuditContext {
 }
 
 interface AuditFinding {
-  severity: 'Critical' | 'High' | 'Medium' | 'Low' | 'Info';
+  severity: "Critical" | "High" | "Medium" | "Low" | "Info";
   title: string;
   description: string;
   location: string;
@@ -46,41 +46,45 @@ class AuditConsultant {
 
   private generatePayRoxContext(): AuditContext {
     return {
-      projectName: 'PayRox-Go_Beyond-Production',
-      repoUrl: 'https://github.com/PayRpc/PayRox-Go_Beyond-Production',
-      branch: 'main',
+      projectName: "PayRox-Go_Beyond-Production",
+      repoUrl: "https://github.com/PayRpc/PayRox-Go_Beyond-Production",
+      branch: "main",
       scope: {
         contracts: [
-          'contracts/dispacher/ManifestDispacher.sol',
-          'contracts/orchestrator/*.sol',
-          'contracts/facets/*.sol',
-          'contracts/governance/*.sol',
-          'contracts/security/*.sol',
+          "contracts/dispacher/ManifestDispacher.sol",
+          "contracts/orchestrator/*.sol",
+          "contracts/facets/*.sol",
+          "contracts/governance/*.sol",
+          "contracts/security/*.sol",
         ],
         criticalFunctions: [
-          'manifest dispatch and routing',
-          'facet splitting and size validation',
-          'diamond pattern implementation',
-          'governance access controls',
-          'security pause mechanisms',
+          "manifest dispatch and routing",
+          "facet splitting and size validation",
+          "diamond pattern implementation",
+          "governance access controls",
+          "security pause mechanisms",
         ],
         riskAreas: [
-          'Diamond proxy upgrades',
-          'Facet selector collisions',
-          'Gas limit compliance (EIP-170)',
-          'Access control bypass',
-          'Reentrancy in dispatcher',
-          'State corruption during upgrades',
+          "Diamond proxy upgrades",
+          "Facet selector collisions",
+          "Gas limit compliance (EIP-170)",
+          "Access control bypass",
+          "Reentrancy in dispatcher",
+          "State corruption during upgrades",
         ],
-        testCoverage: ['tests/diamond-compliance/', 'tests/tools/splitter/', 'scripts/security/'],
+        testCoverage: [
+          "tests/diamond-compliance/",
+          "tests/tools/splitter/",
+          "scripts/security/",
+        ],
       },
-      timeline: '2-3 weeks',
+      timeline: "2-3 weeks",
       deliverables: [
-        'Comprehensive security audit report',
-        'Gas optimization recommendations',
-        'Code quality improvements',
-        'Test coverage enhancement suggestions',
-        'Deployment security checklist',
+        "Comprehensive security audit report",
+        "Gas optimization recommendations",
+        "Code quality improvements",
+        "Test coverage enhancement suggestions",
+        "Deployment security checklist",
       ],
     };
   }
@@ -96,7 +100,7 @@ class AuditConsultant {
       documentation: this.getDocumentationLinks(),
     };
 
-    const prepPath = path.join(this.workspaceRoot, 'audit-prep.json');
+    const prepPath = path.join(this.workspaceRoot, "audit-prep.json");
     fs.writeFileSync(prepPath, JSON.stringify(prep, null, 2));
 
     return prepPath;
@@ -108,49 +112,49 @@ class AuditConsultant {
       return {
         totalContracts: contracts.length,
         totalLines: this.countTotalLines(contracts),
-        complexity: 'Medium-High (Diamond pattern with facets)',
+        complexity: "Medium-High (Diamond pattern with facets)",
         dependencies: this.getKeyDependencies(),
       };
     } catch (error) {
-      return { error: 'Could not analyze code metrics' };
+      return { error: "Could not analyze code metrics" };
     }
   }
 
   private async getContractSizes(): Promise<any> {
     try {
-      const artifactsPath = path.join(this.workspaceRoot, 'artifacts');
+      const artifactsPath = path.join(this.workspaceRoot, "artifacts");
       if (!fs.existsSync(artifactsPath)) {
-        return { warning: 'Run npm run compile first to get contract sizes' };
+        return { warning: "Run npm run compile first to get contract sizes" };
       }
 
       // Check for contract size violations
       const _sizes: Record<string, number> = {};
       // Implementation would scan compiled contracts
       return {
-        note: 'Contract sizes available after compilation',
-        eip170Limit: '24,576 bytes',
-        recommendation: 'Use facet splitting for oversized contracts',
+        note: "Contract sizes available after compilation",
+        eip170Limit: "24,576 bytes",
+        recommendation: "Use facet splitting for oversized contracts",
       };
     } catch (error) {
-      return { error: 'Could not analyze contract sizes' };
+      return { error: "Could not analyze contract sizes" };
     }
   }
 
   private async getTestResults(): Promise<any> {
     try {
-      const _result = execSync('npm test 2>&1', {
+      const _result = execSync("npm test 2>&1", {
         cwd: this.workspaceRoot,
-        encoding: 'utf8',
+        encoding: "utf8",
         timeout: 30000,
       });
       return {
-        status: 'Tests executed',
-        recommendation: 'Review test output for coverage gaps',
+        status: "Tests executed",
+        recommendation: "Review test output for coverage gaps",
       };
     } catch (error) {
       return {
-        status: 'Tests need attention',
-        recommendation: 'Fix failing tests before audit',
+        status: "Tests need attention",
+        recommendation: "Fix failing tests before audit",
       };
     }
   }
@@ -167,43 +171,46 @@ class AuditConsultant {
 
   private runSolhint(): any {
     try {
-      execSync('npx solhint contracts/**/*.sol', {
+      execSync("npx solhint contracts/**/*.sol", {
         cwd: this.workspaceRoot,
-        stdio: 'pipe',
+        stdio: "pipe",
       });
-      return { status: 'PASS', message: 'No Solidity linting issues' };
+      return { status: "PASS", message: "No Solidity linting issues" };
     } catch (error) {
-      return { status: 'ISSUES', message: 'Solidity linting found issues' };
+      return { status: "ISSUES", message: "Solidity linting found issues" };
     }
   }
 
   private runESLint(): any {
     try {
-      execSync('npx eslint scripts tools --quiet', {
+      execSync("npx eslint scripts tools --quiet", {
         cwd: this.workspaceRoot,
-        stdio: 'pipe',
+        stdio: "pipe",
       });
-      return { status: 'PASS', message: 'No TypeScript linting issues' };
+      return { status: "PASS", message: "No TypeScript linting issues" };
     } catch (error) {
-      return { status: 'ISSUES', message: 'TypeScript linting found issues' };
+      return { status: "ISSUES", message: "TypeScript linting found issues" };
     }
   }
 
   private runDependencyAudit(): any {
     try {
-      const _result = execSync('npm audit --audit-level=moderate', {
+      const _result = execSync("npm audit --audit-level=moderate", {
         cwd: this.workspaceRoot,
-        encoding: 'utf8',
-        stdio: 'pipe',
+        encoding: "utf8",
+        stdio: "pipe",
       });
-      return { status: 'CLEAN', message: 'No security vulnerabilities' };
+      return { status: "CLEAN", message: "No security vulnerabilities" };
     } catch (error) {
-      return { status: 'VULNERABILITIES', message: 'Dependencies have security issues' };
+      return {
+        status: "VULNERABILITIES",
+        message: "Dependencies have security issues",
+      };
     }
   }
 
   private findSolidityFiles(): string[] {
-    const contractsDir = path.join(this.workspaceRoot, 'contracts');
+    const contractsDir = path.join(this.workspaceRoot, "contracts");
     if (!fs.existsSync(contractsDir)) return [];
 
     const files: string[] = [];
@@ -212,7 +219,7 @@ class AuditConsultant {
         const fullPath = path.join(dir, item);
         if (fs.statSync(fullPath).isDirectory()) {
           scan(fullPath);
-        } else if (item.endsWith('.sol')) {
+        } else if (item.endsWith(".sol")) {
           files.push(fullPath);
         }
       });
@@ -224,8 +231,8 @@ class AuditConsultant {
   private countTotalLines(files: string[]): number {
     return files.reduce((total, file) => {
       try {
-        const content = fs.readFileSync(file, 'utf8');
-        return total + content.split('\n').length;
+        const content = fs.readFileSync(file, "utf8");
+        return total + content.split("\n").length;
       } catch {
         return total;
       }
@@ -235,33 +242,33 @@ class AuditConsultant {
   private getKeyDependencies(): string[] {
     try {
       const packageJson = JSON.parse(
-        fs.readFileSync(path.join(this.workspaceRoot, 'package.json'), 'utf8'),
+        fs.readFileSync(path.join(this.workspaceRoot, "package.json"), "utf8"),
       );
       return [
-        '@openzeppelin/contracts',
-        'hardhat',
-        'ethers',
+        "@openzeppelin/contracts",
+        "hardhat",
+        "ethers",
         ...Object.keys(packageJson.dependencies || {}).slice(0, 5),
       ];
     } catch {
-      return ['Unable to read dependencies'];
+      return ["Unable to read dependencies"];
     }
   }
 
   private getDocumentationLinks(): string[] {
     const docs = [];
-    const readmePath = path.join(this.workspaceRoot, 'README.md');
-    if (fs.existsSync(readmePath)) docs.push('README.md');
+    const readmePath = path.join(this.workspaceRoot, "README.md");
+    if (fs.existsSync(readmePath)) docs.push("README.md");
 
-    const docsDir = path.join(this.workspaceRoot, 'docs');
-    if (fs.existsSync(docsDir)) docs.push('docs/ directory');
+    const docsDir = path.join(this.workspaceRoot, "docs");
+    if (fs.existsSync(docsDir)) docs.push("docs/ directory");
 
     // Look for specific documentation files
     const docFiles = [
-      'GOVERNANCE_SECURITY_AUDIT.md',
-      'MANIFEST_DISPATCHER_SECURITY_AUDIT.md',
-      'ORDERED_MERKLE_SECURITY_AUDIT.md',
-      'SYNTH_STORAGE_COMPREHENSIVE_DOCS.md',
+      "GOVERNANCE_SECURITY_AUDIT.md",
+      "MANIFEST_DISPATCHER_SECURITY_AUDIT.md",
+      "ORDERED_MERKLE_SECURITY_AUDIT.md",
+      "SYNTH_STORAGE_COMPREHENSIVE_DOCS.md",
     ];
 
     docFiles.forEach((file) => {
@@ -273,8 +280,10 @@ class AuditConsultant {
     return docs;
   }
 
-  generateCommunicationTemplate(auditorType: 'external' | 'chatgpt' = 'external'): string {
-    if (auditorType === 'chatgpt') {
+  generateCommunicationTemplate(
+    auditorType: "external" | "chatgpt" = "external",
+  ): string {
+    if (auditorType === "chatgpt") {
       return this.generateChatGPTPrompt();
     }
 
@@ -293,16 +302,16 @@ I'm seeking a comprehensive security audit for PayRox, a diamond proxy-based DeF
 
 ## Audit Scope
 ### Critical Contracts:
-${this.context.scope.contracts.map((c) => `- ${c}`).join('\n')}
+${this.context.scope.contracts.map((c) => `- ${c}`).join("\n")}
 
 ### Key Risk Areas:
-${this.context.scope.riskAreas.map((r) => `- ${r}`).join('\n')}
+${this.context.scope.riskAreas.map((r) => `- ${r}`).join("\n")}
 
 ### Critical Functions:
-${this.context.scope.criticalFunctions.map((f) => `- ${f}`).join('\n')}
+${this.context.scope.criticalFunctions.map((f) => `- ${f}`).join("\n")}
 
 ## Deliverables Requested:
-${this.context.deliverables.map((d) => `- ${d}`).join('\n')}
+${this.context.deliverables.map((d) => `- ${d}`).join("\n")}
 
 ## Timeline & Budget:
 - **Preferred Timeline**: ${this.context.timeline}
@@ -339,10 +348,10 @@ I need a comprehensive security review of my Solidity smart contract system. Her
 **Key Innovation**: Automated contract splitting for gas limit compliance
 
 ## Files to Review:
-${this.context.scope.contracts.map((c) => `- ${c}`).join('\n')}
+${this.context.scope.contracts.map((c) => `- ${c}`).join("\n")}
 
 ## Critical Security Areas:
-${this.context.scope.riskAreas.map((r) => `- ${r}`).join('\n')}
+${this.context.scope.riskAreas.map((r) => `- ${r}`).join("\n")}
 
 ## Specific Questions:
 1. **Diamond Security**: Are there vulnerabilities in our diamond proxy implementation?
@@ -376,24 +385,24 @@ I can share specific contract code or provide more context as needed.
   }
 
   async startInteractiveSession(): Promise<void> {
-    console.log('\n🔍 PayRox Audit Consultant - Interactive Mode\n');
+    console.log("\n🔍 PayRox Audit Consultant - Interactive Mode\n");
 
     // Generate audit preparation
-    console.log('📋 Generating audit preparation...');
+    console.log("📋 Generating audit preparation...");
     const prepPath = await this.generateAuditPrep();
     console.log(`✅ Audit prep saved to: ${prepPath}`);
 
     // Show available options
-    console.log('\n📝 Available Communication Templates:');
-    console.log('1. External auditor email template');
-    console.log('2. ChatGPT audit prompt');
-    console.log('3. Generate audit checklist');
-    console.log('4. Run pre-audit security checks');
+    console.log("\n📝 Available Communication Templates:");
+    console.log("1. External auditor email template");
+    console.log("2. ChatGPT audit prompt");
+    console.log("3. Generate audit checklist");
+    console.log("4. Run pre-audit security checks");
 
-    console.log('\n💡 Quick Commands:');
-    console.log('- Run: npm run audit:prep');
-    console.log('- Get external template: npm run audit:template');
-    console.log('- Get ChatGPT prompt: npm run audit:chatgpt');
+    console.log("\n💡 Quick Commands:");
+    console.log("- Run: npm run audit:prep");
+    console.log("- Get external template: npm run audit:template");
+    console.log("- Get ChatGPT prompt: npm run audit:chatgpt");
   }
 
   async generateAuditChecklist(): Promise<string> {
@@ -449,7 +458,7 @@ I can share specific contract code or provide more context as needed.
 - [ ] Emergency procedures defined
     `.trim();
 
-    const checklistPath = path.join(this.workspaceRoot, 'audit-checklist.md');
+    const checklistPath = path.join(this.workspaceRoot, "audit-checklist.md");
     fs.writeFileSync(checklistPath, checklist);
 
     return checklistPath;
@@ -463,27 +472,27 @@ if (require.main === module) {
   const command = process.argv[2];
 
   switch (command) {
-    case 'prep':
+    case "prep":
       consultant.generateAuditPrep().then((path) => {
         console.log(`Audit preparation generated: ${path}`);
       });
       break;
 
-    case 'template':
-      console.log(consultant.generateCommunicationTemplate('external'));
+    case "template":
+      console.log(consultant.generateCommunicationTemplate("external"));
       break;
 
-    case 'chatgpt':
-      console.log(consultant.generateCommunicationTemplate('chatgpt'));
+    case "chatgpt":
+      console.log(consultant.generateCommunicationTemplate("chatgpt"));
       break;
 
-    case 'checklist':
+    case "checklist":
       consultant.generateAuditChecklist().then((path) => {
         console.log(`Audit checklist generated: ${path}`);
       });
       break;
 
-    case 'interactive':
+    case "interactive":
     default:
       consultant.startInteractiveSession();
       break;

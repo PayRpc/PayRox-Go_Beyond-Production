@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /* eslint-disable no-console */
-'use strict';
+"use strict";
 
 /**
  * 🔍 Universal Refactor Validator
@@ -19,48 +19,60 @@
 
 function setEq(a, b) {
   if (a.size !== b.size) return false;
-  for (const v of a) if (!b.has(v)) return false;
+  for (const item of a) {
+    if (!b.has(item)) return false;
+  }
   return true;
 }
 
 function validateEIP170Compliance(facets) {
-  return Array.isArray(facets) && facets.every(f => (f?.runtimeSize ?? 0) <= 24576);
+  return (
+    Array.isArray(facets) && facets.every((f) => (f?.runtimeSize ?? 0) <= 24576)
+  );
 }
 function validateNoLoupeInFacets(facets) {
-  return Array.isArray(facets) && facets.every(f => !f?.implementsLoupe);
+  return Array.isArray(facets) && facets.every((f) => !f?.implementsLoupe);
 }
 function validateSelectorParity(original, facets) {
-  const orig = new Set((original?.selectors) || []);
-  const fac = new Set([].concat(...(facets || []).map(f => f.selectors || [])));
+  const orig = new Set(original?.selectors || []);
+  const fac = new Set(
+    [].concat(...(facets || []).map((f) => f.selectors || [])),
+  );
   return setEq(orig, fac);
 }
 function validateStorageIsolation(facets) {
-  return Array.isArray(facets) && facets.every(f => f?.usesNamespacedStorage && !f?.hasStateVars);
+  return (
+    Array.isArray(facets) &&
+    facets.every((f) => f?.usesNamespacedStorage && !f?.hasStateVars)
+  );
 }
 function validateAccessControlMapping(facets) {
-  return Array.isArray(facets) && facets.every(f => !!f?.accessControlMappedToDiamond);
+  return (
+    Array.isArray(facets) &&
+    facets.every((f) => !!f?.accessControlMappedToDiamond)
+  );
 }
 function validateInitIdempotence(init) {
   return init ? !!init.hasIdempotenceGuard : true;
 }
 function validateCutManifestMatch(cut, manifest) {
-  const cutSet = new Set((cut?.selectors) || []);
-  const manSet = new Set((manifest?.selectors) || []);
+  const cutSet = new Set(cut?.selectors || []);
+  const manSet = new Set(manifest?.selectors || []);
   return setEq(cutSet, manSet);
 }
 function validateLoupeCoverage(manifest, facts) {
-  const man = new Set((manifest?.selectors) || []);
+  const man = new Set(manifest?.selectors || []);
   const loupe = (facts && facts.loupe_selectors) || {};
   const vals = Object.values(loupe);
-  return vals.length ? vals.every(sel => man.has(sel)) : true; // pass if no facts
+  return vals.length ? vals.every((sel) => man.has(sel)) : true; // pass if no facts
 }
 function validateERC165(manifest) {
-  const man = new Set((manifest?.selectors) || []);
-  return man.has('0x01ffc9a7'); // supportsInterface(bytes4)
+  const man = new Set(manifest?.selectors || []);
+  return man.has("0x01ffc9a7"); // supportsInterface(bytes4)
 }
 
 function validateRefactorOutput(output) {
-  console.log('🔍 Validating refactor output...');
+  console.log("🔍 Validating refactor output...");
   const checks = {
     eip170: validateEIP170Compliance(output.facets),
     noLoupe: validateNoLoupeInFacets(output.facets),
@@ -76,8 +88,14 @@ function validateRefactorOutput(output) {
   const score = Object.values(checks).filter(Boolean).length;
 
   console.log(`📊 Validation Score: ${score}/${Object.keys(checks).length}`);
-  if (passed) console.log('✅ All refactor validations passed!');
-  else console.log('⚠️ Some validations failed:', Object.entries(checks).filter(([k,v]) => !v).map(([k]) => k));
+  if (passed) console.log("✅ All refactor validations passed!");
+  else
+    console.log(
+      "⚠️ Some validations failed:",
+      Object.entries(checks)
+        .filter(([, v]) => !v)
+        .map(([k]) => k),
+    );
 
   return { passed, score, checks, timestamp: new Date().toISOString() };
 }
@@ -86,10 +104,12 @@ function validateRefactorOutput(output) {
 if (require.main === module) {
   const f = process.argv[2];
   if (!f) {
-    console.error('Usage: node AI/universal-refactor-validator.js <path_to_output.json>');
+    console.error(
+      "Usage: node AI/universal-refactor-validator.js <path_to_output.json>",
+    );
     process.exit(2);
   }
-  const payload = JSON.parse(require('fs').readFileSync(f, 'utf8'));
+  const payload = JSON.parse(require("fs").readFileSync(f, "utf8"));
   const res = validateRefactorOutput(payload);
   console.log(JSON.stringify(res, null, 2));
   process.exit(res.passed ? 0 : 1);

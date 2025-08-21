@@ -1,0 +1,1074 @@
+{
+  "timestamp": "2025-08-21T03:51:54.384Z",
+  "summary": {
+    "totalErrors": 102,
+    "byCategory": {
+      "typescript": 82,
+      "eslint": 20,
+      "dependencies": 0,
+      "tests": 0,
+      "ci": 0
+    }
+  },
+  "details": {
+    "typescript": {
+      "errors": [
+        {
+          "type": "TYPE_ERROR",
+          "file": "scripts/analyzers/SolidityAnalyzer.ts",
+          "line": "2240",
+          "column": "46",
+          "errorCode": "TS18048",
+          "message": "'leftRaw' is possibly 'undefined'.",
+          "category": "NULL_SAFETY",
+          "fix": "Add null check: if (variable) { ... } or use optional chaining: variable?.method()"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "scripts/analyzers/SolidityAnalyzer.ts",
+          "line": "2240",
+          "column": "56",
+          "errorCode": "TS18048",
+          "message": "'rightRaw' is possibly 'undefined'.",
+          "category": "NULL_SAFETY",
+          "fix": "Add null check: if (variable) { ... } or use optional chaining: variable?.method()"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "scripts/analyzers/SolidityAnalyzer.ts",
+          "line": "2500",
+          "column": "35",
+          "errorCode": "TS2345",
+          "message": "Argument of type 'string | undefined' is not assignable to parameter of type 'string'.",
+          "category": "TYPE_MISMATCH",
+          "fix": "Fix type mismatch by adding type assertion or updating types"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "scripts/analyzers/SolidityAnalyzer.ts",
+          "line": "2578",
+          "column": "23",
+          "errorCode": "TS2532",
+          "message": "Object is possibly 'undefined'.",
+          "category": "NULL_SAFETY",
+          "fix": "Add null check: if (variable) { ... } or use optional chaining: variable?.method()"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "scripts/cli/generate_facets.ts",
+          "line": "26",
+          "column": "48",
+          "errorCode": "TS2345",
+          "message": "Argument of type 'string | undefined' is not assignable to parameter of type 'string'.",
+          "category": "TYPE_MISMATCH",
+          "fix": "Fix type mismatch by adding type assertion or updating types"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "scripts/cli/plan.ts",
+          "line": "32",
+          "column": "49",
+          "errorCode": "TS2345",
+          "message": "Argument of type 'string | undefined' is not assignable to parameter of type 'string'.",
+          "category": "TYPE_MISMATCH",
+          "fix": "Fix type mismatch by adding type assertion or updating types"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "scripts/deploy/deploy-diamond.ts",
+          "line": "148",
+          "column": "11",
+          "errorCode": "TS2722",
+          "message": "Cannot invoke an object which is possibly 'undefined'.",
+          "category": "NULL_SAFETY",
+          "fix": "Add null check: if (variable) { ... } or use optional chaining: variable?.method()"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "scripts/deploy/deploy-diamond.ts",
+          "line": "192",
+          "column": "22",
+          "errorCode": "TS2722",
+          "message": "Cannot invoke an object which is possibly 'undefined'.",
+          "category": "NULL_SAFETY",
+          "fix": "Add null check: if (variable) { ... } or use optional chaining: variable?.method()"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "scripts/deploy/deploy-diamond.ts",
+          "line": "214",
+          "column": "26",
+          "errorCode": "TS2722",
+          "message": "Cannot invoke an object which is possibly 'undefined'.",
+          "category": "NULL_SAFETY",
+          "fix": "Add null check: if (variable) { ... } or use optional chaining: variable?.method()"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "scripts/deploy/deploy-diamond.ts",
+          "line": "214",
+          "column": "26",
+          "errorCode": "TS18048",
+          "message": "'diamondLoupe.facets' is possibly 'undefined'.",
+          "category": "NULL_SAFETY",
+          "fix": "Add null check: if (variable) { ... } or use optional chaining: variable?.method()"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "scripts/deploy/deploy-diamond.ts",
+          "line": "232",
+          "column": "36",
+          "errorCode": "TS2722",
+          "message": "Cannot invoke an object which is possibly 'undefined'.",
+          "category": "NULL_SAFETY",
+          "fix": "Add null check: if (variable) { ... } or use optional chaining: variable?.method()"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "scripts/deploy/deploy-diamond.ts",
+          "line": "232",
+          "column": "36",
+          "errorCode": "TS18048",
+          "message": "'diamondLoupe.facetAddress' is possibly 'undefined'.",
+          "category": "NULL_SAFETY",
+          "fix": "Add null check: if (variable) { ... } or use optional chaining: variable?.method()"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "scripts/deploy/deploy-diamond.ts",
+          "line": "295",
+          "column": "17",
+          "errorCode": "TS2532",
+          "message": "Object is possibly 'undefined'.",
+          "category": "NULL_SAFETY",
+          "fix": "Add null check: if (variable) { ... } or use optional chaining: variable?.method()"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "scripts/deploy/setup-dispatcher-roles.ts",
+          "line": "19",
+          "column": "35",
+          "errorCode": "TS2552",
+          "message": "Cannot find name '_FACTORY_ADDRESS'. Did you mean 'FACTORY_ADDRESS'?",
+          "category": "MISSING_IMPORT",
+          "fix": "Review TypeScript error and fix accordingly"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "scripts/generate-cross-network-registry.ts",
+          "line": "442",
+          "column": "52",
+          "errorCode": "TS2345",
+          "message": "Argument of type 'string | undefined' is not assignable to parameter of type 'string'.",
+          "category": "TYPE_MISMATCH",
+          "fix": "Fix type mismatch by adding type assertion or updating types"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "scripts/generate-cross-network-registry.ts",
+          "line": "445",
+          "column": "54",
+          "errorCode": "TS2345",
+          "message": "Argument of type 'string | undefined' is not assignable to parameter of type 'string'.",
+          "category": "TYPE_MISMATCH",
+          "fix": "Fix type mismatch by adding type assertion or updating types"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "scripts/hardhat/estimateRoutes.ts",
+          "line": "90",
+          "column": "27",
+          "errorCode": "TS2345",
+          "message": "Argument of type 'string | undefined' is not assignable to parameter of type 'string'.",
+          "category": "TYPE_MISMATCH",
+          "fix": "Fix type mismatch by adding type assertion or updating types"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "scripts/node/manifest-server.ts",
+          "line": "147",
+          "column": "91",
+          "errorCode": "TS2322",
+          "message": "Type 'string | undefined' is not assignable to type 'string'.",
+          "category": "OTHER",
+          "fix": "Review TypeScript error and fix accordingly"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "scripts/node/manifest-server.ts",
+          "line": "182",
+          "column": "11",
+          "errorCode": "TS18048",
+          "message": "'groups.View' is possibly 'undefined'.",
+          "category": "NULL_SAFETY",
+          "fix": "Add null check: if (variable) { ... } or use optional chaining: variable?.method()"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "scripts/node/manifest-server.ts",
+          "line": "187",
+          "column": "11",
+          "errorCode": "TS18048",
+          "message": "'groups.Admin' is possibly 'undefined'.",
+          "category": "NULL_SAFETY",
+          "fix": "Add null check: if (variable) { ... } or use optional chaining: variable?.method()"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "scripts/node/manifest-server.ts",
+          "line": "192",
+          "column": "11",
+          "errorCode": "TS18048",
+          "message": "'groups.Utility' is possibly 'undefined'.",
+          "category": "NULL_SAFETY",
+          "fix": "Add null check: if (variable) { ... } or use optional chaining: variable?.method()"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "scripts/node/manifest-server.ts",
+          "line": "192",
+          "column": "42",
+          "errorCode": "TS18048",
+          "message": "'groups.Core' is possibly 'undefined'.",
+          "category": "NULL_SAFETY",
+          "fix": "Add null check: if (variable) { ... } or use optional chaining: variable?.method()"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "scripts/node/manifest-server.ts",
+          "line": "277",
+          "column": "28",
+          "errorCode": "TS2322",
+          "message": "Type 'string | undefined' is not assignable to type 'string'.",
+          "category": "OTHER",
+          "fix": "Review TypeScript error and fix accordingly"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "scripts/node/manifest-server.ts",
+          "line": "284",
+          "column": "32",
+          "errorCode": "TS2345",
+          "message": "Argument of type 'string | undefined' is not assignable to parameter of type 'string'.",
+          "category": "TYPE_MISMATCH",
+          "fix": "Fix type mismatch by adding type assertion or updating types"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "scripts/node/manifest-server.ts",
+          "line": "288",
+          "column": "3",
+          "errorCode": "TS2322",
+          "message": "Type 'string | undefined' is not assignable to type 'string'.",
+          "category": "OTHER",
+          "fix": "Review TypeScript error and fix accordingly"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "scripts/node/manifest-server.ts",
+          "line": "298",
+          "column": "16",
+          "errorCode": "TS2345",
+          "message": "Argument of type 'string | undefined' is not assignable to parameter of type 'string'.",
+          "category": "TYPE_MISMATCH",
+          "fix": "Fix type mismatch by adding type assertion or updating types"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "scripts/node/manifest-server.ts",
+          "line": "304",
+          "column": "32",
+          "errorCode": "TS2345",
+          "message": "Argument of type 'string | undefined' is not assignable to parameter of type 'string'.",
+          "category": "TYPE_MISMATCH",
+          "fix": "Fix type mismatch by adding type assertion or updating types"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "scripts/smoke/simulate-merkle.ts",
+          "line": "62",
+          "column": "31",
+          "errorCode": "TS2345",
+          "message": "Argument of type 'string | undefined' is not assignable to parameter of type 'string'.",
+          "category": "TYPE_MISMATCH",
+          "fix": "Fix type mismatch by adding type assertion or updating types"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "scripts/utils/merkle.ts",
+          "line": "42",
+          "column": "19",
+          "errorCode": "TS18048",
+          "message": "'nodes' is possibly 'undefined'.",
+          "category": "NULL_SAFETY",
+          "fix": "Add null check: if (variable) { ... } or use optional chaining: variable?.method()"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "scripts/utils/merkle.ts",
+          "line": "42",
+          "column": "44",
+          "errorCode": "TS2345",
+          "message": "Argument of type 'string | undefined' is not assignable to parameter of type 'string'.",
+          "category": "TYPE_MISMATCH",
+          "fix": "Fix type mismatch by adding type assertion or updating types"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "scripts/utils/merkle.ts",
+          "line": "239",
+          "column": "52",
+          "errorCode": "TS2345",
+          "message": "Argument of type 'string | undefined' is not assignable to parameter of type 'string'.",
+          "category": "TYPE_MISMATCH",
+          "fix": "Fix type mismatch by adding type assertion or updating types"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "scripts/utils/merkle.ts",
+          "line": "240",
+          "column": "22",
+          "errorCode": "TS2345",
+          "message": "Argument of type 'string | undefined' is not assignable to parameter of type 'string'.",
+          "category": "TYPE_MISMATCH",
+          "fix": "Fix type mismatch by adding type assertion or updating types"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "scripts/utils/merkle.ts",
+          "line": "252",
+          "column": "20",
+          "errorCode": "TS2532",
+          "message": "Object is possibly 'undefined'.",
+          "category": "NULL_SAFETY",
+          "fix": "Add null check: if (variable) { ... } or use optional chaining: variable?.method()"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "scripts/utils/merkle.ts",
+          "line": "252",
+          "column": "46",
+          "errorCode": "TS2532",
+          "message": "Object is possibly 'undefined'.",
+          "category": "NULL_SAFETY",
+          "fix": "Add null check: if (variable) { ... } or use optional chaining: variable?.method()"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "scripts/utils/merkle.ts",
+          "line": "252",
+          "column": "69",
+          "errorCode": "TS2532",
+          "message": "Object is possibly 'undefined'.",
+          "category": "NULL_SAFETY",
+          "fix": "Add null check: if (variable) { ... } or use optional chaining: variable?.method()"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "scripts/utils/merkle.ts",
+          "line": "273",
+          "column": "12",
+          "errorCode": "TS2322",
+          "message": "Type 'string | undefined' is not assignable to type 'string'.",
+          "category": "OTHER",
+          "fix": "Review TypeScript error and fix accordingly"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "scripts/utils/ordered-merkle.ts",
+          "line": "25",
+          "column": "54",
+          "errorCode": "TS2322",
+          "message": "Type 'string | undefined' is not assignable to type 'BytesLike'.",
+          "category": "OTHER",
+          "fix": "Review TypeScript error and fix accordingly"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "scripts/utils/ordered-merkle.ts",
+          "line": "27",
+          "column": "44",
+          "errorCode": "TS2322",
+          "message": "Type 'string | undefined' is not assignable to type 'BytesLike'.",
+          "category": "OTHER",
+          "fix": "Review TypeScript error and fix accordingly"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "test/salt-policy.test.ts",
+          "line": "15",
+          "column": "31",
+          "errorCode": "TS2722",
+          "message": "Cannot invoke an object which is possibly 'undefined'.",
+          "category": "NULL_SAFETY",
+          "fix": "Add null check: if (variable) { ... } or use optional chaining: variable?.method()"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "test/salt-policy.test.ts",
+          "line": "15",
+          "column": "31",
+          "errorCode": "TS18048",
+          "message": "'f.factorySalt' is possibly 'undefined'.",
+          "category": "NULL_SAFETY",
+          "fix": "Add null check: if (variable) { ... } or use optional chaining: variable?.method()"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "test/salt-policy.test.ts",
+          "line": "16",
+          "column": "33",
+          "errorCode": "TS2722",
+          "message": "Cannot invoke an object which is possibly 'undefined'.",
+          "category": "NULL_SAFETY",
+          "fix": "Add null check: if (variable) { ... } or use optional chaining: variable?.method()"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "test/salt-policy.test.ts",
+          "line": "16",
+          "column": "33",
+          "errorCode": "TS18048",
+          "message": "'f.universalSalt' is possibly 'undefined'.",
+          "category": "NULL_SAFETY",
+          "fix": "Add null check: if (variable) { ... } or use optional chaining: variable?.method()"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "test/salt-policy.test.ts",
+          "line": "27",
+          "column": "24",
+          "errorCode": "TS2722",
+          "message": "Cannot invoke an object which is possibly 'undefined'.",
+          "category": "NULL_SAFETY",
+          "fix": "Add null check: if (variable) { ... } or use optional chaining: variable?.method()"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "test/salt-policy.test.ts",
+          "line": "27",
+          "column": "24",
+          "errorCode": "TS18048",
+          "message": "'f.hashInitCode' is possibly 'undefined'.",
+          "category": "NULL_SAFETY",
+          "fix": "Add null check: if (variable) { ... } or use optional chaining: variable?.method()"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "test/salt-policy.test.ts",
+          "line": "28",
+          "column": "24",
+          "errorCode": "TS2722",
+          "message": "Cannot invoke an object which is possibly 'undefined'.",
+          "category": "NULL_SAFETY",
+          "fix": "Add null check: if (variable) { ... } or use optional chaining: variable?.method()"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "test/salt-policy.test.ts",
+          "line": "28",
+          "column": "24",
+          "errorCode": "TS18048",
+          "message": "'f.hashInitCode' is possibly 'undefined'.",
+          "category": "NULL_SAFETY",
+          "fix": "Add null check: if (variable) { ... } or use optional chaining: variable?.method()"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "test/salt-policy.test.ts",
+          "line": "30",
+          "column": "36",
+          "errorCode": "TS2722",
+          "message": "Cannot invoke an object which is possibly 'undefined'.",
+          "category": "NULL_SAFETY",
+          "fix": "Add null check: if (variable) { ... } or use optional chaining: variable?.method()"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "test/salt-policy.test.ts",
+          "line": "30",
+          "column": "36",
+          "errorCode": "TS18048",
+          "message": "'f.predictCreate2' is possibly 'undefined'.",
+          "category": "NULL_SAFETY",
+          "fix": "Add null check: if (variable) { ... } or use optional chaining: variable?.method()"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "test/salt-policy.test.ts",
+          "line": "42",
+          "column": "35",
+          "errorCode": "TS2722",
+          "message": "Cannot invoke an object which is possibly 'undefined'.",
+          "category": "NULL_SAFETY",
+          "fix": "Add null check: if (variable) { ... } or use optional chaining: variable?.method()"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "tools/ai-assistant/backend/src/services/refactor/SolidityAnalyzer.ts",
+          "line": "21",
+          "column": "8",
+          "errorCode": "TS2307",
+          "message": "Cannot find module './types' or its corresponding type declarations.",
+          "category": "MISSING_IMPORT",
+          "fix": "Add missing import or install missing dependency"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "tools/ai-assistant/backend/src/services/refactor/SolidityAnalyzer.ts",
+          "line": "730",
+          "column": "13",
+          "errorCode": "TS2304",
+          "message": "Cannot find name 'contract'.",
+          "category": "MISSING_IMPORT",
+          "fix": "Review TypeScript error and fix accordingly"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "tools/ai-assistant/backend/src/services/refactor/SolidityAnalyzer.ts",
+          "line": "730",
+          "column": "44",
+          "errorCode": "TS7006",
+          "message": "Parameter 'fn' implicitly has an 'any' type.",
+          "category": "IMPLICIT_ANY",
+          "fix": "Add explicit type annotation"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "tools/ai-assistant/backend/src/services/refactor/SolidityAnalyzer.ts",
+          "line": "731",
+          "column": "16",
+          "errorCode": "TS2304",
+          "message": "Cannot find name 'contract'.",
+          "category": "MISSING_IMPORT",
+          "fix": "Review TypeScript error and fix accordingly"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "tools/ai-assistant/backend/src/services/refactor/SolidityAnalyzer.ts",
+          "line": "782",
+          "column": "36",
+          "errorCode": "TS7006",
+          "message": "Parameter 'mod' implicitly has an 'any' type.",
+          "category": "IMPLICIT_ANY",
+          "fix": "Add explicit type annotation"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "tools/ai-assistant/backend/src/services/refactor/SolidityAnalyzer.ts",
+          "line": "939",
+          "column": "14",
+          "errorCode": "TS7006",
+          "message": "Parameter 'sum' implicitly has an 'any' type.",
+          "category": "IMPLICIT_ANY",
+          "fix": "Add explicit type annotation"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "tools/ai-assistant/backend/src/services/refactor/SolidityAnalyzer.ts",
+          "line": "939",
+          "column": "19",
+          "errorCode": "TS7006",
+          "message": "Parameter 'f' implicitly has an 'any' type.",
+          "category": "IMPLICIT_ANY",
+          "fix": "Add explicit type annotation"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "tools/ai-assistant/backend/src/services/refactor/SolidityAnalyzer.ts",
+          "line": "1086",
+          "column": "38",
+          "errorCode": "TS2769",
+          "message": "No overload matches this call.",
+          "category": "OTHER",
+          "fix": "Review TypeScript error and fix accordingly"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "tools/ai-assistant/backend/src/services/refactor/SolidityAnalyzer.ts",
+          "line": "1087",
+          "column": "39",
+          "errorCode": "TS2769",
+          "message": "No overload matches this call.",
+          "category": "OTHER",
+          "fix": "Review TypeScript error and fix accordingly"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "tools/ai-assistant/backend/src/services/refactor/SolidityAnalyzer.ts",
+          "line": "1316",
+          "column": "9",
+          "errorCode": "TS2345",
+          "message": "Argument of type '([name, funcs]: [any, any]) => { name: any; functionCount: any; totalSize: any; }' is not assignable to parameter of type '(value: unknown, index: number, array: unknown[]) => { name: any; functionCount: any; totalSize: any; }'.",
+          "category": "TYPE_MISMATCH",
+          "fix": "Fix type mismatch by adding type assertion or updating types"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "tools/ai-assistant/backend/src/services/refactor/SolidityAnalyzer.ts",
+          "line": "1319",
+          "column": "36",
+          "errorCode": "TS7006",
+          "message": "Parameter 'sum' implicitly has an 'any' type.",
+          "category": "IMPLICIT_ANY",
+          "fix": "Add explicit type annotation"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "tools/ai-assistant/backend/src/services/refactor/SolidityAnalyzer.ts",
+          "line": "1319",
+          "column": "41",
+          "errorCode": "TS7006",
+          "message": "Parameter 'f' implicitly has an 'any' type.",
+          "category": "IMPLICIT_ANY",
+          "fix": "Add explicit type annotation"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "tools/ai-assistant/backend/src/services/refactor/SolidityAnalyzer.ts",
+          "line": "1341",
+          "column": "43",
+          "errorCode": "TS7006",
+          "message": "Parameter 'f' implicitly has an 'any' type.",
+          "category": "IMPLICIT_ANY",
+          "fix": "Add explicit type annotation"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "tools/ai-assistant/backend/src/services/refactor/SolidityAnalyzer.ts",
+          "line": "1347",
+          "column": "11",
+          "errorCode": "TS2345",
+          "message": "Argument of type '([name, funcs]: [any, any]) => { name: any; functions: any; selectors: any; }' is not assignable to parameter of type '(value: unknown, index: number, array: unknown[]) => { name: any; functions: any; selectors: any; }'.",
+          "category": "TYPE_MISMATCH",
+          "fix": "Fix type mismatch by adding type assertion or updating types"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "tools/ai-assistant/backend/src/services/refactor/SolidityAnalyzer.ts",
+          "line": "1349",
+          "column": "35",
+          "errorCode": "TS7006",
+          "message": "Parameter 'f' implicitly has an 'any' type.",
+          "category": "IMPLICIT_ANY",
+          "fix": "Add explicit type annotation"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "tools/ai-assistant/backend/src/services/refactor/SolidityAnalyzer.ts",
+          "line": "1350",
+          "column": "35",
+          "errorCode": "TS7006",
+          "message": "Parameter 'f' implicitly has an 'any' type.",
+          "category": "IMPLICIT_ANY",
+          "fix": "Add explicit type annotation"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "tools/ai-assistant/backend/src/services/refactor/SolidityAnalyzer.ts",
+          "line": "1416",
+          "column": "34",
+          "errorCode": "TS7006",
+          "message": "Parameter 'dep' implicitly has an 'any' type.",
+          "category": "IMPLICIT_ANY",
+          "fix": "Add explicit type annotation"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "tools/ai-universal-ast-chunker.ts",
+          "line": "104",
+          "column": "30",
+          "errorCode": "TS2532",
+          "message": "Object is possibly 'undefined'.",
+          "category": "NULL_SAFETY",
+          "fix": "Add null check: if (variable) { ... } or use optional chaining: variable?.method()"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "tools/ai-universal-ast-chunker.ts",
+          "line": "682",
+          "column": "41",
+          "errorCode": "TS2345",
+          "message": "Argument of type 'string | undefined' is not assignable to parameter of type 'string'.",
+          "category": "TYPE_MISMATCH",
+          "fix": "Fix type mismatch by adding type assertion or updating types"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "tools/splitter/__tests__/split-facet.test.ts",
+          "line": "11",
+          "column": "5",
+          "errorCode": "TS2304",
+          "message": "Cannot find name 'expect'.",
+          "category": "MISSING_IMPORT",
+          "fix": "Review TypeScript error and fix accordingly"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "tools/splitter/__tests__/split-facet.test.ts",
+          "line": "12",
+          "column": "5",
+          "errorCode": "TS2304",
+          "message": "Cannot find name 'expect'.",
+          "category": "MISSING_IMPORT",
+          "fix": "Review TypeScript error and fix accordingly"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "tools/splitter/__tests__/split-facet.test.ts",
+          "line": "18",
+          "column": "5",
+          "errorCode": "TS2304",
+          "message": "Cannot find name 'expect'.",
+          "category": "MISSING_IMPORT",
+          "fix": "Review TypeScript error and fix accordingly"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "tools/splitter/__tests__/split-facet.test.ts",
+          "line": "20",
+          "column": "5",
+          "errorCode": "TS2304",
+          "message": "Cannot find name 'expect'.",
+          "category": "MISSING_IMPORT",
+          "fix": "Review TypeScript error and fix accordingly"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "tools/splitter/__tests__/split-facet.test.ts",
+          "line": "27",
+          "column": "5",
+          "errorCode": "TS2304",
+          "message": "Cannot find name 'expect'.",
+          "category": "MISSING_IMPORT",
+          "fix": "Review TypeScript error and fix accordingly"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "tools/splitter/__tests__/split-facet.test.ts",
+          "line": "28",
+          "column": "5",
+          "errorCode": "TS2304",
+          "message": "Cannot find name 'expect'.",
+          "category": "MISSING_IMPORT",
+          "fix": "Review TypeScript error and fix accordingly"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "tools/splitter/__tests__/split-facet.test.ts",
+          "line": "30",
+          "column": "5",
+          "errorCode": "TS2304",
+          "message": "Cannot find name 'expect'.",
+          "category": "MISSING_IMPORT",
+          "fix": "Review TypeScript error and fix accordingly"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "tools/splitter/__tests__/split-facet.test.ts",
+          "line": "31",
+          "column": "5",
+          "errorCode": "TS2304",
+          "message": "Cannot find name 'expect'.",
+          "category": "MISSING_IMPORT",
+          "fix": "Review TypeScript error and fix accordingly"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "tools/splitter/__tests__/split-facet.test.ts",
+          "line": "39",
+          "column": "5",
+          "errorCode": "TS2304",
+          "message": "Cannot find name 'expect'.",
+          "category": "MISSING_IMPORT",
+          "fix": "Review TypeScript error and fix accordingly"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "tools/splitter/__tests__/split-facet.test.ts",
+          "line": "40",
+          "column": "5",
+          "errorCode": "TS2304",
+          "message": "Cannot find name 'expect'.",
+          "category": "MISSING_IMPORT",
+          "fix": "Review TypeScript error and fix accordingly"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "tools/splitter/__tests__/split-facet.test.ts",
+          "line": "41",
+          "column": "5",
+          "errorCode": "TS2304",
+          "message": "Cannot find name 'expect'.",
+          "category": "MISSING_IMPORT",
+          "fix": "Review TypeScript error and fix accordingly"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "tools/splitter/__tests__/split-facet.test.ts",
+          "line": "49",
+          "column": "5",
+          "errorCode": "TS2304",
+          "message": "Cannot find name 'expect'.",
+          "category": "MISSING_IMPORT",
+          "fix": "Review TypeScript error and fix accordingly"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "tools/splitter/__tests__/split-facet.test.ts",
+          "line": "50",
+          "column": "5",
+          "errorCode": "TS2304",
+          "message": "Cannot find name 'expect'.",
+          "category": "MISSING_IMPORT",
+          "fix": "Review TypeScript error and fix accordingly"
+        },
+        {
+          "type": "TYPE_ERROR",
+          "file": "tools/splitter/__tests__/split-facet.test.ts",
+          "line": "57",
+          "column": "5",
+          "errorCode": "TS2304",
+          "message": "Cannot find name 'expect'.",
+          "category": "MISSING_IMPORT",
+          "fix": "Review TypeScript error and fix accordingly"
+        }
+      ],
+      "count": 82
+    },
+    "eslint": {
+      "errors": [
+        {
+          "type": "LINT_ERROR",
+          "file": "\\scripts\\analyzers\\SolidityAnalyzer.ts",
+          "line": "7",
+          "column": "13",
+          "message": "'_path' is defined but never used",
+          "rule": "@typescript-eslint/no-unused-vars",
+          "category": "UNUSED_VARIABLES",
+          "fix": "Prefix unused variables with underscore (_variable) or remove them"
+        },
+        {
+          "type": "LINT_ERROR",
+          "file": "\\scripts\\analyzers\\SolidityAnalyzer.ts",
+          "line": "89",
+          "column": "11",
+          "message": "'_ModifierNode' is defined but never used",
+          "rule": "@typescript-eslint/no-unused-vars",
+          "category": "UNUSED_VARIABLES",
+          "fix": "Prefix unused variables with underscore (_variable) or remove them"
+        },
+        {
+          "type": "LINT_ERROR",
+          "file": "\\scripts\\analyzers\\SolidityAnalyzer.ts",
+          "line": "95",
+          "column": "11",
+          "message": "'_ImportNode' is defined but never used",
+          "rule": "@typescript-eslint/no-unused-vars",
+          "category": "UNUSED_VARIABLES",
+          "fix": "Prefix unused variables with underscore (_variable) or remove them"
+        },
+        {
+          "type": "LINT_ERROR",
+          "file": "\\scripts\\analyzers\\SolidityAnalyzer.ts",
+          "line": "101",
+          "column": "11",
+          "message": "'_CompilationOutput' is defined but never used",
+          "rule": "@typescript-eslint/no-unused-vars",
+          "category": "UNUSED_VARIABLES",
+          "fix": "Prefix unused variables with underscore (_variable) or remove them"
+        },
+        {
+          "type": "LINT_ERROR",
+          "file": "\\scripts\\analyzers\\SolidityAnalyzer.ts",
+          "line": "126",
+          "column": "3",
+          "message": "Useless constructor",
+          "rule": "@typescript-eslint/no-useless-constructor",
+          "category": "CODE_STYLE",
+          "fix": "Remove empty constructor or add meaningful logic"
+        },
+        {
+          "type": "LINT_ERROR",
+          "file": "\\scripts\\analyzers\\SolidityAnalyzer.ts",
+          "line": "232",
+          "column": "14",
+          "message": "Always prefer const x: T = { ... }",
+          "rule": "@typescript-eslint/consistent-type-assertions",
+          "category": "TYPE_STYLE",
+          "fix": "Use \"as Type\" instead of \"<Type>\""
+        },
+        {
+          "type": "LINT_ERROR",
+          "file": "\\scripts\\analyzers\\SolidityAnalyzer.ts",
+          "line": "1017",
+          "column": "36",
+          "message": "Always prefer const x: T = { ... }",
+          "rule": "@typescript-eslint/consistent-type-assertions",
+          "category": "TYPE_STYLE",
+          "fix": "Use \"as Type\" instead of \"<Type>\""
+        },
+        {
+          "type": "LINT_ERROR",
+          "file": "\\scripts\\cli\\analyze.ts",
+          "line": "51",
+          "column": "1",
+          "message": "Promises must be awaited, end with a call to .catch, end with a call to .then with a rejection handler or be explicitly marked as ignored with the `void` operator",
+          "rule": "@typescript-eslint/no-floating-promises",
+          "category": "ASYNC_ISSUES",
+          "fix": "Add void operator or .catch() handler to promise"
+        },
+        {
+          "type": "LINT_ERROR",
+          "file": "\\scripts\\deploy\\deploy-diamond.ts",
+          "line": "87",
+          "column": "13",
+          "message": "'_facetSalt' is assigned a value but never used",
+          "rule": "@typescript-eslint/no-unused-vars",
+          "category": "UNUSED_VARIABLES",
+          "fix": "Prefix unused variables with underscore (_variable) or remove them"
+        },
+        {
+          "type": "LINT_ERROR",
+          "file": "\\scripts\\deploy\\deploy-diamond.ts",
+          "line": "228",
+          "column": "17",
+          "message": "'_facetName' is assigned a value but never used",
+          "rule": "@typescript-eslint/no-unused-vars",
+          "category": "UNUSED_VARIABLES",
+          "fix": "Prefix unused variables with underscore (_variable) or remove them"
+        },
+        {
+          "type": "LINT_ERROR",
+          "file": "\\scripts\\deploy\\deploy-diamond.ts",
+          "line": "327",
+          "column": "12",
+          "message": "'_deployer' is assigned a value but never used",
+          "rule": "@typescript-eslint/no-unused-vars",
+          "category": "UNUSED_VARIABLES",
+          "fix": "Prefix unused variables with underscore (_variable) or remove them"
+        },
+        {
+          "type": "LINT_ERROR",
+          "file": "\\scripts\\deploy\\deploy-diamond.ts",
+          "line": "331",
+          "column": "13",
+          "message": "'_accessControl' is assigned a value but never used",
+          "rule": "@typescript-eslint/no-unused-vars",
+          "category": "UNUSED_VARIABLES",
+          "fix": "Prefix unused variables with underscore (_variable) or remove them"
+        },
+        {
+          "type": "LINT_ERROR",
+          "file": "\\scripts\\deploy\\setup-dispatcher-roles.ts",
+          "line": "19",
+          "column": "9",
+          "message": "'_factory' is assigned a value but never used",
+          "rule": "@typescript-eslint/no-unused-vars",
+          "category": "UNUSED_VARIABLES",
+          "fix": "Prefix unused variables with underscore (_variable) or remove them"
+        },
+        {
+          "type": "LINT_ERROR",
+          "file": "\\scripts\\generate-cross-network-registry.ts",
+          "line": "293",
+          "column": "9",
+          "message": "'_factoryCompiler' is assigned a value but never used",
+          "rule": "@typescript-eslint/no-unused-vars",
+          "category": "UNUSED_VARIABLES",
+          "fix": "Prefix unused variables with underscore (_variable) or remove them"
+        },
+        {
+          "type": "LINT_ERROR",
+          "file": "\\scripts\\generate-cross-network-registry.ts",
+          "line": "313",
+          "column": "7",
+          "message": "'_targetCompiler' is assigned a value but never used",
+          "rule": "@typescript-eslint/no-unused-vars",
+          "category": "UNUSED_VARIABLES",
+          "fix": "Prefix unused variables with underscore (_variable) or remove them"
+        },
+        {
+          "type": "LINT_ERROR",
+          "file": "\\scripts\\generate-cross-network-registry.ts",
+          "line": "314",
+          "column": "7",
+          "message": "'_manifestFallbackUsed' is assigned a value but never used",
+          "rule": "@typescript-eslint/no-unused-vars",
+          "category": "UNUSED_VARIABLES",
+          "fix": "Prefix unused variables with underscore (_variable) or remove them"
+        },
+        {
+          "type": "LINT_ERROR",
+          "file": "\\scripts\\node\\manifest-server.ts",
+          "line": "127",
+          "column": "23",
+          "message": "Always prefer const x: T = { ... }",
+          "rule": "@typescript-eslint/consistent-type-assertions",
+          "category": "TYPE_STYLE",
+          "fix": "Use \"as Type\" instead of \"<Type>\""
+        },
+        {
+          "type": "LINT_ERROR",
+          "file": "\\scripts\\transformers\\transform-one.js",
+          "line": "169",
+          "column": "68",
+          "message": "Expected an assignment or function call and instead saw an expression",
+          "rule": "no-unused-expressions",
+          "category": "UNUSED_CODE",
+          "fix": "Remove unused expression or assign to variable"
+        },
+        {
+          "type": "LINT_ERROR",
+          "file": "\\scripts\\utils\\crash-guard.ts",
+          "line": "4",
+          "column": "14",
+          "message": "Unexpected class with only static properties",
+          "rule": "@typescript-eslint/no-extraneous-class",
+          "category": "CLASS_DESIGN",
+          "fix": "Convert utility class to functions or add instance methods"
+        },
+        {
+          "type": "LINT_ERROR",
+          "file": "\\scripts\\utils\\crash-guard.ts",
+          "line": "88",
+          "column": "14",
+          "message": "Unexpected class with only static properties",
+          "rule": "@typescript-eslint/no-extraneous-class",
+          "category": "CLASS_DESIGN",
+          "fix": "Convert utility class to functions or add instance methods"
+        }
+      ],
+      "count": 20
+    },
+    "dependencies": {
+      "errors": [],
+      "count": 0
+    },
+    "tests": {
+      "errors": [],
+      "count": 0
+    },
+    "ci": {
+      "errors": [],
+      "count": 0
+    }
+  },
+  "recommendations": {
+    "immediate": [
+      "Fix dependency conflicts to ensure CI passes",
+      "Address TypeScript null safety errors",
+      "Prefix unused variables with underscore"
+    ],
+    "strategic": [
+      "Implement strict null checks in tsconfig.json",
+      "Add pre-commit hooks for quality gates",
+      "Create automated error fixing scripts"
+    ],
+    "prevention": [
+      "Use strict TypeScript configuration",
+      "Enforce code review for type safety",
+      "Monitor error trends over time"
+    ]
+  }
+}

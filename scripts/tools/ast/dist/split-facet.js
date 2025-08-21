@@ -85,11 +85,15 @@ function stripComments(src) {
 function findContractInfo(src, contractName) {
   let match = null;
   if (contractName) {
-    const re = new RegExp("([\\s\\S]*?)contract\\s+" + contractName + "\\s*(?:is[^{]*)?\\s*\\{");
+    const re = new RegExp(
+      "([\\s\\S]*?)contract\\s+" + contractName + "\\s*(?:is[^{]*)?\\s*\\{"
+    );
     match = src.match(re);
   }
   if (!match) {
-    match = src.match(/([\s\S]*?)contract\s+([A-Za-z0-9_]+)\s*(?:is[^{]*)?\s*\{/);
+    match = src.match(
+      /([\s\S]*?)contract\s+([A-Za-z0-9_]+)\s*(?:is[^{]*)?\s*\{/
+    );
   }
   if (!match) return null;
   const header = match[1] || "";
@@ -133,16 +137,22 @@ function extractFunctions(body) {
       const semicolonIdx = body.indexOf(";", sigStart);
       if (semicolonIdx !== -1 && (braceIdx2 === -1 || semicolonIdx < braceIdx2)) {
         const fullSig = body.slice(sigStart, semicolonIdx + 1).trim();
-        const m = fullSig.match(/function\s+([A-Za-z0-9_]+)\s*\(([^)]*)\)\s*([^;]*)/s);
+        const m = fullSig.match(
+          /function\s+([A-Za-z0-9_]+)\s*\(([^)]*)\)\s*([^;]*)/s
+        );
         if (m) {
           const name2 = m[1] ?? "";
           const params2 = m[2] ?? "";
           const rest2 = m[3] ?? "";
-          const visibilityMatch2 = rest2.match(/(public|external|internal|private)/);
+          const visibilityMatch2 = rest2.match(
+            /(public|external|internal|private)/
+          );
           const visibility2 = visibilityMatch2 && visibilityMatch2[1] || "external";
           const mutMatch2 = rest2.match(/(view|pure|payable)/);
           const stateMutability2 = mutMatch2 ? mutMatch2[1] : "nonpayable";
-          const extraAttrMatch2 = rest2.match(/\b(virtual|override(?:\s*\(.*?\))?)\b/g);
+          const extraAttrMatch2 = rest2.match(
+            /\b(virtual|override(?:\s*\(.*?\))?)\b/g
+          );
           const extraAttrs2 = extraAttrMatch2 ? " " + extraAttrMatch2.join(" ") : "";
           fns.push({
             name: name2,
@@ -187,7 +197,9 @@ function extractFunctions(body) {
     }
     if (foundKw === "fallback" || foundKw === "receive") {
       const name2 = foundKw;
-      const sigMatch2 = fullText.match(/(?:fallback|receive)\s*\(\s*\)\s*([^{]*)\{/);
+      const sigMatch2 = fullText.match(
+        /(?:fallback|receive)\s*\(\s*\)\s*([^{]*)\{/
+      );
       const rest2 = sigMatch2 ? sigMatch2[1] ?? "" : "";
       const visibilityMatch2 = rest2.match(/(public|external|internal|private)/);
       const visibility2 = visibilityMatch2 && visibilityMatch2[1] || "external";
@@ -205,7 +217,9 @@ function extractFunctions(body) {
       pos = j + 1;
       continue;
     }
-    const sigMatch = fullText.match(/function\s+([A-Za-z0-9_]+)\s*\(([^)]*)\)\s*([^{]*)\{/);
+    const sigMatch = fullText.match(
+      /function\s+([A-Za-z0-9_]+)\s*\(([^)]*)\)\s*([^{]*)\{/
+    );
     if (!sigMatch) {
       pos = j + 1;
       continue;
@@ -242,7 +256,8 @@ function groupFunctions(fns, corePattern) {
   const pattern = corePattern ? new RegExp(corePattern, "i") : /init|owner|admin|pause|upgrade/i;
   for (const f of fns) {
     if (pattern.test(f.name)) core.push(f);
-    else if (f.stateMutability === "view" || f.stateMutability === "pure") view.push(f);
+    else if (f.stateMutability === "view" || f.stateMutability === "pure")
+      view.push(f);
     else logic.push(f);
   }
   const groups = {};
@@ -254,7 +269,9 @@ function groupFunctions(fns, corePattern) {
 function generateFacetCode(baseName, facetName, fns, pragmaAndImports, opts) {
   const contractName = `${baseName}${facetName}Facet`;
   const interfaceName = `I${contractName}`;
-  const spdx = pragmaAndImports.match(/^\s*\/\/\s*SPDX-License-Identifier:[^\r\n]*/m)?.[0] ?? "// SPDX-License-Identifier: MIT";
+  const spdx = pragmaAndImports.match(
+    /^\s*\/\/\s*SPDX-License-Identifier:[^\r\n]*/m
+  )?.[0] ?? "// SPDX-License-Identifier: MIT";
   const pragmaLine = pragmaAndImports.match(/^\s*pragma\s+solidity\s+[^;]+;/m)?.[0] ?? "pragma solidity ^0.8.0;";
   const header = `${spdx}
 ${pragmaLine}
@@ -299,11 +316,16 @@ function writeFacet(outDir, contractName, content) {
 }
 if (require.main === module) {
   const program = new import_commander.Command();
-  program.argument("<source>", "Solidity source file to split").option("--out <path>", "output directory for facets").option("--lib <path>", "path to LibDiamond import").option("--externalize", "force external visibility on generated functions").option("--no-dispatch-guard", "omit the onlyDispatcher modifier").option("--core-pattern <regex>", "regex to detect core functions (init/owner/admin)").option("--contract <name>", "specific contract name to extract").parse(process.argv);
+  program.argument("<source>", "Solidity source file to split").option("--out <path>", "output directory for facets").option("--lib <path>", "path to LibDiamond import").option("--externalize", "force external visibility on generated functions").option("--no-dispatch-guard", "omit the onlyDispatcher modifier").option(
+    "--core-pattern <regex>",
+    "regex to detect core functions (init/owner/admin)"
+  ).option("--contract <name>", "specific contract name to extract").parse(process.argv);
   const opts = program.opts();
   const srcPath = program.args && program.args[0] || "";
   if (!srcPath) {
-    console.error("Usage: ts-node split-facet.ts <Contract.sol> [--out ./facets]");
+    console.error(
+      "Usage: ts-node split-facet.ts <Contract.sol> [--out ./facets]"
+    );
     process.exit(1);
   }
   const outDir = opts.out ? opts.out : path.join(path.dirname(srcPath), "..", "facets");
@@ -327,11 +349,17 @@ if (require.main === module) {
     process.exit(0);
   }
   for (const [groupName, list] of Object.entries(groups)) {
-    const contractCode = generateFacetCode(baseName, groupName, list, pragmaAndImports, {
-      libPath: opts.lib,
-      externalize: !!opts.externalize,
-      noDispatchGuard: !!opts.noDispatchGuard
-    });
+    const contractCode = generateFacetCode(
+      baseName,
+      groupName,
+      list,
+      pragmaAndImports,
+      {
+        libPath: opts.lib,
+        externalize: !!opts.externalize,
+        noDispatchGuard: !!opts.noDispatchGuard
+      }
+    );
     const fname = `${baseName}${groupName}Facet`;
     const written = writeFacet(outDir, fname, contractCode);
     console.log("Wrote facet:", written);

@@ -45,7 +45,8 @@
     "./src/**/*",
     "./typechain-types/**/*", // Aligns with ARTIFACTS_PATHS.TYPECHAIN_ROOT
     "./cli/src/**/*",
-    "./sdk/src/**/*"
+    "./sdk/src/**/*",
+    "./deployable-modules/**/*"
   ],
   "exclude": [
     "node_modules",

@@ -14,6 +14,7 @@
     "lint:zero:baseline": "node tools/zeroIssueLint.cjs --write-baseline",
     "error:detect": "node tools/error-detector.cjs",
     "error:fix:auto": "node tools/error-fixer.cjs",
+    "error:fix:dry-run": "node tools/error-fixer.cjs --dry-run",
     "deps:sync": "node tools/dependency-sync-fixer.cjs",
     "lint:zero-issue": "npx eslint . --config-lookup-name=\"zero-issue\" --rule=\"@typescript-eslint/ban-ts-comment: off\" --rule=\"no-empty: off\" --rule=\"node/no-path-concat: off\" --rule=\"no-inner-declarations: off\"",
     "format": "prettier --write \"**/*.{ts,js,json,md,sol}\"",
