@@ -107,6 +107,24 @@ library GasOptimizationUtils {
         c = uint64(uint256(packed >> 128));
         d = uint64(uint256(packed >> 192));
     }
+
+    /**
+     * @notice Pack message lengths array into bytes32 for storage optimization.
+     * @param messageLengths Array of message lengths (uint256[])
+     * @return packed Packed bytes32 containing the first 4 lengths as uint64s
+     */
+    function packStorage(uint256[] memory messageLengths) internal pure returns (bytes32 packed) {
+        uint256 len = messageLengths.length;
+        uint256 maxPack = len < 4 ? len : 4;
+        
+        unchecked {
+            for (uint256 i = 0; i < maxPack; ++i) {
+                // Convert to uint64 (truncate if necessary) and pack
+                uint64 length64 = uint64(messageLengths[i]);
+                packed |= bytes32(uint256(length64) << (i * 64));
+            }
+        }
+    }
 }
 
 /**
