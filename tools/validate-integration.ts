@@ -126,29 +126,25 @@ async function main() {
 
     compiledSelectors[name] = sels;
 
-    // 1a) No loupe/admin/erc165 in facets (except ERC165Facet itself)
+    // 1a) No loupe/admin/erc165 in facets (except ERC165Facet for supportsInterface)
     for (const f of fnFrags) {
       if (!f.name) continue;
       
-      // Allow supportsInterface only in ERC165Facet (centralized policy)
-      if (f.name === "supportsInterface" && name !== "ERC165Facet") {
-        problems.push(`${name}: exposes supportsInterface (must be centralized in ERC165Facet only)`);
+      // Special case: ERC165Facet is allowed to have supportsInterface
+      if (f.name === "supportsInterface" && name === "ERC165Facet") {
         continue;
       }
       
-      // Check other banned functions
       if (LoupeNames.has(f.name)) {
         problems.push(`${name}: exposes banned function ${f.name} (centralize in Loupe/165 facets only)`);
       }
-      
       const sel = selectorFromSig(sigFromABI(f));
-      // Allow supportsInterface selector only in ERC165Facet
-      if (sel === "0x01ffc9a7" && name !== "ERC165Facet") {
-        problems.push(`${name}: exposes supportsInterface selector ${sel} (must be centralized in ERC165Facet only)`);
+      
+      // Special case: ERC165Facet is allowed to have supportsInterface selector
+      if (sel === "0x01ffc9a7" && name === "ERC165Facet") {
         continue;
       }
       
-      // Check other banned selectors
       if (LoupeSelectors.has(sel)) {
         problems.push(`${name}: exposes banned selector ${sel} (${f.name})`);
       }
@@ -191,6 +187,16 @@ async function main() {
     }
   }
 
+  // Check other TS files for SHA-256 usage in selector generation
+  const tsFiles = await glob("scripts/**/*.ts", { cwd: root });
+  for (const tsFile of tsFiles) {
+    const tsPath = path.resolve(root, tsFile);
+    const content = fs.readFileSync(tsPath, "utf8");
+    if (content.includes("selector") && content.match(/sha256|createHash\(['"]sha-?256['"]\)/i)) {
+      warnings.push(`${tsFile}: potentially uses SHA-256 for selectors; verify keccak256 usage.`);
+    }
+  }
+
   // 4) Salt policy parity (Solidity vs TS)
   const saltTS = path.resolve(root, "scripts/cross-network-registry.ts");
   if (fs.existsSync(saltTS)) {
@@ -212,6 +218,12 @@ async function main() {
     const txt = fs.readFileSync(routerPath, "utf8");
     if (!txt.includes("dispatcherCodehash") || !txt.includes("strictCodehash")) {
       warnings.push("PayRoxProxyRouter: codehash pinning toggles not found; verify pinning semantics.");
+    }
+    if (!txt.includes("INIT_SALT")) {
+      warnings.push("PayRoxProxyRouter: INIT_SALT constant not found; verify front-run protection.");
+    }
+    if (!txt.includes("initSalt") || !txt.includes("initSalt != INIT_SALT")) {
+      warnings.push("PayRoxProxyRouter: initSalt validation not found; verify initialization hardening.");
     }
   }
 
