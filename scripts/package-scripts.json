@@ -1,0 +1,31 @@
+{
+  "name": "payrox-production",
+  "scripts": {
+    "precommit": "npm run lint:fix && npm run test:quick && npm run build:check",
+    "lint:check": "eslint . --ext .ts,.js --max-warnings 0",
+    "lint:fix": "eslint . --ext .ts,.js --fix",
+    "test:quick": "jest --passWithNoTests --silent",
+    "test:all": "jest --coverage",
+    "test:integration": "jest --testMatch='**/*.integration.test.ts'",
+    "test:e2e": "jest --testMatch='**/*.e2e.test.ts'",
+    "build:check": "tsc --noEmit",
+    "build": "tsc && npx hardhat compile",
+    "contracts:compile": "npx hardhat compile && forge build",
+    "contracts:test": "forge test",
+    "contracts:size": "npx hardhat compile && node scripts/check-contract-sizes.js",
+    "dev:start": "pwsh -File dev-launcher.ps1 -Start",
+    "dev:status": "pwsh -File dev-launcher.ps1 -Status",
+    "dev:stop": "pwsh -File dev-launcher.ps1 -Stop",
+    "stability:backup": "pwsh -File stability-system.ps1 -Backup",
+    "stability:restore": "pwsh -File stability-system.ps1 -Restore",
+    "quality:check": "npm run lint:check && npm run test:all && npm run contracts:test && npm run contracts:size",
+    "deploy:prepare": "npm run quality:check && npm run build",
+    "clean": "rm -rf artifacts cache typechain-types coverage .stability/temp",
+    "reset": "npm run clean && npm ci && npm run build"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run precommit"
+    }
+  }
+}

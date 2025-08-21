@@ -80,3 +80,6 @@ temp/
 test-results/
 coverage.json
 .nyc_output/
+
+# PayRox Stability System
+.stability/
