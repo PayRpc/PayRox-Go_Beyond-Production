@@ -22,10 +22,10 @@ import { artifacts } from 'hardhat'
 import * as fs from 'fs'
 import * as path from 'path'
 import {
-  getCreate2Address,
+  getAddress,
   keccak256,
   solidityPacked,
-  getAddress
+  getCreate2Address
 } from 'ethers'
 
 type NetStatus = 'production' | 'testnet' | 'local'
@@ -48,183 +48,17 @@ const EIP2470 = '0x4e59b44847b379578588920ca78fbf26c0b4956c' // widely-available
 
 // ---- Network list (edit as needed) ------------------------------------------
 const NETWORKS: NetworkRow[] = [
-  // Tier 1
-  {
-    network: 'Ethereum Mainnet',
-    chainId: 1,
-    explorerUrl: 'https://etherscan.io',
-    status: 'production',
-    create2Deployer: EIP2470
-  },
-  {
-    network: 'Polygon',
-    chainId: 137,
-    explorerUrl: 'https://polygonscan.com',
-    status: 'production',
-    create2Deployer: EIP2470
-  },
-  {
-    network: 'Arbitrum One',
-    chainId: 42161,
-    explorerUrl: 'https://arbiscan.io',
-    status: 'production',
-    create2Deployer: EIP2470
-  },
-  {
-    network: 'Optimism',
-    chainId: 10,
-    explorerUrl: 'https://optimistic.etherscan.io',
-    status: 'production',
-    create2Deployer: EIP2470
-  },
-  {
-    network: 'Base',
-    chainId: 8453,
-    explorerUrl: 'https://basescan.org',
-    status: 'production',
-    create2Deployer: EIP2470
-  },
-
-  // Tier 2
-  {
-    network: 'BNB Smart Chain',
-    chainId: 56,
-    explorerUrl: 'https://bscscan.com',
-    status: 'production',
-    create2Deployer: EIP2470
-  },
-  {
-    network: 'Avalanche C-Chain',
-    chainId: 43114,
-    explorerUrl: 'https://snowtrace.io',
-    status: 'production',
-    create2Deployer: EIP2470
-  },
-  {
-    network: 'Fantom Opera',
-    chainId: 250,
-    explorerUrl: 'https://ftmscan.com',
-    status: 'production',
-    create2Deployer: EIP2470
-  },
-  {
-    network: 'Gnosis Chain',
-    chainId: 100,
-    explorerUrl: 'https://gnosisscan.io',
-    status: 'production',
-    create2Deployer: EIP2470
-  },
-  {
-    network: 'Celo',
-    chainId: 42220,
-    explorerUrl: 'https://celoscan.io',
-    status: 'production',
-    create2Deployer: EIP2470
-  },
-
-  // Tier 3
-  {
-    network: 'Moonbeam',
-    chainId: 1284,
-    explorerUrl: 'https://moonbeam.moonscan.io',
-    status: 'production',
-    create2Deployer: EIP2470
-  },
-  {
-    network: 'Cronos',
-    chainId: 25,
-    explorerUrl: 'https://cronoscan.com',
-    status: 'production',
-    create2Deployer: EIP2470
-  },
-  {
-    network: 'Aurora',
-    chainId: 1313161554,
-    explorerUrl: 'https://aurorascan.dev',
-    status: 'production',
-    create2Deployer: EIP2470
-  },
-  {
-    network: 'Metis Andromeda',
-    chainId: 1088,
-    explorerUrl: 'https://explorer.metis.io',
-    status: 'production',
-    create2Deployer: EIP2470
-  },
-  {
-    network: 'Boba Network',
-    chainId: 288,
-    explorerUrl: 'https://bobascan.com',
-    status: 'production',
-    create2Deployer: EIP2470
-  },
-  {
-    network: 'Moonriver',
-    chainId: 1285,
-    explorerUrl: 'https://moonriver.moonscan.io',
-    status: 'production',
-    create2Deployer: EIP2470
-  },
-  {
-    network: 'Fuse',
-    chainId: 122,
-    explorerUrl: 'https://explorer.fuse.io',
-    status: 'production',
-    create2Deployer: EIP2470
-  },
-  {
-    network: 'Harmony One',
-    chainId: 1666600000,
-    explorerUrl: 'https://explorer.harmony.one',
-    status: 'production',
-    create2Deployer: EIP2470
-  },
-
-  // Testnets (Mumbai is legacy; prefer Amoy)
-  {
-    network: 'Ethereum Sepolia',
-    chainId: 11155111,
-    explorerUrl: 'https://sepolia.etherscan.io',
-    status: 'testnet',
-    create2Deployer: EIP2470
-  },
-  {
-    network: 'Polygon Amoy',
-    chainId: 80002,
-    explorerUrl: 'https://www.oklink.com/amoy',
-    status: 'testnet',
-    create2Deployer: EIP2470
-  },
-  {
-    network: 'Arbitrum Sepolia',
-    chainId: 421614,
-    explorerUrl: 'https://sepolia.arbiscan.io',
-    status: 'testnet',
-    create2Deployer: EIP2470
-  },
-  {
-    network: 'Base Sepolia',
-    chainId: 84532,
-    explorerUrl: 'https://sepolia.basescan.org',
-    status: 'testnet',
-    create2Deployer: EIP2470
-  },
-  {
-    network: 'Optimism Sepolia',
-    chainId: 11155420,
-    explorerUrl: 'https://sepolia-optimism.etherscan.io',
-    status: 'testnet',
-    create2Deployer: EIP2470
-  },
-
-  // Local
-  {
-    network: 'Hardhat Local',
-    chainId: 31337,
-    explorerUrl: 'http://localhost:8545',
-    status: 'local',
-    create2Deployer: EIP2470
-  }
+  { network: 'Ethereum Mainnet', chainId: 1, explorerUrl: 'https://etherscan.io', status: 'production', create2Deployer: EIP2470 },
+  { network: 'Polygon', chainId: 137, explorerUrl: 'https://polygonscan.com', status: 'production', create2Deployer: EIP2470 },
+  { network: 'Arbitrum One', chainId: 42161, explorerUrl: 'https://arbiscan.io', status: 'production', create2Deployer: EIP2470 },
+  { network: 'Optimism', chainId: 10, explorerUrl: 'https://optimistic.etherscan.io', status: 'production', create2Deployer: EIP2470 },
+  { network: 'Base', chainId: 8453, explorerUrl: 'https://basescan.org', status: 'production', create2Deployer: EIP2470 },
+  { network: 'BNB Smart Chain', chainId: 56, explorerUrl: 'https://bscscan.com', status: 'production', create2Deployer: EIP2470 },
+  { network: 'Avalanche C-Chain', chainId: 43114, explorerUrl: 'https://snowtrace.io', status: 'production', create2Deployer: EIP2470 },
+  { network: 'Fantom', chainId: 250, explorerUrl: 'https://ftmscan.com', status: 'production', create2Deployer: EIP2470 },
+  { network: 'Gnosis Chain', chainId: 100, explorerUrl: 'https://gnosisscan.io', status: 'production', create2Deployer: EIP2470 },
+  { network: 'Celo', chainId: 42220, explorerUrl: 'https://celoscan.io', status: 'production', create2Deployer: EIP2470 },
+  { network: 'Hardhat Local', chainId: 31337, explorerUrl: 'http://localhost:8545', status: 'local', create2Deployer: EIP2470 }
 ]
 
 // ---- Helpers ----------------------------------------------------------------
@@ -271,8 +105,8 @@ async function main () {
     : getAddress(EIP2470)
 
   const version = process.env.PRX_VERSION || '1.0.0'
-  const content = process.env.PRX_CONTENT_LABEL || 'PayRoxUniversalContract'
-  const crossNonce = Number(process.env.PRX_CROSS_NONCE || '1000')
+  const _content = process.env.PRX_CONTENT_LABEL || 'PayRoxUniversalContract'
+  const _crossNonce = Number(process.env.PRX_CROSS_NONCE || '1000')
 
   // Try to load factory/target bytecode from artifacts; allow env fallback
   const factoryArtName = 'DeterministicChunkFactory' // adjust to your factory contract name
@@ -347,7 +181,7 @@ async function main () {
   const universalSalt = keccak256(
     solidityPacked(
       ['string', 'string', 'uint256', 'string'],
-      ['PayRoxCrossChain', content, crossNonce, version]
+  ['PayRoxCrossChain', _content, _crossNonce, version]
     )
   )
   const targetInitCodeHash = keccak256(targetInitCode!)
@@ -362,8 +196,8 @@ async function main () {
   console.log(`Universal salt:       ${universalSalt}`)
   console.log(`Target initCodeHash:  ${targetInitCodeHash}`)
   console.log(`Version:              ${version}`)
-  console.log(`Content:              ${content}`)
-  console.log(`Cross-chain Nonce:    ${crossNonce}\n`)
+  console.log(`Content:              ${_content}`)
+  console.log(`Cross-chain Nonce:    ${_crossNonce}\n`)
 
   // Compute addresses per network
   const rows: RegistryRow[] = NETWORKS.map((n) => {
@@ -451,8 +285,8 @@ async function main () {
   const manifest = {
     timestamp: new Date().toISOString(),
     version,
-    content,
-    crossChainNonce: crossNonce,
+  content: _content,
+  crossChainNonce: _crossNonce,
     salts: {
       factorySalt,
       universalSalt

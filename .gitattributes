@@ -1,15 +1,85 @@
 # Normalize to LF by default
 * text=auto eol=lf
 
-# Explicit text rules
-*.ts  text eol=lf
-*.js  text eol=lf
-*.json text eol=lf
+# Source code files - enforce LF
+*.ts text eol=lf
+*.js text eol=lf
+*.jsx text eol=lf
+*.tsx text eol=lf
+*.mjs text eol=lf
+*.cjs text eol=lf
+
+# Solidity and blockchain files
 *.sol text eol=lf
-*.md  text eol=lf
+*.vy text eol=lf
+
+# Configuration and data files
+*.json text eol=lf
+*.jsonl text eol=lf
+*.toml text eol=lf
+*.ini text eol=lf
+*.cfg text eol=lf
+
+# Documentation
+*.md text eol=lf
+*.txt text eol=lf
+*.rst text eol=lf
+
+# YAML files
 *.yml text eol=lf
 *.yaml text eol=lf
 
-# Keep Windows endings where useful
+# CSS and web files
+*.css text eol=lf
+*.scss text eol=lf
+*.sass text eol=lf
+*.html text eol=lf
+*.xml text eol=lf
+*.svg text eol=lf
+
+# Shell scripts - enforce LF (critical for Unix compatibility)
+*.sh text eol=lf
+*.bash text eol=lf
+*.zsh text eol=lf
+
+# Python files
+*.py text eol=lf
+*.pyi text eol=lf
+*.pyx text eol=lf
+
+# Keep Windows endings for Windows-specific files
 *.ps1 text eol=crlf
 *.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Binary files - don't normalize
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.zip binary
+*.tar binary
+*.gz binary
+*.7z binary
+*.rar binary
+
+# Font files
+*.woff binary
+*.woff2 binary
+*.eot binary
+*.ttf binary
+*.otf binary
+
+# Lockfiles - don't merge
+package-lock.json binary
+yarn.lock binary
+pnpm-lock.yaml binary
+
+# Git attributes for specific patterns
+*.min.js linguist-generated=true
+*.min.css linguist-generated=true
+artifacts/ linguist-generated=true
+typechain-types/ linguist-generated=true
+coverage/ linguist-generated=true

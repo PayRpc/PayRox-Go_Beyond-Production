@@ -10,9 +10,10 @@ import {IManifestDispatcher} from "../interfaces/IManifestDispatcher.sol";
 import {IDiamondLoupe}       from "../interfaces/IDiamondLoupe.sol";
 import {IDiamondLoupeEx}     from "../interfaces/IDiamondLoupeEx.sol";
 
-import {OrderedMerkle}       from "../utils/OrderedMerkle.sol";
-import {RefactorSafetyLib}   from "../libraries/RefactorSafetyLib.sol";
-import {IAuditRegistry}      from "../interfaces/IAuditRegistry.sol";
+import {OrderedMerkle}         from "../utils/OrderedMerkle.sol";
+import {RefactorSafetyLib}     from "../libraries/RefactorSafetyLib.sol";
+import {ManifestDispatcherLib} from "../utils/ManifestDispatcherLib.sol";
+import {IAuditRegistry}        from "../interfaces/IAuditRegistry.sol";
 
 /**
  * @title ManifestDispatcher (compact)
@@ -252,23 +253,18 @@ contract ManifestDispatcher is
         if (n == 0) return;
         if (n != facetAddrs.length || n != codehashes.length || n != proofs.length || n != isRight.length)
             revert LenMismatch();
-        if (n > MAX_BATCH) revert BatchTooLarge(n);
-
-        // de-dupe batch
-        for (uint256 i = 0; i < n; i++) {
-            for (uint256 j = i + 1; j < n; j++) {
-                if (selectors[i] == selectors[j]) revert DuplicateSelector(selectors[i]);
-            }
-        }
+        
+        // Use library for batch validation
+        ManifestDispatcherLib.boundBatch(n, MAX_BATCH);
+        ManifestDispatcherLib.requireNoDuplicateSelectors(selectors);
 
         bytes32 root = manifest.pendingRoot;
         for (uint256 i = 0; i < n; i++) {
             address facet = facetAddrs[i];
-            if (facet == address(0)) revert ZeroAddress();
             if (facet == address(this)) revert FacetIsSelf();
-            uint256 sz = facet.code.length;
-            if (sz == 0) revert ZeroCodeFacet(facet);
-            if (sz > MAX_FACET_CODE) revert CodeSizeExceeded(facet, sz);
+            
+            // Use library for facet integrity verification
+            ManifestDispatcherLib.verifyFacetIntegrity(facet, codehashes[i], MAX_FACET_CODE);
 
             // verify leaf against committed root (ordered Merkle)
             bytes32 leaf = OrderedMerkle.leafOfSelectorRoute(selectors[i], facet, codehashes[i]);
@@ -347,7 +343,7 @@ contract ManifestDispatcher is
                     registeredSelectors[sel] = false;
                     if (routeCount > 0) routeCount--;
                 }
-                _removeSelectorFromFacet(oldFacet, sel);
+                ManifestDispatcherLib.removeSelectorFromFacet(facetSelectors, _facetAddresses, oldFacet, sel);
                 emit RouteRemoved(sel);
                 changed = true;
             }
@@ -566,7 +562,7 @@ contract ManifestDispatcher is
         override(IDiamondLoupeEx)
         returns (bytes32)
     {
-        return _selectorHash(facet);
+        return ManifestDispatcherLib.selectorHash(facetSelectors, facet);
     }
 
     function facetProvenance(address facet)
@@ -615,7 +611,7 @@ contract ManifestDispatcher is
         RefactorSafetyLib.validateSelectorCompatibilityView(oldS, newS, allowAdditions);
 
         // 3) Return current selector fingerprint for provenance
-        selectorHashEx = _selectorHash(facet);
+        selectorHashEx = ManifestDispatcherLib.selectorHash(facetSelectors, facet);
     }
 
     // ───────────────────────────────────────────────────────────────────────────
@@ -632,11 +628,11 @@ contract ManifestDispatcher is
         if (!registeredSelectors[selector]) {
             registeredSelectors[selector] = true;
             routeCount++;
-            _addSelectorToFacet(facet, selector);
+            ManifestDispatcherLib.addSelectorToFacet(facetSelectors, _facetAddresses, facet, selector);
             emit RouteAdded(selector, facet, codehash);
         } else if (oldFacet != facet) {
-            _removeSelectorFromFacet(oldFacet, selector);
-            _addSelectorToFacet(facet, selector);
+            ManifestDispatcherLib.removeSelectorFromFacet(facetSelectors, _facetAddresses, oldFacet, selector);
+            ManifestDispatcherLib.addSelectorToFacet(facetSelectors, _facetAddresses, facet, selector);
             emit RouteUpdated(selector, oldFacet, facet);
         }
 
@@ -649,57 +645,6 @@ contract ManifestDispatcher is
             _facetSecurityLevel[facet] = 1; // default "user" level
         }
         // _facetVersionTag[facet] remains bytes32(0) unless set via governance (out of scope here)
-    }
-
-    function _addSelectorToFacet(address facet, bytes4 selector) internal {
-        bytes4[] storage sels = facetSelectors[facet];
-        for (uint256 i = 0; i < sels.length; i++) {
-            if (sels[i] == selector) return;
-        }
-        if (sels.length == 0) {
-            // first time we see this facet
-            _facetAddresses.push(facet);
-        }
-        sels.push(selector);
-    }
-
-    function _removeSelectorFromFacet(address facet, bytes4 selector) internal {
-        bytes4[] storage sels = facetSelectors[facet];
-        for (uint256 i = 0; i < sels.length; i++) {
-            if (sels[i] == selector) {
-                sels[i] = sels[sels.length - 1];
-                sels.pop();
-                break;
-            }
-        }
-        // drop facet if empty
-        if (sels.length == 0) {
-            uint256 n = _facetAddresses.length;
-            for (uint256 i = 0; i < n; i++) {
-                if (_facetAddresses[i] == facet) {
-                    _facetAddresses[i] = _facetAddresses[n - 1];
-                    _facetAddresses.pop();
-                    break;
-                }
-            }
-        }
-    }
-
-    function _selectorHash(address facet) internal view returns (bytes32) {
-        // Copy selectors and sort in-memory for a deterministic hash
-        bytes4[] memory sels = facetSelectors[facet];
-        uint256 n = sels.length;
-        // insertion sort (small n typical)
-        for (uint256 i = 1; i < n; i++) {
-            bytes4 key = sels[i];
-            uint256 j = i;
-            while (j > 0 && uint32(sels[j - 1]) > uint32(key)) {
-                sels[j] = sels[j - 1];
-                unchecked { --j; }
-            }
-            sels[j] = key;
-        }
-        return keccak256(abi.encodePacked(facet.codehash, sels));
     }
 
     /// @notice DEV-ONLY: Directly register routes without Merkle proofs.
@@ -717,20 +662,20 @@ contract ManifestDispatcher is
         uint256 n = facets_.length;
         if (n == 0) return;
         if (n != selectors_.length) revert LenMismatch();
-        if (n > MAX_BATCH) revert BatchTooLarge(n);
+        
+        // Use library for batch validation
+        ManifestDispatcherLib.boundBatch(n, MAX_BATCH);
 
         for (uint256 i = 0; i < n; i++) {
             address facet = facets_[i];
-            if (facet == address(0)) revert ZeroAddress();
             if (facet == address(this)) revert FacetIsSelf();
-            uint256 sz = facet.code.length;
-            if (sz == 0) revert ZeroCodeFacet(facet);
-            if (sz > MAX_FACET_CODE) revert CodeSizeExceeded(facet, sz);
-            bytes32 ch = facet.codehash;
+            
+            // Use library for facet integrity verification  
+            (bytes32 ch, ) = ManifestDispatcherLib.verifyFacetIntegrity(facet, bytes32(0), MAX_FACET_CODE);
 
             bytes4[] calldata sels = selectors_[i];
             uint256 m = sels.length;
-            if (m > MAX_BATCH) revert BatchTooLarge(m);
+            ManifestDispatcherLib.boundBatch(m, MAX_BATCH);
             for (uint256 j = 0; j < m; j++) {
                 _setRoute(sels[j], facet, ch);
             }
