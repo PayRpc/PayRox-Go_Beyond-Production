@@ -59,7 +59,7 @@ async function main () {
     const pos = positions[key] || '0x0'
     let ok = false
     try {
-verifyOrderedProof(leaves[i], proof ?? '', pos ?? '', root ?? '')
+      verifyOrderedProof(leaves[i], proof ?? '', pos ?? '', root ?? '')
     } catch (_e) {
       ok = false
     }

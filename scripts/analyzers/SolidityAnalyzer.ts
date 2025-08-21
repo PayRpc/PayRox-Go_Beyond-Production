@@ -4,7 +4,6 @@ import { keccak256 } from 'ethers'
 import * as crypto from 'crypto'
 import { Command } from 'commander'
 import * as fs from 'fs'
-import * as _path from 'path'
 import {
   type ParsedContract,
   type FunctionInfo,
@@ -86,47 +85,10 @@ interface EventNode extends ASTNode {
   parameters?: ParameterListNode
 }
 
-interface _ModifierNode extends ASTNode {
-  type: 'ModifierDefinition'
-  name: string
-  parameters?: ParameterListNode
-}
-
-interface _ImportNode extends ASTNode {
-  type: 'ImportDirective'
-  path: string
-  symbolAliases?: Array<{ foreign: string }>
-}
-
-interface _CompilationOutput {
-  contracts?: Record<string, Record<string, {
-    abi?: unknown[]
-    evm?: {
-      bytecode?: { object?: string }
-      deployedBytecode?: { object?: string }
-      gasEstimates?: unknown
-    }
-    storageLayout?: {
-      storage?: Array<{
-        slot: string
-        offset: number
-        type: string
-        label: string
-      }>
-      types?: Record<string, { numberOfBytes?: number }>
-    }
-  }>>
-  errors?: Array<{ severity: string, message: string }>
-}
-
 // Canonical zero hash (256-bit)
 const ZERO_HASH = '0x' + '0'.repeat(64)
 
 export class SolidityAnalyzer {
-  constructor () {
-    // Parser and compiler are used directly
-  }
-
   // --- Internal helpers -------------------------------------------------
   /**
    * Convert string to Uint8Array in a runtime-safe way (Node + browser)

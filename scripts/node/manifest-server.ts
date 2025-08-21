@@ -281,7 +281,7 @@ function buildMerkleRoot (leaves: string[]): string {
     for (let i = 0; i < level.length; i += 2) {
       const A = level[i]
       const B = i + 1 < level.length ? level[i + 1] : A
-push(stablePairHash(A, B ?? '')
+      next.push(stablePairHash(A, B ?? ''))
     }
     level = next
   }
@@ -301,7 +301,7 @@ function generateProof (leaves: string[], index: number): string[] {
     for (let i = 0; i < lvl.length; i += 2) {
       const A = lvl[i]
       const B = i + 1 < lvl.length ? lvl[i + 1] : A
-push(stablePairHash(A, B ?? '')
+      next.push(stablePairHash(A, B ?? ''))
     }
     lvl = next
     idx = Math.floor(idx / 2)
