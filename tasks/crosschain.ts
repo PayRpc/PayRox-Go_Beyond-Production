@@ -44,9 +44,9 @@ type CleanupArgs = {
 const _DEFAULT_NETWORKS = 'sepolia,base-sepolia,arbitrum-sepolia';
 
 function parseNetworks(hre: HardhatRuntimeEnvironment, csv?: string): string[] {
-  const _list = (csv || DEFAULT_NETWORKS).split(',').map((n) => n.trim()).filter(Boolean);
-  const _known = new Set(Object.keys(hre.config.networks));
-  const _unknown = list.filter((n) => !known.has(n));
+  const list = (csv || _DEFAULT_NETWORKS).split(',').map((n) => n.trim()).filter(Boolean);
+  const known = new Set(Object.keys(hre.config.networks));
+  const unknown = list.filter((n) => !known.has(n));
   if (unknown.length) {
     throw new Error(
       `Unknown network(s): ${unknown.join(', ')}. Known: ${Array.from(known).join(', ')}`
@@ -59,7 +59,7 @@ function parseNetworks(hre: HardhatRuntimeEnvironment, csv?: string): string[] {
    TASK: FULL CROSS-CHAIN DEPLOYMENT ORCHESTRATION
    ════════════════════════════════════════════════════════════ */
 task('crosschain:deploy-full', 'Execute complete cross-chain deployment runbook')
-  .addOptionalParam('networks', 'Comma-separated list of networks', DEFAULT_NETWORKS)
+  .addOptionalParam('networks', 'Comma-separated list of networks', _DEFAULT_NETWORKS)
   .addOptionalParam('manifest', 'Path to manifest JSON file', '')
   .addFlag('dryrun', 'Run validation without actual deployment')
   .addFlag('skipfactory', 'Skip factory deployment')
@@ -70,21 +70,21 @@ task('crosschain:deploy-full', 'Execute complete cross-chain deployment runbook'
     console.log('🎭 PayRox Go Beyond - Full Cross-Chain Deployment');
     console.log('='.repeat(65));
 
-    const _networks = parseNetworks(hre, taskArgs.networks);
+  const _networks = parseNetworks(hre, taskArgs.networks);
 
     // Enforce manifest presence unless explicitly skipped
     const _manifestPath = taskArgs.manifest?.trim() || undefined;
     if (!taskArgs.skipmanifest) {
-      if (!manifestPath) throw new Error('Manifest path is required (or pass --skipmanifest).');
+      if (!_manifestPath) throw new Error('Manifest path is required (or pass --skipmanifest).');
       const _fs = await import('fs');
-      if (!fs.existsSync(manifestPath)) {
-        throw new Error(`Manifest file not found: ${manifestPath}`);
+      if (!_fs.existsSync(_manifestPath)) {
+        throw new Error(`Manifest file not found: ${_manifestPath}`);
       }
     }
 
     const config = {
-      networks,
-      manifestPath,
+      networks: _networks,
+      manifestPath: _manifestPath,
       skipFactoryDeployment: !!taskArgs.skipfactory,
       skipManifestValidation: !!taskArgs.skipmanifest,
       dryRun: !!taskArgs.dryrun,
@@ -105,12 +105,12 @@ task('crosschain:deploy-full', 'Execute complete cross-chain deployment runbook'
 
         console.log('\n📊 NETWORK RESULTS:');
         const _entries = Object.entries(result.deploymentResults || {});
-        for (const [network, netResultRaw] of entries) {
+        for (const [network, netResultRaw] of _entries) {
           const netResult: any = netResultRaw || {};
           const errs: string[] = Array.isArray(netResult.errors) ? netResult.errors : [];
           const _status = errs.length === 0 ? '✅' : '❌';
           console.log(
-            `   ${status} ${network}: Factory(${!!netResult.factoryDeployed}) Dispatcher(${!!netResult.dispatcherDeployed}) Manifest(${!!netResult.manifestValidated})`
+            `   ${_status} ${network}: Factory(${!!netResult.factoryDeployed}) Dispatcher(${!!netResult.dispatcherDeployed}) Manifest(${!!netResult.manifestValidated})`
           );
           for (const e of errs) console.log(`      Error: ${e}`);
         }
@@ -128,14 +128,14 @@ task('crosschain:deploy-full', 'Execute complete cross-chain deployment runbook'
    TASK: DETERMINISTIC FACTORY DEPLOYMENT
    ════════════════════════════════════════════════════════════ */
 task('crosschain:deploy-factory', 'Deploy DeterministicChunkFactory with identical addresses')
-  .addOptionalParam('networks', 'Comma-separated list of networks', DEFAULT_NETWORKS)
+  .addOptionalParam('networks', 'Comma-separated list of networks', _DEFAULT_NETWORKS)
   .addFlag('validate', 'Only validate address parity without deployment')
   .setAction(async (taskArgs: DeployFactoryArgs, hre: HardhatRuntimeEnvironment) => {
     console.log('🏭 Deterministic Factory Deployment');
     console.log('='.repeat(50));
 
-    const _networks = parseNetworks(hre, taskArgs.networks);
-    console.log(`🌐 Target networks: ${networks.join(', ')}`);
+  const _networks = parseNetworks(hre, taskArgs.networks);
+  console.log(`🌐 Target networks: ${_networks.join(', ')}`);
 
     try {
       if (taskArgs.validate) {
@@ -147,7 +147,7 @@ task('crosschain:deploy-factory', 'Deploy DeterministicChunkFactory with identic
         );
         const _deployer = new DeterministicFactoryDeployer();
 
-        const parityResult: any = await deployer.validateFactoryAddressParity(networks, hre);
+        const parityResult: any = await _deployer.validateFactoryAddressParity(_networks, hre);
 
         if (parityResult?.valid) {
           console.log(`✅ Factory address parity validated: ${parityResult.expectedAddress}`);
@@ -157,10 +157,10 @@ task('crosschain:deploy-factory', 'Deploy DeterministicChunkFactory with identic
       }
 
       // Dynamic import to avoid config loading issues
-      const { main: deployDeterministicFactory } = await import('../scripts/deploy-deterministic-factory');
-      const _factoryAddress = await deployDeterministicFactory(hre, { networks });
-      console.log(`✅ Factory deployed at identical address: ${factoryAddress}`);
-      return factoryAddress;
+  const { main: deployDeterministicFactory } = await import('../scripts/deploy-deterministic-factory');
+  const _factoryAddress = await deployDeterministicFactory(hre, { networks: _networks });
+  console.log(`✅ Factory deployed at identical address: ${_factoryAddress}`);
+  return _factoryAddress;
     } catch (error) {
       console.error('❌ Factory deployment failed:', error);
       throw error;
@@ -172,7 +172,7 @@ task('crosschain:deploy-factory', 'Deploy DeterministicChunkFactory with identic
    ════════════════════════════════════════════════════════════ */
 task('crosschain:validate-manifest', 'Run manifest preflight validation across networks')
   .addParam('manifest', 'Path to manifest JSON file')
-  .addOptionalParam('networks', 'Comma-separated list of networks', DEFAULT_NETWORKS)
+  .addOptionalParam('networks', 'Comma-separated list of networks', _DEFAULT_NETWORKS)
   .addOptionalParam('output', 'Output path for validation report', '')
   .setAction(async (taskArgs: ValidateManifestArgs, hre: HardhatRuntimeEnvironment) => {
     console.log('📋 Manifest Preflight Validation');
@@ -183,18 +183,18 @@ task('crosschain:validate-manifest', 'Run manifest preflight validation across n
     const _outputPath = taskArgs.output?.trim() || undefined;
 
     const _fs = await import('fs');
-    if (!fs.existsSync(manifestPath)) {
-      throw new Error(`Manifest file not found: ${manifestPath}`);
+    if (!_fs.existsSync(_manifestPath)) {
+      throw new Error(`Manifest file not found: ${_manifestPath}`);
     }
 
-    console.log(`📄 Manifest: ${manifestPath}`);
-    console.log(`🌐 Networks: ${networks.join(', ')}`);
+    console.log(`📄 Manifest: ${_manifestPath}`);
+    console.log(`🌐 Networks: ${_networks.join(', ')}`);
 
     try {
       // Dynamic import to avoid config loading issues
       const { validateManifestPreflight } = await import('../scripts/manifest-preflight');
-      const _isValid = await validateManifestPreflight(manifestPath, networks, hre, outputPath);
-      if (isValid) {
+  const _isValid = await validateManifestPreflight(_manifestPath, _networks, hre, _outputPath);
+  if (_isValid) {
         console.log('✅ Manifest preflight validation PASSED');
         console.log('🚀 Ready for cross-chain deployment');
         return true;
@@ -237,23 +237,23 @@ task('crosschain:cleanup', 'Clean up deployment artifacts')
       if (networks.length > 0) {
         for (const network of networks) {
           const _deploymentDir = path.join(process.cwd(), 'deployments', network);
-          if (fs.existsSync(deploymentDir)) {
-            fs.rmSync(deploymentDir, { recursive: true, force: true });
+          if (fs.existsSync(_deploymentDir)) {
+            fs.rmSync(_deploymentDir, { recursive: true, force: true });
             console.log(`✅ Cleaned deployments for ${network}`);
           }
         }
       } else {
         const _deploymentsDir = path.join(process.cwd(), 'deployments');
-        if (fs.existsSync(deploymentsDir)) {
-          fs.rmSync(deploymentsDir, { recursive: true, force: true });
+        if (fs.existsSync(_deploymentsDir)) {
+          fs.rmSync(_deploymentsDir, { recursive: true, force: true });
           console.log('✅ Cleaned all deployment artifacts');
         }
       }
 
       if (taskArgs.reports) {
         const _reportsDir = path.join(process.cwd(), 'reports');
-        if (fs.existsSync(reportsDir)) {
-          fs.rmSync(reportsDir, { recursive: true, force: true });
+        if (fs.existsSync(_reportsDir)) {
+          fs.rmSync(_reportsDir, { recursive: true, force: true });
           console.log('✅ Cleaned reports directory');
         }
       }

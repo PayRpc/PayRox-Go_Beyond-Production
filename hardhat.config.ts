@@ -6,6 +6,7 @@ import '@nomicfoundation/hardhat-chai-matchers'
 import './tasks/prx.chunk'
 import './tasks/facet-init'
 import './tasks/crosschain'
+import './tasks/payrox'
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -15,10 +16,18 @@ const config: HardhatUserConfig = {
         settings: {
           optimizer: { enabled: true, runs: 200 },
           evmVersion: 'cancun',
-          viaIR: true
+          viaIR: true,
+          outputSelection: {
+            '*': {
+              '*': ['abi', 'evm.bytecode', 'evm.deployedBytecode', 'storageLayout']
+            }
+          }
         }
       }
     ]
+  },
+  mocha: {
+    timeout: 200000
   },
   paths: {
     sources: './contracts',
