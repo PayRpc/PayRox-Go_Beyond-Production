@@ -70,6 +70,10 @@ export class PlanBuilder {
     facetCodehashes: FacetCodehash[],
     mode: "predictive" | "observed"
   ): Promise<DeploymentPlan> {
+    // Sanity: Ensure leaf set aligns with routes we're about to encode
+    if (!tree.leaves || tree.leaves.length === 0) {
+      throw new Error('Empty leaf set in tree');
+    }
     // Build selector to facet mapping
     const selectorToFacet = new Map<string, string>();
     const selectorToCodehash = new Map<string, string>();
@@ -83,6 +87,10 @@ export class PlanBuilder {
     const selectors = tree.leaves.map(leaf => leaf.selector);
     const facets = tree.leaves.map(leaf => leaf.facet);
     const codehashes = tree.leaves.map(leaf => leaf.codehash);
+
+    if (!(selectors.length === facets.length && facets.length === codehashes.length)) {
+      throw new Error('routes/leaves length mismatch when building deployment plan');
+    }
 
     // Generate unique plan ID from manifest hash and current timestamp
     const planId = ethers.keccak256(
@@ -282,17 +290,17 @@ export class PlanBuilder {
     return true; // Placeholder
   }
 
-  private verifyMerkleIntegrity(tree: OrderedMerkleTree): boolean {
+  private verifyMerkleIntegrity(_tree: OrderedMerkleTree): boolean {
     console.log("🔍 Verifying Merkle tree integrity...");
 
     // Verify all proofs can be validated against the root
-    for (const [_selector, _proof] of tree.proofs) {
-      // TODO: Implement off-chain proof verification
-      // if (!this.verifyProof(proof, tree.root)) {
-      //   console.error(`❌ Invalid proof for selector: ${selector}`);
-      //   return false;
-      // }
-    }
+  // TODO: Implement off-chain proof verification over tree.proofs entries
+  // for (const [selector, proof] of tree.proofs) {
+  //   if (!this.verifyProof(proof, tree.root)) {
+  //     console.error(`❌ Invalid proof for selector: ${selector}`);
+  //     return false;
+  //   }
+  // }
 
     return true;
   }
@@ -336,7 +344,7 @@ export class PlanBuilder {
 
   private async verifyDeployedCodehashes(
     plan: DeploymentPlan,
-    deployedFacets: Record<string, string>
+  _deployedFacets: Record<string, string>
   ): Promise<boolean> {
     if (!this.provider) return false;
 

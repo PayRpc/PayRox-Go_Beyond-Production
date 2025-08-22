@@ -22,7 +22,7 @@ async function main() {
   const config: PipelineConfig = {
     mode,
     outputDir: "./split-output",
-    artifactsDir: "../../artifacts", // Go up from tools/splitter to root
+  artifactsDir: "./artifacts", // Resolve from workspace root (cwd)
     chainId: 1,
     epoch: 1,
     deterministic: {
@@ -127,10 +127,7 @@ Validation:
 }
 
 // Legacy exports for backwards compatibility
-export async function buildPredictiveTree(
-  artifactsDir: string = "artifacts/contracts/facets",
-  manifestPath: string = "./split-output/manifest.json"
-) {
+export async function buildPredictiveTree(artifactsDir: string = "artifacts/contracts/facets") {
   const config: PipelineConfig = {
     mode: "predictive",
     outputDir: "./split-output",
@@ -165,10 +162,7 @@ export async function buildPredictiveTree(
   };
 }
 
-export async function buildObservedTree(
-  deploymentPlan: string = "./split-output/dispatcher.plan.json",
-  rpcUrl: string = "http://127.0.0.1:8545"
-) {
+export async function buildObservedTree(rpcUrl: string = "http://127.0.0.1:8545") {
   const config: PipelineConfig = {
     mode: "observed",
     outputDir: "./split-output",

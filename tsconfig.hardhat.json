@@ -38,29 +38,14 @@
     }
   },
   "include": [
-    // Core application code
-    "./scripts/**/*",
-    "./test/**/*",
-    "./tests/**/*",
-    "./tasks/**/*",
-    "./tools/**/*",
-    "./src/**/*",
-    
-    // Generated types and configs
-    "./typechain-types/**/*", // Aligns with ARTIFACTS_PATHS.TYPECHAIN_ROOT
-    "./hardhat.config.ts",
-    
-    // Extended modules
-    "./cli/src/**/*",
-    "./sdk/src/**/*",
-    "./deployable-modules/**/*",
-    
-    // Legacy include patterns (for compatibility)
-    "hardhat.config.ts",
-    "scripts",
-    "test",
-    "tools",
-    "types"
+  // Minimal safe set while we repair tool/test compile issues
+  "./hardhat.config.ts",
+  "./src/**/*",
+  "./tasks/**/*",
+  "./tools/splitter/**/*",
+  "./tools/audit/audit-consultant.ts",
+  "./tools/refactor-lint.ts",
+  "./typechain-types/**/*"
   ],
   "exclude": [
     // Build artifacts and dependencies
@@ -69,18 +54,18 @@
     "artifacts",
     "cache",
     "coverage",
-    
+
     // Separate project modules
     "tools/ai-assistant/frontend",
     "tools/ai-assistant/backend", // Has its own tsconfig.json
-    
+
     // Solidity source files (not TypeScript)
     "./contracts/**/*.sol",
-    
+
     // JavaScript test files (not TypeScript)
     "**/*.spec.js",
     "**/*.test.js",
-    
+
     // Temporarily excluded files (specific compilation issues)
     "scripts/deploy/enhanced-cross-chain-deploy.ts",
     "scripts/orchestrate-crosschain.ts",

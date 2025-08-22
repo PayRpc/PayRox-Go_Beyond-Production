@@ -4,8 +4,7 @@ import path from 'path';
  * Path utilities for PayRox system
  */
 
-import * as fs from 'fs';
-import * as path from 'path';
+// NOTE: duplicate imports removed above
 
 export class PathManager {
   private workspaceRoot: string;
@@ -36,6 +35,11 @@ export class PathManager {
 
   resolvePath(relativePath: string): string {
     return path.resolve(this.workspaceRoot, relativePath);
+  }
+
+  // Back-compat alias used by some tasks
+  getAbsolutePath(p: string): string {
+    return this.resolvePath(p);
   }
 }
 
@@ -68,8 +72,8 @@ export function readFileContent(filePath: string): string {
 
 export function writeFileContent(filePath: string, content: string): void {
   const _dir = path.dirname(filePath);
-  if (!directoryExists(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
+  if (!directoryExists(_dir)) {
+    fs.mkdirSync(_dir, { recursive: true });
   }
   fs.writeFileSync(filePath, content, 'utf-8');
 }
@@ -85,7 +89,7 @@ export function safeParseJSON<T = any>(content: string, defaultValue?: T): T | n
 export function safeReadJSON<T = any>(filePath: string, defaultValue?: T): T | null {
   try {
     const _content = readFileContent(filePath);
-    return safeParseJSON<T>(content, defaultValue);
+  return safeParseJSON<T>(_content, defaultValue);
   } catch {
     return defaultValue ?? null;
   }
@@ -103,14 +107,14 @@ export function listFiles(dirPath: string, extension?: string): string[] {
   }
 
   const _files = fs.readdirSync(dirPath);
-  
+
   if (extension) {
-    return files.filter(file => file.endsWith(extension));
+    return _files.filter((file: string) => file.endsWith(extension));
   }
-  
-  return files.filter(file => {
+
+  return _files.filter((file: string) => {
     const _fullPath = path.join(dirPath, file);
-    return fileExists(fullPath);
+    return fileExists(_fullPath);
   });
 }
 

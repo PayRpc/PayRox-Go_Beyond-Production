@@ -1,6 +1,6 @@
 {
-  "timestamp": "2025-08-22T09:07:41.156Z",
-  "totalSelectors": 85,
+  "timestamp": "2025-08-22T19:10:34.446Z",
+  "totalSelectors": 84,
   "totalConflicts": 0,
   "selectors": [
     {
@@ -265,14 +265,6 @@
       "facet": "ChunkFactoryFacet",
       "contractName": "ChunkFactoryFacet",
       "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "signature": "getFacetFunctionSelectors()",
-      "selector": "0x699ffc7e",
-      "facet": "ChunkFactoryFacet",
-      "contractName": "ChunkFactoryFacet",
-      "stateMutability": "pure",
       "type": "function"
     },
     {

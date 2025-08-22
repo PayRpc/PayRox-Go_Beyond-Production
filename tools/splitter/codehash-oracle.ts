@@ -173,13 +173,8 @@ export class DeterministicBuilder {
    * Find all facet artifact files
    */
   private findFacetArtifacts(artifactsDir: string): string[] {
-    // Prefer generated stubs under contracts/facets-fixed, then fall back to contracts/facets
+    // Prefer generated stubs under contracts/facets-fixed; fallback to contracts/facets only if none found
     const byName = new Map<string, string>();
-    const bases = [
-      path.join(artifactsDir, "contracts", "facets-fixed"),
-      path.join(artifactsDir, "contracts", "facets")
-    ];
-
     const scan = (dir: string) => {
       if (!fs.existsSync(dir)) return;
       const entries = fs.readdirSync(dir, { withFileTypes: true });
@@ -197,12 +192,18 @@ export class DeterministicBuilder {
       }
     };
 
-    for (const b of bases) scan(b);
+    const fixedBase = path.join(artifactsDir, "contracts", "facets-fixed");
+    scan(fixedBase);
+
+    if (byName.size === 0) {
+      const fallbackBase = path.join(artifactsDir, "contracts", "facets");
+      scan(fallbackBase);
+    }
 
     const results = Array.from(byName.values());
     if (results.length === 0) {
       throw new Error(
-        `No facet artifacts found under ${bases.join(", ")}. Did you compile?`
+        `No facet artifacts found under ${fixedBase} or its fallback. Did you compile?`
       );
     }
     return results;

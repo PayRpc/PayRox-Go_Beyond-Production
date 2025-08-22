@@ -18,6 +18,7 @@ import {
   readFileContent,
   safeParseJSON,
 } from '../src/utils/paths';
+import { computeManifestHash } from '../src/payrox/orderedMerkle';
 
 type Manifest = {
   header?: {
@@ -120,7 +121,7 @@ task(
       if (!asJson) logInfo(`Starting manifest selfcheck for: ${args.path}`);
 
       const pathManager = getPathManager();
-      const manifestPath = pathManager.getAbsolutePath(args.path);
+  const manifestPath = pathManager.getAbsolutePath(args.path);
 
       if (!fileExists(manifestPath)) {
         throw new NetworkError(
@@ -130,7 +131,8 @@ task(
       }
 
       const manifestContent = readFileContent(manifestPath);
-      const manifest: Manifest = safeParseJSON(manifestContent, manifestPath);
+  const _parsed = safeParseJSON<Manifest>(manifestContent, undefined);
+  const manifest: Manifest = _parsed as Manifest;
 
       // Basic shape checks
       const root = manifest.merkleRoot || manifest.root;
@@ -162,8 +164,16 @@ task(
       let manifestHash: string | undefined;
       if (manifest.header) {
         if (!asJson) logInfo('Computing manifest hash from header...');
-        // TODO: Re-implement with new pipeline
-        const mHash = "0x" + "0".repeat(64); // Placeholder
+        const mHash = computeManifestHash(
+          {
+            versionBytes32: manifest.header.versionBytes32,
+            timestamp: manifest.header.timestamp,
+            deployer: manifest.header.deployer,
+            chainId: manifest.header.chainId,
+            previousHash: manifest.header.previousHash,
+          },
+          rootLower,
+        );
         manifestHash = mHash;
         if (!asJson) {
           logSuccess('Manifest hash computed successfully');
@@ -443,7 +453,7 @@ task(
       const valueWei = args.value === '0' ? 0n : hre.ethers.parseEther(args.value);
 
       // Estimate gas and cost for both dry run and real send
-      const estGas = await factory.estimateGas.stage(bytesHex, { value: valueWei });
+  const estGas = await (factory as any).estimateGas.stage(bytesHex, { value: valueWei });
       const feeData = await hre.ethers.provider.getFeeData();
       const priceWei: bigint = (feeData.maxFeePerGas ?? feeData.gasPrice ?? 0n) as bigint;
       const estCostWei = priceWei * (estGas as bigint);
@@ -540,7 +550,7 @@ task(
         signer
       );
 
-      const estGas = await orchestrator.estimateGas.startOrchestration(args.id, args.gasLimit);
+  const estGas = await (orchestrator as any).estimateGas.startOrchestration(args.id, args.gasLimit);
       const feeData = await hre.ethers.provider.getFeeData();
       const priceWei: bigint = (feeData.maxFeePerGas ?? feeData.gasPrice ?? 0n) as bigint;
       const estCostWei = priceWei * (estGas as bigint);
@@ -635,7 +645,8 @@ task(
       }
 
       const manifestContent = readFileContent(manifestPath);
-      const manifest: Manifest = safeParseJSON(manifestContent, manifestPath);
+  const _parsed2 = safeParseJSON<Manifest>(manifestContent, undefined);
+  const manifest: Manifest = _parsed2 as Manifest;
 
       const { ethers } = hre;
       const dispatcher = await ethers.getContractAt('ManifestDispatcher', args.dispatcher);

@@ -129,12 +129,23 @@ Starting pipeline execution...
       console.log("\n🗺️  STEP 3: Route Mapping");
       console.log("========================");
       const selectorMappings = this.buildSelectorMappings(selectors, codehashes);
+      // Enforce normalization: unique, sorted by selector
+      selectorMappings.sort((a, b) => a.selector.localeCompare(b.selector));
+      const _seen = new Set<string>();
+      const normalizedMappings = selectorMappings.filter((m) => {
+        if (_seen.has(m.selector)) return false;
+        _seen.add(m.selector);
+        return true;
+      });
+      if (normalizedMappings.length !== selectorMappings.length) {
+        console.warn(`⚠️  Deduplicated ${selectorMappings.length - normalizedMappings.length} selectors`);
+      }
       console.log(`✅ Built ${selectorMappings.length} route mappings`);
 
       // Step 4: Build ordered Merkle tree
       console.log("\n🌳 STEP 4: Ordered Merkle Tree");
       console.log("==============================");
-      const tree = await this.merkleBuilder.buildFromArtifacts(codehashes, selectorMappings);
+  const tree = await this.merkleBuilder.buildFromArtifacts(codehashes, normalizedMappings);
       console.log(`✅ Built Merkle tree with root: ${tree.root}`);
       console.log(`   • Leaves: ${tree.leaves.length}`);
       console.log(`   • Proofs: ${tree.proofs.size}`);
@@ -270,6 +281,8 @@ Artifacts exported to: ${this.config.outputDir}
       });
     }
 
+    // Enforce that we only keep selectors that map to available codehash facets (already filtered above)
+    // No-op here but kept for symmetry with observed filtering.
     return mappings;
   }
 

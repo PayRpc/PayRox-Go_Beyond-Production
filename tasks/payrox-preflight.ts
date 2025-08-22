@@ -50,8 +50,8 @@ task("payrox:preflight", "Run PayRox safety battery")
 
         // Check factory integrity
         console.log("\n2️⃣ Factory Integrity Check");
-        const _ok = await f.verifySystemIntegrity();
-        if (!ok) {
+        const _ok = await _f.verifySystemIntegrity();
+        if (!_ok) {
           throw new Error("❌ System integrity check failed");
         }
         console.log("✅ Factory integrity verified");
@@ -76,19 +76,19 @@ task("payrox:preflight", "Run PayRox safety battery")
 
         for (const facetAddress of facetAddresses) {
           const _selectors = await dl.facetFunctionSelectors(facetAddress);
-          totalSelectors += selectors.length;
+          _totalSelectors += _selectors.length;
           facetDetails.push({
             address: facetAddress,
-            selectorCount: selectors.length,
+            selectorCount: _selectors.length,
           });
 
           if (verbose) {
-            console.log(`  📍 ${facetAddress}: ${selectors.length} selectors`);
+            console.log(`  📍 ${facetAddress}: ${_selectors.length} selectors`);
           }
         }
 
-        console.log(`📊 Total facets: ${facetAddresses.length}`);
-        console.log(`📊 Total selectors: ${totalSelectors}`);
+  console.log(`📊 Total facets: ${facetAddresses.length}`);
+  console.log(`📊 Total selectors: ${_totalSelectors}`);
 
         // Additional checks
         console.log("\n4️⃣ Additional Safety Checks");
@@ -96,9 +96,9 @@ task("payrox:preflight", "Run PayRox safety battery")
         // Check if we can query a basic route
         try {
           const _testSelector = "0x8da5cb5b"; // owner() selector
-          const _route = await d.routes(testSelector);
+          const _route = await d.routes(_testSelector);
           if (verbose) {
-            console.log(`🧪 Test route ${testSelector}:`, route);
+            console.log(`🧪 Test route ${_testSelector}:`, _route);
           }
           console.log("✅ Route query functionality working");
         } catch (e) {
@@ -122,7 +122,7 @@ task("payrox:health", "Quick health check for PayRox system")
   .setAction(async ({ dispatcher }, hre: HardhatRuntimeEnvironment) => {
     const _d = await hre.ethers.getContractAt("IManifestDispatcher", dispatcher);
 
-    const [frozen, epoch] = await Promise.all([d.frozen(), d.activeEpoch()]);
+  const [frozen, epoch] = await Promise.all([_d.frozen(), _d.activeEpoch()]);
 
     console.log(`🏥 Health: ${frozen ? "FROZEN" : "ACTIVE"} | Epoch: ${epoch}`);
   });

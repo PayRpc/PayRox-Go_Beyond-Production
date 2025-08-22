@@ -73,18 +73,18 @@ function hexConcat(a: string, b: string): string {
 function encodeConstructorFromAbi(abi: any[], argsArr: any[]): string {
   const _iface = new Interface(abi);
   // find constructor fragment
-  const _ctor = iface.fragments.find((f) => f.type === "constructor");
-  const _inputs = (ctor as any)?.inputs ?? [];
-  const _types = inputs.map((i: any) => i.type);
+  const _ctor = _iface.fragments.find((f: any) => f.type === "constructor");
+  const _inputs = (_ctor as any)?.inputs ?? [];
+  const _types = _inputs.map((i: any) => i.type);
   const _coder = AbiCoder.defaultAbiCoder();
-  return coder.encode(types, argsArr);
+  return _coder.encode(_types, argsArr);
 }
 
 function encodeConstructorFromTypes(typesJson?: string, argsJson?: string): string {
   const _types = typesJson ? JSON.parse(typesJson) : [];
-  const _args  = argsJson ? JSON.parse(argsJson)  : [];
+  const _args = argsJson ? JSON.parse(argsJson) : [];
   const _coder = AbiCoder.defaultAbiCoder();
-  return coder.encode(types, args);
+  return _coder.encode(_types, _args);
 }
 
 async function buildInitCode(
@@ -93,31 +93,31 @@ async function buildInitCode(
 ): Promise<{ initCode: string; initCodeHash: string; abi?: any[] }> {
   if (input.mode === "artifact") {
     const _art = JSON.parse(fs.readFileSync(input.artifactPath, "utf8"));
-    const abi: any[] = art.abi;
-    const _bytecode = art.bytecode || art.deployedBytecode;
-    if (!bytecode) die("Artifact missing bytecode");
-    const _argsArr = input.argsJson ? JSON.parse(input.argsJson) : [];
-    const _enc = encodeConstructorFromAbi(abi, argsArr);
-    const _initCode = ensureHex(hexConcat(bytecode, enc), "initCode");
-    return { initCode, initCodeHash: keccak256(initCode), abi };
+  const abi: any[] = _art.abi;
+  const _bytecode = _art.bytecode || _art.deployedBytecode;
+  if (!_bytecode) die("Artifact missing bytecode");
+  const _argsArr = input.argsJson ? JSON.parse(input.argsJson) : [];
+  const _enc = encodeConstructorFromAbi(abi, _argsArr);
+  const _initCode = ensureHex(hexConcat(_bytecode, _enc), "initCode");
+  return { initCode: _initCode, initCodeHash: keccak256(_initCode), abi };
   }
   if (input.mode === "contract") {
     const _art = await hre.artifacts.readArtifact(input.contractName);
-    const abi: any[] = art.abi;
-    const _bytecode = art.bytecode || art.deployedBytecode;
-    if (!bytecode) die(`Artifact for ${input.contractName} missing bytecode`);
-    const _argsArr = input.argsJson ? JSON.parse(input.argsJson) : [];
-    const _enc = encodeConstructorFromAbi(abi, argsArr);
-    const _initCode = ensureHex(hexConcat(bytecode, enc), "initCode");
-    return { initCode, initCodeHash: keccak256(initCode), abi };
+  const abi: any[] = _art.abi;
+  const _bytecode = _art.bytecode || _art.deployedBytecode;
+  if (!_bytecode) die(`Artifact for ${input.contractName} missing bytecode`);
+  const _argsArr = input.argsJson ? JSON.parse(input.argsJson) : [];
+  const _enc = encodeConstructorFromAbi(abi, _argsArr);
+  const _initCode = ensureHex(hexConcat(_bytecode, _enc), "initCode");
+  return { initCode: _initCode, initCodeHash: keccak256(_initCode), abi };
   }
   // raw
   const _b = ensureHex(input.bytecodeHex, "bytecodeHex");
-  const enc = input.constructorTypes
+  const _enc = input.constructorTypes
     ? encodeConstructorFromTypes(input.constructorTypes, input.constructorArgsJson)
     : "0x";
-  const _initCode = ensureHex(hexConcat(b, enc), "initCode");
-  return { initCode, initCodeHash: keccak256(initCode) };
+  const _initCode = ensureHex(hexConcat(_b, _enc), "initCode");
+  return { initCode: _initCode, initCodeHash: keccak256(_initCode) };
 }
 
 function computeCreate2(factory: string, salt: string, initCodeHash: string) {
@@ -126,13 +126,13 @@ function computeCreate2(factory: string, salt: string, initCodeHash: string) {
     ["0xff", factory, salt, initCodeHash]
   );
   const _predicted = getAddress(dataSlice(digest, 12));
-  return predicted;
+  return _predicted;
 }
 
 async function extCodeHashViaCode(provider: JsonRpcProvider, addr: string) {
   const _code = await provider.getCode(addr);
-  if (!code || code === "0x") return "0x" + "0".repeat(64);
-  return keccak256(code);
+  if (! _code || _code === "0x") return "0x" + "0".repeat(64);
+  return keccak256(_code);
 }
 
 export interface Create2CheckResult {
@@ -172,9 +172,9 @@ export async function runCreate2Check(params: Create2CheckParams): Promise<Creat
   const _expectedDHash = normBytes32(expectedDispatcherCodehash, "expectedDispatcherCodehash") || undefined;
 
   const { initCode, initCodeHash } = await buildInitCode(hre, rest as Inputs);
-  const _predicted = computeCreate2(factoryAddr, salt32, initCodeHash);
+  const _predicted = computeCreate2(_factoryAddr, _salt32, initCodeHash);
 
-  console.log(`📍 Predicted address: ${predicted}`);
+  console.log(`📍 Predicted address: ${_predicted}`);
   console.log(`🧬 InitCode hash: ${initCodeHash}`);
 
   const checks = {
@@ -186,12 +186,12 @@ export async function runCreate2Check(params: Create2CheckParams): Promise<Creat
   };
 
   // Off-chain prediction check
-  if (expected && predicted.toLowerCase() !== expected.toLowerCase()) {
-    const _msg = `Predicted (${predicted}) ≠ expected (${expected})`;
+  if (_expected && _predicted.toLowerCase() !== _expected.toLowerCase()) {
+    const _msg = `Predicted (${_predicted}) ≠ expected (${_expected})`;
     checks.predictedVsExpected = false;
-    if (noFail) console.warn("⚠️", msg);
-    else die(msg);
-  } else if (expected) {
+    if (noFail) console.warn("⚠️", _msg);
+    else die(_msg);
+  } else if (_expected) {
     console.log("✅ Predicted address matches expected");
   }
 
@@ -200,26 +200,26 @@ export async function runCreate2Check(params: Create2CheckParams): Promise<Creat
     rpcUrlOverride ? new JsonRpcProvider(rpcUrlOverride) : (hre.ethers.provider as unknown as JsonRpcProvider);
 
   // Codehash parity (factory)
-  if (expectedFHash) {
-    const _ch = await extCodeHashViaCode(provider, factoryAddr);
-    if (ch.toLowerCase() !== expectedFHash.toLowerCase()) {
-      const _msg = `Factory codehash mismatch. got=${ch} expected=${expectedFHash}`;
+  if (_expectedFHash) {
+    const _ch = await extCodeHashViaCode(provider, _factoryAddr);
+    if (_ch.toLowerCase() !== _expectedFHash.toLowerCase()) {
+      const _msg = `Factory codehash mismatch. got=${_ch} expected=${_expectedFHash}`;
       checks.factoryCodehash = false;
-      if (noFail) console.warn("⚠️", msg);
-      else die(msg);
+      if (noFail) console.warn("⚠️", _msg);
+      else die(_msg);
     } else {
       console.log("✅ Factory codehash matches expected");
     }
   }
 
   // Codehash parity (dispatcher)
-  if (dispatcherAddr && expectedDHash) {
-    const _ch = await extCodeHashViaCode(provider, dispatcherAddr);
-    if (ch.toLowerCase() !== expectedDHash.toLowerCase()) {
-      const _msg = `Dispatcher codehash mismatch. got=${ch} expected=${expectedDHash}`;
+  if (_dispatcherAddr && _expectedDHash) {
+    const _ch = await extCodeHashViaCode(provider, _dispatcherAddr);
+    if (_ch.toLowerCase() !== _expectedDHash.toLowerCase()) {
+      const _msg = `Dispatcher codehash mismatch. got=${_ch} expected=${_expectedDHash}`;
       checks.dispatcherCodehash = false;
-      if (noFail) console.warn("⚠️", msg);
-      else die(msg);
+      if (noFail) console.warn("⚠️", _msg);
+      else die(_msg);
     } else {
       console.log("✅ Dispatcher codehash matches expected");
     }
@@ -246,26 +246,26 @@ export async function runCreate2Check(params: Create2CheckParams): Promise<Creat
         outputs: [{ type: "bool" }],
       },
     ];
-    const _f = new Contract(factoryAddr, minimalFactoryAbi, provider);
-    
+    const _f = new Contract(_factoryAddr, minimalFactoryAbi, provider);
+
     // Test prediction consistency
-    const _onchainPred = await f.predictAddress?.(salt32, initCodeHash);
-    if (onchainPred && onchainPred.toLowerCase() !== predicted.toLowerCase()) {
-      const _msg = `Off-chain (${predicted}) ≠ on-chain predictAddress (${onchainPred})`;
+    const _onchainPred = await _f.predictAddress?.(_salt32, initCodeHash);
+    if (_onchainPred && _onchainPred.toLowerCase() !== _predicted.toLowerCase()) {
+      const _msg = `Off-chain (${_predicted}) ≠ on-chain predictAddress (${_onchainPred})`;
       checks.onchainPrediction = false;
-      if (noFail) console.warn("⚠️", msg);
-      else die(msg);
+      if (noFail) console.warn("⚠️", _msg);
+      else die(_msg);
     } else {
       console.log("✅ On-chain prediction matches off-chain calculation");
     }
 
     // Test system integrity
-    const ok: boolean = await f.verifySystemIntegrity?.() ?? true;
+    const ok: boolean = await _f.verifySystemIntegrity?.() ?? true;
     if (!ok) {
       const _msg = `verifySystemIntegrity() returned false`;
       checks.systemIntegrity = false;
-      if (noFail) console.warn("⚠️", msg);
-      else die(msg);
+      if (noFail) console.warn("⚠️", _msg);
+      else die(_msg);
     } else {
       console.log("✅ System integrity verification passed");
     }
@@ -273,27 +273,27 @@ export async function runCreate2Check(params: Create2CheckParams): Promise<Creat
     const _msg = `Factory predict/integrity check failed: ${e?.message || e}`;
     checks.onchainPrediction = false;
     checks.systemIntegrity = false;
-    if (noFail) console.warn("⚠️", msg);
-    else die(msg);
+  if (noFail) console.warn("⚠️", _msg);
+  else die(_msg);
   }
 
   // Is predicted deployed?
-  const _predCode = await provider.getCode(predicted);
-  const _deployed = !!(predCode && predCode !== "0x");
+    const _predCode = await provider.getCode(_predicted);
+    const _deployed = !!(_predCode && _predCode !== "0x");
 
-  console.log(`📦 Contract deployed: ${deployed ? "YES" : "NO"}`);
+  console.log(`📦 Contract deployed: ${_deployed ? "YES" : "NO"}`);
 
   const _allChecksPass = Object.values(checks).every(Boolean);
-  if (allChecksPass) {
+  if (_allChecksPass) {
     console.log("🎉 All CREATE2 checks passed!");
   } else {
     console.log("❌ Some CREATE2 checks failed");
   }
 
   return {
-    predicted,
+    predicted: _predicted,
     initCodeHash,
-    deployed,
+    deployed: _deployed,
     checks,
   };
 }

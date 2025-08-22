@@ -150,24 +150,42 @@ function parseArgs(argv: string[]): {
 
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
-    if (a === "--directory" && argv[i + 1]) {
-      directory = argv[++i];
-    } else if (a === "--output" && argv[i + 1]) {
-      config.outputDirectory = argv[++i];
-    } else if (a === "--max-source" && argv[i + 1]) {
-      config.maxContractSourceBytes = parseInt(argv[++i], 10);
-    } else if (a === "--facet-source" && argv[i + 1]) {
-      config.targetFacetSourceBytes = parseInt(argv[++i], 10);
+    if (a === "--directory") {
+      const v = argv[i + 1];
+      if (!v) throw new Error("--directory requires a value");
+      directory = v;
+      i++;
+    } else if (a === "--output") {
+      const v = argv[i + 1];
+      if (!v) throw new Error("--output requires a value");
+      config.outputDirectory = v;
+      i++;
+    } else if (a === "--max-source") {
+      const v = argv[i + 1];
+      if (!v) throw new Error("--max-source requires a number value");
+      config.maxContractSourceBytes = parseInt(v, 10);
+      i++;
+    } else if (a === "--facet-source") {
+      const v = argv[i + 1];
+      if (!v) throw new Error("--facet-source requires a number value");
+      config.targetFacetSourceBytes = parseInt(v, 10);
+      i++;
     } else if (a === "--no-interfaces") {
       config.generateInterfaces = false;
     } else if (a === "--no-storage-lib") {
       config.generateStorageLib = false;
     } else if (a === "--force") {
       config.forceOverwrite = true;
-    } else if (a === "--version" && argv[i + 1]) {
-      config.versionTag = argv[++i];
-    } else if (a === "--pragma" && argv[i + 1]) {
-      config.pragma = argv[++i];
+    } else if (a === "--version") {
+      const v = argv[i + 1];
+      if (!v) throw new Error("--version requires a value");
+      config.versionTag = v;
+      i++;
+    } else if (a === "--pragma") {
+      const v = argv[i + 1];
+      if (!v) throw new Error("--pragma requires a value");
+      config.pragma = v;
+      i++;
     } else if (a === "--help" || a === "-h") {
       printHelp();
       process.exit(0);

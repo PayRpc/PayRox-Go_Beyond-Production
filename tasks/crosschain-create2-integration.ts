@@ -66,7 +66,7 @@ export async function postDeploymentCreate2Verify(
   actualDeployedAddress: string
 ): Promise<boolean> {
   console.log("\n🔍 Post-deployment CREATE2 verification");
-  
+
   try {
     const result = await preflightCreate2Check(hre, {
       ...config,
@@ -126,20 +126,20 @@ export async function crossChainConsistencyCheck(
 
   // Check consistency
   const _firstPrediction = predictions[0];
-  if (!firstPrediction) {
+  if (!_firstPrediction) {
     console.error("❌ No predictions available");
     return false;
   }
-  
+
   const allMatch = predictions.every(
-    p => p.predicted.toLowerCase() === firstPrediction.predicted.toLowerCase() &&
-         p.initCodeHash === firstPrediction.initCodeHash
+    p => p.predicted.toLowerCase() === _firstPrediction.predicted.toLowerCase() &&
+         p.initCodeHash === _firstPrediction.initCodeHash
   );
 
   if (allMatch) {
     console.log("✅ All networks predict the same CREATE2 address!");
-    console.log(`   Address: ${firstPrediction.predicted}`);
-    console.log(`   InitCode Hash: ${firstPrediction.initCodeHash}`);
+  console.log(`   Address: ${_firstPrediction.predicted}`);
+  console.log(`   InitCode Hash: ${_firstPrediction.initCodeHash}`);
     return true;
   } else {
     console.error("❌ CREATE2 predictions differ across networks!");
@@ -158,17 +158,17 @@ export function integrateWithCrossChainTask() {
   return `
 // Add this to your existing tasks/crosschain.ts
 
-import { 
-  preDeploymentCreate2Check, 
+import {
+  preDeploymentCreate2Check,
   postDeploymentCreate2Verify,
-  crossChainConsistencyCheck 
+  crossChainConsistencyCheck
 } from './crosschain-create2-integration';
 
 // Inside your crosschain task setAction, BEFORE orchestrateDeployment():
 
 if (!config.skipFactoryDeployment) {
   console.log('\\n🔍 CREATE2 Preflight Checks');
-  
+
   // Example configuration - adapt to your contracts
   const create2Config = {
     factory: config.factoryAddress || "0x...", // Your factory address
@@ -194,16 +194,16 @@ if (!config.skipFactoryDeployment) {
   }
 
   // ... your existing deployment logic ...
-  
+
   // AFTER deployment:
   const _deployedAddress = await orchestrateDeployment(config);
-  
+
   const postVerifyOk = await postDeploymentCreate2Verify(
-    hre, 
-    create2Config, 
+    hre,
+    create2Config,
     deployedAddress
   );
-  
+
   if (!postVerifyOk) {
     console.warn("⚠️  Post-deployment verification failed - check deployment");
   }

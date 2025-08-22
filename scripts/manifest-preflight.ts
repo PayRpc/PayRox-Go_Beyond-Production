@@ -3,13 +3,11 @@ import path from 'path';
 /**
  * Manifest Preflight Validation Script
  * SPDX-License-Identifier: MIT
- * 
+ *
  * Validates manifests before cross-chain deployment
  */
 
 import { type HardhatRuntimeEnvironment } from 'hardhat/types'
-import * as fs from 'fs'
-import * as path from 'path'
 import { ethers as EthersLib } from 'ethers'
 
 async function getProviderAndWallet(hre: HardhatRuntimeEnvironment, networkName: string) {
@@ -39,14 +37,14 @@ export async function validateManifestPreflight(
   outputPath?: string
 ): Promise<boolean> {
   console.log('📋 Running manifest preflight validation...')
-  
+
   const result: ManifestValidationResult = {
     valid: true,
     errors: [],
     warnings: [],
     networkResults: {}
   }
-  
+
   try {
     // 1. Validate manifest file exists and is valid JSON
     if (!fs.existsSync(manifestPath)) {
@@ -54,7 +52,7 @@ export async function validateManifestPreflight(
       result.valid = false
       return false
     }
-    
+
     let manifest: any
     try {
       const manifestContent = fs.readFileSync(manifestPath, 'utf-8')
@@ -64,22 +62,22 @@ export async function validateManifestPreflight(
       result.valid = false
       return false
     }
-    
+
     // 2. Validate manifest structure
     if (!manifest.version) {
       result.errors.push('Manifest missing version field')
       result.valid = false
     }
-    
+
     if (!manifest.components || !Array.isArray(manifest.components)) {
       result.errors.push('Manifest missing or invalid components array')
       result.valid = false
     }
-    
+
     if (!manifest.manifestHash) {
       result.warnings.push('Manifest missing manifestHash - will be generated')
     }
-    
+
     // 3. Calculate manifest hash if missing
     const manifestHash = manifest.manifestHash || hre.ethers.keccak256(
       hre.ethers.toUtf8Bytes(JSON.stringify({
@@ -87,7 +85,7 @@ export async function validateManifestPreflight(
         components: manifest.components
       }))
     )
-    
+
     // 4. Validate across networks
     for (const networkName of networks) {
       try {
@@ -109,11 +107,11 @@ export async function validateManifestPreflight(
         const factoryAddress = '0x0000000000000000000000000000000000000000'
         const factoryCode = await provider.getCode(factoryAddress)
         networkResult.factoryExists = factoryCode !== '0x'
-        
+
         if (!networkResult.factoryExists) {
           result.warnings.push(`DeterministicChunkFactory not deployed on ${networkName}`)
         }
-        
+
         // Validate component addresses can be predicted
         for (const component of manifest.components) {
           try {
@@ -134,30 +132,30 @@ export async function validateManifestPreflight(
               salt,
               initCodeHash
             )
-            
+
             networkResult.predictedAddresses[component.id] = predictedAddress
-            
+
           } catch (error) {
             result.errors.push(`Failed to predict address for ${component.id} on ${networkName}: ${error}`)
             result.valid = false
           }
         }
-        
+
         result.networkResults[networkName] = networkResult
         console.log(`    ✅ Validation complete`)
-        
+
       } catch (error) {
         result.errors.push(`Network validation failed for ${networkName}: ${error}`)
         result.valid = false
         console.log(`    ❌ Validation failed: ${error}`)
       }
     }
-    
+
     // 5. Cross-network consistency check
     const addressSets = Object.values(result.networkResults).map(r => r.predictedAddresses)
     if (addressSets.length > 1) {
       const firstSet = addressSets[0]
-      for (let _i = 1; i < addressSets.length; i++) {
+      for (let i = 1; i < addressSets.length; i++) {
         const currentSet = addressSets[i]
         if (!currentSet) continue
         for (const componentId in firstSet) {
@@ -170,7 +168,7 @@ export async function validateManifestPreflight(
         }
       }
     }
-    
+
     // 6. Generate report
     if (outputPath) {
       const reportPath = outputPath.endsWith('.json') ? outputPath : path.join(outputPath, 'manifest-validation-report.json')
@@ -178,25 +176,25 @@ export async function validateManifestPreflight(
       fs.writeFileSync(reportPath, JSON.stringify(result, null, 2))
       console.log(`📄 Validation report saved to: ${reportPath}`)
     }
-    
+
     // 7. Summary
     console.log('\n📊 VALIDATION SUMMARY:')
     console.log(`   Status: ${result.valid ? '✅ PASSED' : '❌ FAILED'}`)
     console.log(`   Errors: ${result.errors.length}`)
     console.log(`   Warnings: ${result.warnings.length}`)
-    
+
     if (result.errors.length > 0) {
       console.log('\n❌ ERRORS:')
       result.errors.forEach(error => console.log(`   • ${error}`))
     }
-    
+
     if (result.warnings.length > 0) {
       console.log('\n⚠️  WARNINGS:')
       result.warnings.forEach(warning => console.log(`   • ${warning}`))
     }
-    
+
     return result.valid
-    
+
   } catch (error) {
     console.error('❌ Validation failed with error:', error)
     return false

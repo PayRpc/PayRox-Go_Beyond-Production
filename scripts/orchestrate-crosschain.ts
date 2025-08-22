@@ -3,7 +3,7 @@ import path from 'path';
 /**
  * Cross-Chain Deployment Orchestration Script
  * SPDX-License-Identifier: MIT
- * 
+ *
  * Orchestrates complete cross-chain deployment workflow
  */
 
@@ -11,8 +11,6 @@ import { type HardhatRuntimeEnvironment } from 'hardhat/types'
 import { main as deployDeterministicFactory } from './deploy-deterministic-factory'
 import { validateManifestPreflight } from './manifest-preflight'
 import { EnhancedCrossChainDeployer } from './deploy/enhanced-cross-chain-deploy'
-import * as fs from 'fs'
-import * as path from 'path'
 import { ethers as EthersLib } from 'ethers'
 
 async function getProviderAndWallet(hre: HardhatRuntimeEnvironment, networkName: string) {
@@ -50,36 +48,36 @@ export async function main(
   const startTime = Date.now()
   console.log('🎭 Starting Cross-Chain Deployment Orchestration')
   console.log('='.repeat(65))
-  
+
   const result: OrchestrationResult = {
     success: false,
     deploymentResults: {}
   }
-  
+
   try {
     // 1. FACTORY DEPLOYMENT PHASE
     let factoryAddress: string | undefined
-    
+
     if (!config.skipFactoryDeployment) {
       console.log('\n🏭 PHASE 1: FACTORY DEPLOYMENT')
       console.log('-'.repeat(40))
-      
+
       try {
         factoryAddress = await deployDeterministicFactory(hre, {
           networks: config.networks,
           validateOnly: config.dryRun,
           force: config.force
         })
-        
+
         result.factoryAddress = factoryAddress
         console.log(`✅ Factory phase completed: ${factoryAddress}`)
-        
+
       } catch (error) {
         const errorMsg = `Factory deployment failed: ${error}`
         console.error(`❌ ${errorMsg}`)
         result.errors = result.errors || []
         result.errors.push(errorMsg)
-        
+
         if (!config.force) {
           return result
         }
@@ -87,12 +85,12 @@ export async function main(
     } else {
       console.log('\n⏭️  PHASE 1: FACTORY DEPLOYMENT SKIPPED')
     }
-    
+
     // 2. MANIFEST VALIDATION PHASE
     if (!config.skipManifestValidation && config.manifestPath) {
       console.log('\n📋 PHASE 2: MANIFEST VALIDATION')
       console.log('-'.repeat(40))
-      
+
       try {
         const isValid = await validateManifestPreflight(
           config.manifestPath,
@@ -100,21 +98,21 @@ export async function main(
           hre,
           path.join(process.cwd(), 'reports')
         )
-        
+
         if (!isValid && !config.force) {
           result.errors = result.errors || []
           result.errors.push('Manifest validation failed')
           return result
         }
-        
+
         console.log('✅ Manifest validation completed')
-        
+
       } catch (error) {
         const errorMsg = `Manifest validation failed: ${error}`
         console.error(`❌ ${errorMsg}`)
         result.errors = result.errors || []
         result.errors.push(errorMsg)
-        
+
         if (!config.force) {
           return result
         }
@@ -122,17 +120,17 @@ export async function main(
     } else {
       console.log('\n⏭️  PHASE 2: MANIFEST VALIDATION SKIPPED')
     }
-    
+
     // 3. COMPONENT DEPLOYMENT PHASE
     if (!config.dryRun && config.manifestPath) {
       console.log('\n🚀 PHASE 3: COMPONENT DEPLOYMENT')
       console.log('-'.repeat(40))
-      
+
       try {
         // Load manifest
         const manifestContent = fs.readFileSync(config.manifestPath, 'utf-8')
         const manifest = JSON.parse(manifestContent)
-        
+
         // Initialize enhanced deployer
         const deployer = new EnhancedCrossChainDeployer({
           manifestHash: manifest.manifestHash || hre.ethers.keccak256(
@@ -148,11 +146,11 @@ export async function main(
           targetChains: [], // Will be filled from networks
           freezeAfterDeploy: true
         })
-        
+
     // Deploy across networks
   for (const networkName of config.networks) {
           console.log(`\n🌐 Deploying to ${networkName}...`)
-          
+
           try {
       const { provider, wallet } = await getProviderAndWallet(hre, networkName)
       const chainId = await provider.getNetwork().then(n => Number(n.chainId))
@@ -167,9 +165,9 @@ export async function main(
         ...networkResult,
         chainId,
       }
-            
+
             console.log(`  ✅ ${networkName} deployment completed`)
-            
+
           } catch (error) {
             console.error(`  ❌ ${networkName} deployment failed:`, error)
             result.deploymentResults![networkName] = {
@@ -178,7 +176,7 @@ export async function main(
               manifestValidated: false,
               errors: [error instanceof Error ? error.message : String(error)]
             }
-            
+
             if (!config.force) {
               result.errors = result.errors || []
               result.errors.push(`Network ${networkName} deployment failed`)
@@ -186,9 +184,9 @@ export async function main(
             }
           }
         }
-        
+
         console.log('✅ Component deployment phase completed')
-        
+
       } catch (error) {
         const errorMsg = `Component deployment failed: ${error}`
         console.error(`❌ ${errorMsg}`)
@@ -199,15 +197,15 @@ export async function main(
     } else {
       console.log('\n⏭️  PHASE 3: COMPONENT DEPLOYMENT SKIPPED (dry run or no manifest)')
     }
-    
+
     // 4. FINALIZATION
     console.log('\n🎯 PHASE 4: FINALIZATION')
     console.log('-'.repeat(40))
-    
+
     if (config.pausedDeployment) {
       console.log('⏸️  Deployment completed in PAUSED state (governance activation required)')
     }
-    
+
     // Generate deployment summary
     const reportPath = path.join(process.cwd(), 'reports', `deployment-${Date.now()}.json`)
     fs.mkdirSync(path.dirname(reportPath), { recursive: true })
@@ -218,14 +216,14 @@ export async function main(
       networks: config.networks,
       factoryAddress: result.factoryAddress
     }, null, 2))
-    
+
     console.log(`📄 Deployment report saved to: ${reportPath}`)
-    
+
     result.success = true
     result.duration = Date.now() - startTime
-    
+
     return result
-    
+
   } catch (error) {
     console.error('❌ Orchestration failed:', error)
     result.errors = result.errors || []

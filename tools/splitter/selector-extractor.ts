@@ -201,32 +201,37 @@ export class CanonicalSelectorExtractor {
    * Find all facet artifact files
    */
   private findFacetArtifacts(artifactsDir: string): string[] {
-    const results: string[] = [];
-
-    const searchDir = path.join(artifactsDir, "contracts", "facets");
-    if (!fs.existsSync(searchDir)) {
-      throw new Error(`Facets directory not found: ${searchDir}`);
-    }
+    const byName = new Map<string, string>();
 
     const scan = (dir: string) => {
+      if (!fs.existsSync(dir)) return;
       const entries = fs.readdirSync(dir, { withFileTypes: true });
-
       for (const entry of entries) {
         const fullPath = path.join(dir, entry.name);
-
         if (entry.isDirectory()) {
           scan(fullPath);
         } else if (entry.isFile() && entry.name.endsWith(".json")) {
-          // Only include facet contracts
           const contractName = entry.name.replace(".json", "");
-          if (contractName.endsWith("Facet") || contractName.includes("Facet")) {
-            results.push(fullPath);
+          if (!(contractName.endsWith("Facet") || contractName.includes("Facet"))) continue;
+          if (!byName.has(contractName)) {
+            byName.set(contractName, fullPath);
           }
         }
       }
     };
 
-    scan(searchDir);
+    const fixedBase = path.join(artifactsDir, "contracts", "facets-fixed");
+    scan(fixedBase);
+
+    if (byName.size === 0) {
+      const fallbackBase = path.join(artifactsDir, "contracts", "facets");
+      scan(fallbackBase);
+    }
+
+    const results = Array.from(byName.values());
+    if (results.length === 0) {
+  throw new Error(`Facets directory not found under: ${fixedBase} or its fallback`);
+    }
     return results;
   }
 

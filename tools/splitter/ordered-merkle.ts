@@ -42,6 +42,7 @@ export interface ManifestRoot {
   leaves: number;
   buildHash: string;
   timestamp: string;
+  gitCommit?: string;
 }
 
 export class OrderedMerkleBuilder {
@@ -339,7 +340,8 @@ export class OrderedMerkleBuilder {
       leafOrder: tree.leafOrder,
       leaves: tree.leaves.length,
       buildHash: buildConfig.buildHash || "0x0000000000000000000000000000000000000000000000000000000000000000",
-      timestamp: new Date().toISOString()
+  timestamp: new Date().toISOString(),
+  gitCommit: process.env.GIT_COMMIT || undefined
     };
 
     fs.writeFileSync(outputPath, JSON.stringify(manifest, null, 2));

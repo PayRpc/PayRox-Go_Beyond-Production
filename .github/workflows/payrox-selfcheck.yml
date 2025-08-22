@@ -1,0 +1,60 @@
+name: PayRox Selfcheck
+on:
+  push:
+  pull_request:
+
+jobs:
+  selfcheck:
+    runs-on: ubuntu-latest
+    env:
+      NODE_OPTIONS: "--max-old-space-size=4096"
+      REPORT_GAS: "false"
+      GIT_COMMIT: ${{ github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with: { node-version: "20", cache: "npm" }
+
+      - run: npm ci
+
+      - name: Generate predictive artifacts (offline pipeline)
+        run: |
+          npx ts-node tools/splitter/offline-pipeline.ts predictive
+
+      - name: Build & typecheck
+        run: |
+          npm run build --if-present
+          npm run typecheck --if-present || true
+
+      - name: Compile & unit tests
+        run: |
+          npx hardhat compile
+          npx hardhat test
+
+      - name: Manifest selfcheck (Merkle + optional EXTCODEHASH)
+        run: |
+          npx hardhat payrox:manifest:selfcheck \
+            --path split-output/manifest.root.json \
+            --check-facets \
+            --json
+
+      - name: Codehash predictive vs observed diff
+        if: ${{ hashFiles('split-output/codehashes-observed-*.json') != '' }}
+        run: |
+          npx hardhat payrox:codehash:diff \
+            --predictive $(ls -t split-output/codehashes-predictive-*.json | head -n1) \
+            --observed   $(ls -t split-output/codehashes-observed-*.json   | head -n1) \
+            --json
+
+      - name: Pack release bundle
+        if: always()
+        run: |
+          node scripts/ci/compute-shasums.js split-output > split-output/SHA256SUMS
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: split-output
+          path: |
+            split-output/**

@@ -1,7 +1,7 @@
 {
   "chainId": 1,
   "epoch": 1,
-  "root": "0x63ed5fcf43c9517d453684ba47155dbf30a74441ec248be007b0c50174d5ca7a",
+  "root": "0x0b7d1642cb4a4ac78a812f2cef4f462ab2a0a955271815fb040f97739dbe3e57",
   "solc": "0.8.30",
   "optimizer": {
     "enabled": true,
@@ -9,7 +9,7 @@
   },
   "metadata": "none",
   "leafOrder": "selector-asc",
-  "leaves": 72,
+  "leaves": 71,
   "buildHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
-  "timestamp": "2025-08-22T09:07:41.077Z"
+  "timestamp": "2025-08-22T19:10:34.412Z"
 }

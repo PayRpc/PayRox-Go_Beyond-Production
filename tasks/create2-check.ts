@@ -34,16 +34,16 @@ task("create2:check", "Verify CREATE2 determinism + integrity")
     console.log(`Salt: ${args.salt}`);
     console.log(`Mode: ${mode}`);
     console.log(`Network: ${hre.network.name}`);
-    
+
     if (args.dispatcher) console.log(`Dispatcher: ${args.dispatcher}`);
     if (args.expectedaddress) console.log(`Expected Address: ${args.expectedaddress}`);
     if (args.rpc) console.log(`RPC Override: ${args.rpc}`);
-    
+
     const _startTime = Date.now();
 
     try {
       let result;
-      
+
       if (mode === "artifact") {
         result = await runCreate2Check({
           hre,
@@ -92,7 +92,7 @@ task("create2:check", "Verify CREATE2 determinism + integrity")
         });
       }
 
-      const _duration = Date.now() - startTime;
+  const _duration = Date.now() - _startTime;
 
       console.log("\n" + "=".repeat(60));
       console.log("📋 CREATE2 Check Results");
@@ -100,8 +100,8 @@ task("create2:check", "Verify CREATE2 determinism + integrity")
       console.log(`🎯 Predicted Address: ${result.predicted}`);
       console.log(`🧬 InitCode Hash:     ${result.initCodeHash}`);
       console.log(`📦 Contract Deployed: ${result.deployed ? "✅ YES" : "❌ NO"}`);
-      console.log(`⏱️  Check Duration:    ${duration}ms`);
-      
+  console.log(`⏱️  Check Duration:    ${_duration}ms`);
+
       console.log("\n🔍 Verification Results:");
       console.log(`  Predicted vs Expected:  ${result.checks.predictedVsExpected ? "✅" : "❌"}`);
       console.log(`  Factory Codehash:       ${result.checks.factoryCodehash ? "✅" : "❌"}`);
@@ -109,10 +109,10 @@ task("create2:check", "Verify CREATE2 determinism + integrity")
       console.log(`  On-chain Prediction:    ${result.checks.onchainPrediction ? "✅" : "❌"}`);
       console.log(`  System Integrity:       ${result.checks.systemIntegrity ? "✅" : "❌"}`);
 
-      const _allPassed = Object.values(result.checks).every(Boolean);
-      
+  const _allPassed = Object.values(result.checks).every(Boolean);
+
       console.log("\n" + "=".repeat(60));
-      if (allPassed) {
+      if (_allPassed) {
         console.log("🎉 CREATE2 CHECK PASSED - System is deterministic and secure!");
       } else {
         console.log("❌ CREATE2 CHECK FAILED - Review the errors above");
@@ -125,11 +125,11 @@ task("create2:check", "Verify CREATE2 determinism + integrity")
       // Export results for CI/automation
       if (process.env.CI) {
         const summary = {
-          success: allPassed,
+          success: _allPassed,
           predicted: result.predicted,
           deployed: result.deployed,
           checks: result.checks,
-          duration,
+          duration: _duration,
           timestamp: new Date().toISOString(),
         };
         console.log(`\n::set-output name=create2_result::${JSON.stringify(summary)}`);
@@ -138,11 +138,11 @@ task("create2:check", "Verify CREATE2 determinism + integrity")
     } catch (error: any) {
       console.error("\n❌ CREATE2 Check failed:");
       console.error(error.message);
-      
+
       if (process.env.CI) {
         console.log(`::set-output name=create2_result::${JSON.stringify({ success: false, error: error.message })}`);
       }
-      
+
       if (!args.nofail) {
         process.exit(1);
       }
@@ -157,7 +157,7 @@ task("create2:predict", "Predict CREATE2 address without full verification")
   .addOptionalParam("argsjson", "Constructor args as JSON array")
   .setAction(async (args, hre: HardhatRuntimeEnvironment) => {
     const { runCreate2Check } = await import("../src/tools/create2Check");
-    
+
     const result = await runCreate2Check({
       hre,
       factory: args.factory,

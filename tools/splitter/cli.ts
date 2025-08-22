@@ -322,7 +322,8 @@ main().catch(console.error);
       mainnet: { name: 'Mainnet', rpcUrl: 'https://mainnet.infura.io/v3/YOUR_KEY' }
     };
 
-    return networks[networkName] ?? networks.localhost;
+  const resolved = networks[networkName] ?? networks.localhost;
+  return resolved ?? { name: 'Local', rpcUrl: 'http://127.0.0.1:8545' };
   }
 
   private getRiskBadge(risk: 'safe' | 'warning' | 'critical'): string {

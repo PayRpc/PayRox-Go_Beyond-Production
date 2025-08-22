@@ -1,8 +1,5 @@
 import fs from 'fs';
 import path from 'path';
-#!/usr/bin/env node
-import * as fs from 'fs'
-import * as path from 'path'
 
 import { SolidityAnalyzer } from '../analyzers/SolidityAnalyzer'
 
