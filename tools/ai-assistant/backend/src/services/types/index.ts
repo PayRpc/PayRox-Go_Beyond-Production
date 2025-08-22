@@ -86,7 +86,7 @@ export class CompilationErrorClass extends Error {
 }
 
 // Remove duplicate export - using class directly
-// export const CompilationError = CompilationErrorClass;
+// export const _CompilationError = CompilationErrorClass;
 
 export class AnalysisError extends Error {}
 

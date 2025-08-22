@@ -39,7 +39,7 @@ task("create2:check", "Verify CREATE2 determinism + integrity")
     if (args.expectedaddress) console.log(`Expected Address: ${args.expectedaddress}`);
     if (args.rpc) console.log(`RPC Override: ${args.rpc}`);
     
-    const startTime = Date.now();
+    const _startTime = Date.now();
 
     try {
       let result;
@@ -92,7 +92,7 @@ task("create2:check", "Verify CREATE2 determinism + integrity")
         });
       }
 
-      const duration = Date.now() - startTime;
+      const _duration = Date.now() - startTime;
 
       console.log("\n" + "=".repeat(60));
       console.log("📋 CREATE2 Check Results");
@@ -109,7 +109,7 @@ task("create2:check", "Verify CREATE2 determinism + integrity")
       console.log(`  On-chain Prediction:    ${result.checks.onchainPrediction ? "✅" : "❌"}`);
       console.log(`  System Integrity:       ${result.checks.systemIntegrity ? "✅" : "❌"}`);
 
-      const allPassed = Object.values(result.checks).every(Boolean);
+      const _allPassed = Object.values(result.checks).every(Boolean);
       
       console.log("\n" + "=".repeat(60));
       if (allPassed) {

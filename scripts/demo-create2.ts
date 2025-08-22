@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 // SPDX-License-Identifier: MIT
 /**
  * CREATE2 Demonstration Script
@@ -6,7 +8,7 @@
  * with salt-based address prediction and verification.
  */
 
-const hre = require('hardhat');
+import hre from 'hardhat';
 const { ethers } = hre;
 import * as crypto from 'crypto';
 
@@ -23,24 +25,24 @@ async function main() {
   console.log('🏭 CREATE2 Demonstration');
   console.log('========================\n');
 
-  const signers = await ethers.getSigners();
+  const _signers = await ethers.getSigners();
   if (signers.length === 0) {
     throw new Error('No signers available');
   }
 
-  const deployer = signers[0]!;
+  const _deployer = signers[0]!;
   console.log(`👤 Deployer: ${deployer.address}`);
 
   // Generate a random salt
-  const salt = ethers.hexlify(crypto.randomBytes(32));
+  const _salt = ethers.hexlify(crypto.randomBytes(32));
   console.log(`🧂 Salt: ${salt}`);
 
   // Get the bytecode for a simple contract
   console.log('\n📄 Preparing contract bytecode...');
-  const ContractFactory = await ethers.getContractFactory('DiamondCutFacet');
-  const deployTransaction = await ContractFactory.getDeployTransaction();
-  const initCode = deployTransaction.data ?? '';
-  const initCodeHash = ethers.keccak256(initCode);
+  const _ContractFactory = await ethers.getContractFactory('DiamondCutFacet');
+  const _deployTransaction = await ContractFactory.getDeployTransaction();
+  const _initCode = deployTransaction.data ?? '';
+  const _initCodeHash = ethers.keccak256(initCode);
 
   console.log(`📄 InitCode length: ${initCode.length} characters`);
   console.log(`🔗 InitCode hash: ${initCodeHash}`);
@@ -67,9 +69,9 @@ async function main() {
   try {
     // Deploy the contract normally (for comparison)
     console.log('\n🚀 Deploying contract...');
-    const contract = await ContractFactory.deploy();
+    const _contract = await ContractFactory.deploy();
     await contract.waitForDeployment();
-    const actualAddress = await contract.getAddress();
+    const _actualAddress = await contract.getAddress();
     demo.actualAddress = actualAddress;
 
     console.log(`📍 Actual address: ${actualAddress}`);
@@ -90,15 +92,15 @@ async function main() {
 
   // Save demonstration results
   console.log('\n💾 Saving results...');
-  const fs = await import('fs');
-  const path = await import('path');
+  const _fs = await import('fs');
+  const _path = await import('path');
 
-  const outputDir = path.join(process.cwd(), 'reports');
+  const _outputDir = path.join(process.cwd(), 'reports');
   if (!fs.existsSync(outputDir)) {
     fs.mkdirSync(outputDir, { recursive: true });
   }
 
-  const outputFile = path.join(outputDir, `create2-demo-${Date.now()}.json`);
+  const _outputFile = path.join(outputDir, `create2-demo-${Date.now()}.json`);
   fs.writeFileSync(outputFile, JSON.stringify(demo, null, 2));
   console.log(`📄 Results saved: ${outputFile}`);
 

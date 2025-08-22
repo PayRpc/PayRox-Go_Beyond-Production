@@ -8,7 +8,7 @@ console.log('🚀 Starting Freeze Readiness Assessment...');
 console.log('🧪 FORCE_READY enabled - synthesizing 100% ready assessment');
 console.log('');
 
-const timestamp = new Date().toISOString();
+const _timestamp = new Date().toISOString();
 const assessment = {
   timestamp,
   overallProgress: 100,

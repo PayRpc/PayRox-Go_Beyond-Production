@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 /**
  * Manifest Preflight Validation Script
  * SPDX-License-Identifier: MIT
@@ -155,7 +157,7 @@ export async function validateManifestPreflight(
     const addressSets = Object.values(result.networkResults).map(r => r.predictedAddresses)
     if (addressSets.length > 1) {
       const firstSet = addressSets[0]
-      for (let i = 1; i < addressSets.length; i++) {
+      for (let _i = 1; i < addressSets.length; i++) {
         const currentSet = addressSets[i]
         if (!currentSet) continue
         for (const componentId in firstSet) {

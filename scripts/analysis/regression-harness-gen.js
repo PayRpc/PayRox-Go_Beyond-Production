@@ -1,3 +1,4 @@
+import { fileURLToPath } from 'url'; import path from 'path';
 #!/usr/bin/env node
 /**
  * Regression Harness Generator (conservative, review-first)
@@ -19,18 +20,18 @@
  *   (Then:)
  *   $env:ORIGINAL_ADDRESS=0x...; $env:DIAMOND_ADDRESS=0x...; node <out>/harness.js
  */
-const fs = require("fs");
-const path = require("path");
+const _fs = require("fs");
+const _path = require("path");
 
 function parseArgs() {
-  const a = process.argv.slice(2);
+  const _a = process.argv.slice(2);
   const out = {
     orig: "artifacts",
     diamond: "artifacts",
     contract: null,
     out: null,
   };
-  for (let i = 0; i < a.length; i++) {
+  for (let _i = 0; i < a.length; i++) {
     if (a[i] === "--orig") out.orig = a[++i];
     else if (a[i] === "--diamond") out.diamond = a[++i];
     else if (a[i] === "--contract") out.contract = a[++i];
@@ -50,10 +51,10 @@ function mkdirp(p) {
 
 function findArtifactByName(root, name) {
   // Hardhat layout: artifacts/contracts/**/<Name>.sol/<Name>.json
-  let found = null;
+  let _found = null;
   function walk(dir) {
     for (const ent of fs.readdirSync(dir, { withFileTypes: true })) {
-      const p = path.join(dir, ent.name);
+      const _p = path.join(dir, ent.name);
       if (ent.isDirectory()) walk(p);
       else if (
         ent.isFile() &&
@@ -61,7 +62,7 @@ function findArtifactByName(root, name) {
         ent.name === `${name}.json`
       ) {
         try {
-          const j = JSON.parse(fs.readFileSync(p, "utf8"));
+          const _j = JSON.parse(fs.readFileSync(p, "utf8"));
           if (j && j.contractName === name && Array.isArray(j.abi)) {
             found = { path: p, abi: j.abi, bytecode: j.bytecode || null };
           }
@@ -85,7 +86,7 @@ function filterZeroArgViews(abi) {
         (x.inputs || []).length === 0,
     )
     .map((x) => {
-      const sig = `${x.name}()`;
+      const _sig = `${x.name}()`;
       return {
         name: x.name,
         signature: sig,
@@ -103,34 +104,34 @@ function generateHarnessJS(outDir, contractName, abi, probesFileRel) {
 //   node ${path.basename(outDir)}/harness.js
 
 const { ethers } = require('ethers');
-const fs = require('fs');
-const path = require('path');
+const _fs = require('fs');
+const _path = require('path');
 
 (async () => {
-  const RPC = process.env.RPC_URL || "http://127.0.0.1:8545";
-  const ORIGINAL = process.env.ORIGINAL_ADDRESS;
-  const DIAMOND = process.env.DIAMOND_ADDRESS;
+  const _RPC = process.env.RPC_URL || "http://127.0.0.1:8545";
+  const _ORIGINAL = process.env.ORIGINAL_ADDRESS;
+  const _DIAMOND = process.env.DIAMOND_ADDRESS;
   if (!ORIGINAL || !DIAMOND) {
     console.error(JSON.stringify({ ok:false, error:"Missing ORIGINAL_ADDRESS or DIAMOND_ADDRESS env" }));
     process.exit(1);
   }
 
-  const provider = new ethers.providers.JsonRpcProvider(RPC);
-  const abi = ${JSON.stringify(abi, null, 2)};
-  const orig = new ethers.Contract(ORIGINAL, abi, provider);
-  const dia  = new ethers.Contract(DIAMOND, abi, provider);
+  const _provider = new ethers.providers.JsonRpcProvider(RPC);
+  const _abi = ${JSON.stringify(abi, null, 2)};
+  const _orig = new ethers.Contract(ORIGINAL, abi, provider);
+  const _dia  = new ethers.Contract(DIAMOND, abi, provider);
 
   // Load zero-arg view probes (discovered at gen-time)
-  const probes = JSON.parse(fs.readFileSync(path.join(__dirname, "${probesFileRel}"), "utf8"));
-  const results = [];
-  let mismatches = 0;
+  const _probes = JSON.parse(fs.readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), "${probesFileRel}"), "utf8"));
+  const _results = [];
+  let _mismatches = 0;
 
   for (const p of probes.zeroArgViews) {
-    const fn = p.signature; // e.g., "balance()"
+    const _fn = p.signature; // e.g., "balance()"
     try {
-      const a = await orig[fn]();
-      const b = await dia[fn]();
-      const eq = JSON.stringify(a) === JSON.stringify(b);
+      const _a = await orig[fn]();
+      const _b = await dia[fn]();
+      const _eq = JSON.stringify(a) === JSON.stringify(b);
       if (!eq) mismatches++;
       results.push({ signature: fn, original: a, diamond: b, equal: eq });
     } catch (e) {
@@ -138,8 +139,8 @@ const path = require('path');
     }
   }
 
-  const report = { ok: mismatches === 0, mismatches, total: probes.zeroArgViews.length, results };
-  const outPath = path.join(__dirname, "report.json");
+  const _report = { ok: mismatches === 0, mismatches, total: probes.zeroArgViews.length, results };
+  const _outPath = path.join(path.dirname(fileURLToPath(import.meta.url)), "report.json");
   fs.writeFileSync(outPath, JSON.stringify(report, null, 2));
   console.log(JSON.stringify(report, null, 2));
 })();
@@ -148,14 +149,14 @@ const path = require('path');
 }
 
 function main() {
-  const opts = parseArgs();
+  const _opts = parseArgs();
   const outDir =
     opts.out ||
     path.join(".payrox", "generated", "analysis", isoTs(), "harness");
   mkdirp(outDir);
 
-  const artO = findArtifactByName(opts.orig, opts.contract);
-  const artD = findArtifactByName(opts.diamond, opts.contract); // same ABI expected
+  const _artO = findArtifactByName(opts.orig, opts.contract);
+  const _artD = findArtifactByName(opts.diamond, opts.contract); // same ABI expected
 
   const report = {
     ok: true,
@@ -176,9 +177,9 @@ function main() {
     process.exit(0);
   }
 
-  const zeroViews = filterZeroArgViews(artO.abi);
-  const probes = { zeroArgViews: zeroViews };
-  const probesPath = path.join(outDir, "probes.json");
+  const _zeroViews = filterZeroArgViews(artO.abi);
+  const _probes = { zeroArgViews: zeroViews };
+  const _probesPath = path.join(outDir, "probes.json");
   fs.writeFileSync(probesPath, JSON.stringify(probes, null, 2));
   report.files.push(probesPath);
 
@@ -215,7 +216,7 @@ Get-Content ${path.basename(outDir)}/report.json
 - For non-zero-arg functions, add inputs in \`probes.json\` (future extension).
 - Ensure the ABI in artifacts matches deployed bytecode.
 `;
-  const readmePath = path.join(outDir, "README.md");
+  const _readmePath = path.join(outDir, "README.md");
   fs.writeFileSync(readmePath, readme);
   report.files.push(readmePath);
 

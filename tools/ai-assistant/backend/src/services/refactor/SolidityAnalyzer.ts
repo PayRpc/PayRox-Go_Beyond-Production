@@ -1,10 +1,12 @@
+import fs from 'fs';
+import path from 'path';
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { parse } from "@solidity-parser/parser";
 
 // Helper inserted by error-fixer-final
 function _safeHexToBuffer(s: any) {
-  const clean = typeof s === 'string' ? s.replace(/^0x/, '') : '';
+  const _clean = typeof s === 'string' ? s.replace(/^0x/, '') : '';
   return clean ? Buffer.from(clean, 'hex') : Buffer.alloc(0);
 }
 import * as solc from "solc";
@@ -101,7 +103,7 @@ interface _ModifierDefinitionNode extends ASTNode {
 // It was only needed for solc compilation output typing
 
 // Canonical zero hash (256-bit)
-const ZERO_HASH = "0x" + "0".repeat(64);
+const _ZERO_HASH = "0x" + "0".repeat(64);
 
 export class SolidityAnalyzer {
   constructor() {
@@ -137,34 +139,34 @@ export class SolidityAnalyzer {
       }
 
       // Extract contract information
-      const contractNode = this.findContractNode(ast, contractName);
+      const _contractNode = this.findContractNode(ast, contractName);
       if (!contractNode) {
         throw new AnalysisError("Contract not found in source code");
       }
 
       // Extract all components
-      const functions = this.extractFunctions(contractNode, sourceCode);
-      const variables = this.extractVariables(contractNode, sourceCode);
-      const events = this.extractEvents(contractNode, sourceCode);
+      const _functions = this.extractFunctions(contractNode, sourceCode);
+      const _variables = this.extractVariables(contractNode, sourceCode);
+      const _events = this.extractEvents(contractNode, sourceCode);
       const modifiers = this.extractModifiersFromContract(
         contractNode,
         sourceCode,
       );
-      const imports = this.extractImports(ast);
-      const inheritance = this.extractInheritance(contractNode);
+      const _imports = this.extractImports(ast);
+      const _inheritance = this.extractInheritance(contractNode);
 
       // Calculate metrics
-      const totalSize = this.calculateTotalSize(functions, variables);
+      const _totalSize = this.calculateTotalSize(functions, variables);
       const deploymentStrategy = this.determineDeploymentStrategy(
         totalSize,
         functions.length,
       );
 
       // Analyze storage layout
-      const storageLayout = this.analyzeStorageLayout(variables, compiled);
+      const _storageLayout = this.analyzeStorageLayout(variables, compiled);
 
       // Create diamond-compatible manifest routes
-      const manifestRoutes = this.generateManifestRoutes(functions, compiled);
+      const _manifestRoutes = this.generateManifestRoutes(functions, compiled);
 
       // Generate security analysis
       const securityAnalysis = this.performSecurityAnalysis(
@@ -232,7 +234,7 @@ export class SolidityAnalyzer {
         },
       };
 
-      const output = JSON.parse(solc.compile(JSON.stringify(input)));
+      const _output = JSON.parse(solc.compile(JSON.stringify(input)));
 
       if (output.errors) {
         const errors = output.errors.filter(
@@ -264,7 +266,7 @@ export class SolidityAnalyzer {
     });
 
     if (contractName) {
-      const found = contractNodes.find((node) => node.name === contractName);
+      const _found = contractNodes.find((node) => node.name === contractName);
       return found || null;
     }
 
@@ -283,7 +285,7 @@ export class SolidityAnalyzer {
 
     this.visitNode(contractNode, (node) => {
       if (node.type === "FunctionDefinition") {
-        const functionNode = node as FunctionNode;
+        const _functionNode = node as FunctionNode;
         functions.push({
           name:
             functionNode.name ||
@@ -324,7 +326,7 @@ export class SolidityAnalyzer {
 
     this.visitNode(contractNode, (node) => {
       if (node.type === "StateVariableDeclaration") {
-        const variableNode = node as VariableNode;
+        const _variableNode = node as VariableNode;
         if (variableNode.variables) {
           for (const variable of variableNode.variables) {
             variables.push({
@@ -353,7 +355,7 @@ export class SolidityAnalyzer {
 
     this.visitNode(contractNode, (node) => {
       if (node.type === "EventDefinition") {
-        const eventNode = node as EventNode;
+        const _eventNode = node as EventNode;
         events.push({
           name: eventNode.name,
           parameters: this.extractParameters(eventNode.parameters),
@@ -417,7 +419,7 @@ export class SolidityAnalyzer {
   // ===============================================
 
   private calculateSelector(functionNode: FunctionNode): string {
-    const signature = this.buildFunctionSignature(functionNode);
+    const _signature = this.buildFunctionSignature(functionNode);
     return this.selectorFromSignature(signature);
   }
 
@@ -491,8 +493,8 @@ export class SolidityAnalyzer {
         return (typeNode as any).namePath || "unknown";
 
       case "ArrayTypeName": {
-        const baseType = this.typeToString((typeNode as any).baseTypeName);
-        const length = (typeNode as any).length;
+        const _baseType = this.typeToString((typeNode as any).baseTypeName);
+        const _length = (typeNode as any).length;
         return length ? `${baseType}[${length}]` : `${baseType}[]`;
       }
 
@@ -544,7 +546,7 @@ export class SolidityAnalyzer {
     }
 
     // Final fallback: basic node counting
-    let nodeCount = 0;
+    let _nodeCount = 0;
     this.visitNode(functionNode.body, () => {
       nodeCount++;
     });
@@ -552,7 +554,7 @@ export class SolidityAnalyzer {
   }
 
   private estimateVariableSize(typeNode: ASTNode): number {
-    const typeString = this.typeToString(typeNode);
+    const _typeString = this.typeToString(typeNode);
 
     // Basic type size estimation
     if (typeString.includes("uint256") || typeString.includes("int256"))
@@ -570,7 +572,7 @@ export class SolidityAnalyzer {
    * Estimate function gas usage
    */
   private estimateFunctionGas(functionNode: any): number {
-    let gasEstimate = 21000; // Base transaction cost
+    let _gasEstimate = 21000; // Base transaction cost
 
     // Add gas for function complexity
     if (functionNode.body) {
@@ -597,7 +599,7 @@ export class SolidityAnalyzer {
     functionNode: any,
     _sourceCode: string,
   ): string[] {
-    const dependencies = new Set<string>();
+    const _dependencies = new Set<string>();
 
     this.visitNode(functionNode, (node) => {
       if (node.type === "FunctionCall") {
@@ -617,7 +619,7 @@ export class SolidityAnalyzer {
     variableNode: any,
     _sourceCode: string,
   ): string[] {
-    const dependencies = new Set<string>();
+    const _dependencies = new Set<string>();
 
     if (variableNode.expression) {
       this.visitNode(variableNode.expression, (node) => {
@@ -634,7 +636,7 @@ export class SolidityAnalyzer {
     functions: FunctionInfo[],
     variables: VariableInfo[],
   ): number {
-    const functionSize = functions.reduce((sum, fn) => sum + fn.size, 0);
+    const _functionSize = functions.reduce((sum, fn) => sum + fn.size, 0);
     const variableSize = variables.reduce(
       (sum, variable) => sum + variable.size,
       0,
@@ -662,7 +664,7 @@ export class SolidityAnalyzer {
 
   private detectStorageCollisions(variables: VariableInfo[]): string[] {
     const collisions: string[] = [];
-    const slotMap = new Map<number, string[]>();
+    const _slotMap = new Map<number, string[]>();
 
     // Group variables by slot
     variables.forEach((v) => {
@@ -709,8 +711,8 @@ export class SolidityAnalyzer {
     totalSize: number,
     functionCount: number,
   ): string {
-    const SIZE_THRESHOLD = 24576; // 24KB contract size limit
-    const FUNCTION_THRESHOLD = 20; // Reasonable function count for single contract
+    const _SIZE_THRESHOLD = 24576; // 24KB contract size limit
+    const _FUNCTION_THRESHOLD = 20; // Reasonable function count for single contract
 
     if (totalSize <= SIZE_THRESHOLD && functionCount <= FUNCTION_THRESHOLD) {
       return "monolithic";
@@ -734,7 +736,7 @@ export class SolidityAnalyzer {
     const _facetRecommendations: FacetCandidate[] = [];
 
     // Use the provided _functions as base and map to facet candidates
-    const c = this as any;
+    const _c = this as any;
     return (_functions || []).map((fn: any) => ({
       name: `${c.constructor.name}_${fn.name}`,
       functions: [fn],
@@ -747,10 +749,10 @@ export class SolidityAnalyzer {
   private identifyFacetCandidates(
     functions: FunctionInfo[],
   ): Map<string, FunctionInfo[]> {
-    const facets = new Map<string, FunctionInfo[]>();
+    const _facets = new Map<string, FunctionInfo[]>();
 
     for (const fn of functions) {
-      let facetName = "core";
+      let _facetName = "core";
 
       if (this.isAccessControlFunction(fn)) {
         facetName = "access";
@@ -859,7 +861,7 @@ export class SolidityAnalyzer {
     const recommendations: string[] = [];
 
     // Recommend access control
-    const publicFunctions = functions.filter((f) => f.visibility === "public");
+    const _publicFunctions = functions.filter((f) => f.visibility === "public");
     if (publicFunctions.length > 5) {
       recommendations.push("Consider implementing role-based access control");
     }
@@ -878,7 +880,7 @@ export class SolidityAnalyzer {
     functions: FunctionInfo[],
     variables: VariableInfo[],
   ): number {
-    let score = 0;
+    let _score = 0;
 
     // Risk factors
     score +=
@@ -914,7 +916,7 @@ export class SolidityAnalyzer {
   private assessSecurityLevel(
     func: FunctionInfo,
   ): "low" | "medium" | "high" | "critical" {
-    let score = 0;
+    let _score = 0;
 
     // Risk factors
     if (func.stateMutability === "payable") score += 3;
@@ -958,10 +960,10 @@ export class SolidityAnalyzer {
 
   private createOptimizedChunks(contract: ParsedContract): ChunkInfo[] {
     const chunks: ChunkInfo[] = [];
-    const maxChunkSize = 20000; // Conservative size limit
+    const _maxChunkSize = 20000; // Conservative size limit
 
     // Group functions by feature/access pattern
-    const featureGroups = this.groupFunctionsByFeature(contract.functions);
+    const _featureGroups = this.groupFunctionsByFeature(contract.functions);
 
     for (const [feature, funcs] of Array.from(featureGroups.entries())) {
       let currentChunk: any = this.createEmptyChunk(chunks.length, feature);
@@ -990,10 +992,10 @@ export class SolidityAnalyzer {
   private groupFunctionsByFeature(
     functions: FunctionInfo[],
   ): Map<string, FunctionInfo[]> {
-    const groups = new Map<string, FunctionInfo[]>();
+    const _groups = new Map<string, FunctionInfo[]>();
 
     for (const func of functions) {
-      let feature = "core";
+      let _feature = "core";
 
       if (this.isAccessControlFunction(func)) {
         feature = "access";
@@ -1030,20 +1032,20 @@ export class SolidityAnalyzer {
 
   private optimizeChunkDependencies(chunks: ChunkInfo[]): ChunkInfo[] {
     // Analyze cross-chunk dependencies and optimize deployment order
-    const dependencyGraph = this.buildDependencyGraph(chunks);
+    const _dependencyGraph = this.buildDependencyGraph(chunks);
     return this.reorderChunksByDependencies(chunks, dependencyGraph);
   }
 
   private buildDependencyGraph(chunks: ChunkInfo[]): Map<number, number[]> {
-    const graph = new Map<number, number[]>();
+    const _graph = new Map<number, number[]>();
 
-    for (let i = 0; i < chunks.length; i++) {
+    for (let _i = 0; i < chunks.length; i++) {
       graph.set(i, []);
 
-      for (let j = 0; j < chunks.length; j++) {
+      for (let _j = 0; j < chunks.length; j++) {
         if (i === j) continue;
 
-        const chunk1Deps = new Set(chunks[i]?.dependencies || []);
+        const _chunk1Deps = new Set(chunks[i]?.dependencies || []);
         const chunk2Funcs = new Set(
           (chunks[j]?.functions || []).map((f: any) => f.name),
         );
@@ -1086,17 +1088,17 @@ export class SolidityAnalyzer {
     }
 
     const nextLevel: string[] = [];
-    for (let i = 0; i < hashes.length; i += 2) {
-      const left = hashes[i] ?? hashes[i - 1];
-      const right = hashes[i + 1] ?? left;
+    for (let _i = 0; i < hashes.length; i += 2) {
+      const _left = hashes[i] ?? hashes[i - 1];
+      const _right = hashes[i + 1] ?? left;
 
   // Convert hex strings to bytes for proper hashing
-  const leftStr = typeof left === 'string' ? left.replace(/^0x/, "") : '';
-  const rightStr = typeof right === 'string' ? right.replace(/^0x/, "") : '';
-  const leftBytes = leftStr ? Buffer.from(leftStr, "hex") : Buffer.alloc(0);
-  const rightBytes = rightStr ? Buffer.from(rightStr, "hex") : Buffer.alloc(0);
-  const combined = Buffer.concat([leftBytes, rightBytes]);
-      const hash = crypto.createHash("sha256").update(combined).digest("hex");
+  const _leftStr = typeof left === 'string' ? left.replace(/^0x/, "") : '';
+  const _rightStr = typeof right === 'string' ? right.replace(/^0x/, "") : '';
+  const _leftBytes = leftStr ? Buffer.from(leftStr, "hex") : Buffer.alloc(0);
+  const _rightBytes = rightStr ? Buffer.from(rightStr, "hex") : Buffer.alloc(0);
+  const _combined = Buffer.concat([leftBytes, rightBytes]);
+      const _hash = crypto.createHash("sha256").update(combined).digest("hex");
 
       nextLevel.push("0x" + hash);
     }
@@ -1123,7 +1125,7 @@ export class SolidityAnalyzer {
    * Estimate gas usage for a code block
    */
   private estimateBlockGas(blockNode: any): number {
-    let gasEstimate = 0;
+    let _gasEstimate = 0;
 
     this.visitNode(blockNode, (node) => {
       switch (node.type) {
@@ -1214,7 +1216,7 @@ export class SolidityAnalyzer {
    * Generate dependency graph for functions
    */
   generateDependencyGraph(functions: FunctionInfo[]): Map<string, string[]> {
-    const graph = new Map<string, string[]>();
+    const _graph = new Map<string, string[]>();
 
     for (const func of functions || []) {
       for (const dep of func.dependencies || []) {
@@ -1232,14 +1234,14 @@ export class SolidityAnalyzer {
    * Detect circular dependencies in function calls
    */
   detectCircularDependencies(functions: FunctionInfo[]): string[] {
-    const graph = this.generateDependencyGraph(functions);
-    const visiting = new Set<string>();
-    const visited = new Set<string>();
+    const _graph = this.generateDependencyGraph(functions);
+    const _visiting = new Set<string>();
+    const _visited = new Set<string>();
     const cycles: string[] = [];
 
     const dfs = (node: string, path: string[]): void => {
       if (visiting.has(node)) {
-        const cycleStart = path.indexOf(node);
+        const _cycleStart = path.indexOf(node);
         cycles.push(
           `Circular dependency: ${path.slice(cycleStart).join(" -> ")} -> ${node}`,
         );
@@ -1251,7 +1253,7 @@ export class SolidityAnalyzer {
       }
 
       visiting.add(node);
-      const dependencies = graph.get(node) || [];
+      const _dependencies = graph.get(node) || [];
 
       for (const dep of dependencies) {
         dfs(dep, [...path, node]);
@@ -1276,7 +1278,7 @@ export class SolidityAnalyzer {
   async generateDependencyAwareChunks(
     contract: ParsedContract,
   ): Promise<ChunkInfo[]> {
-    const cycles = this.detectCircularDependencies(contract.functions);
+    const _cycles = this.detectCircularDependencies(contract.functions);
     if (cycles.length > 0) {
       console.warn("Circular dependencies detected:", cycles);
     }
@@ -1288,10 +1290,10 @@ export class SolidityAnalyzer {
    * Generate comprehensive analysis report
    */
   async generateAnalysisReport(contract: ParsedContract): Promise<any> {
-    const chunks = await this.generateOptimizedChunks(contract);
-    const merkleTree = this.buildFunctionMerkleTree(contract.functions);
-    const dependencyGraph = this.generateDependencyGraph(contract.functions);
-    const circularDeps = this.detectCircularDependencies(contract.functions);
+    const _chunks = await this.generateOptimizedChunks(contract);
+    const _merkleTree = this.buildFunctionMerkleTree(contract.functions);
+    const _dependencyGraph = this.generateDependencyGraph(contract.functions);
+    const _circularDeps = this.detectCircularDependencies(contract.functions);
 
     return {
       contract: {
@@ -1323,9 +1325,9 @@ export class SolidityAnalyzer {
         storageCollisions: contract.storageCollisions?.length || 0,
       },
       facets: Array.from(contract.facetCandidates?.entries() || []).map((entry) => {
-        const pair = entry as [string, any[]];
-        const name = pair[0];
-        const funcs = pair[1] || [];
+        const _pair = entry as [string, any[]];
+        const _name = pair[0];
+        const _funcs = pair[1] || [];
         return {
           name,
           functionCount: funcs.length,
@@ -1358,9 +1360,9 @@ export class SolidityAnalyzer {
       diamond: {
         facets: Array.from(contract.facetCandidates?.entries() || []).map(
           (entry) => {
-            const pair = entry as [string, any[]];
-            const name = pair[0];
-            const funcs = pair[1] || [];
+            const _pair = entry as [string, any[]];
+            const _name = pair[0];
+            const _funcs = pair[1] || [];
             return {
               name,
               functions: funcs.map((f: any) => f.signature),
@@ -1384,7 +1386,7 @@ export class SolidityAnalyzer {
    * Cross-reference analysis for function dependencies
    */
   crossReferenceFunctions(functions: FunctionInfo[]): Map<string, string[]> {
-    const references = new Map<string, string[]>();
+    const _references = new Map<string, string[]>();
 
     for (const func of functions) {
       references.set(func.name, []);
@@ -1403,11 +1405,11 @@ export class SolidityAnalyzer {
    * Calculate cross-chunk communication overhead
    */
   calculateCommunicationOverhead(chunks: ChunkInfo[]): number {
-    let crossDependencies = 0;
+    let _crossDependencies = 0;
 
-    for (let i = 0; i < chunks.length; i++) {
-      for (let j = i + 1; j < chunks.length; j++) {
-        const chunk1Deps = new Set(chunks[i]?.dependencies || []);
+    for (let _i = 0; i < chunks.length; i++) {
+      for (let _j = i + 1; j < chunks.length; j++) {
+        const _chunk1Deps = new Set(chunks[i]?.dependencies || []);
         const chunk2Funcs = new Set(
           (chunks[j]?.functions || []).map((f: any) => f.name),
         );
@@ -1428,7 +1430,7 @@ export class SolidityAnalyzer {
    * Flatten dependencies for deployment ordering
    */
   flattenDependencies(functions: FunctionInfo[]): string[] {
-    const dependencies = new Set<string>();
+    const _dependencies = new Set<string>();
 
     functions.forEach((func) => {
       func.dependencies.forEach((dep: any) => dependencies.add(dep));
@@ -1469,7 +1471,7 @@ export class SolidityAnalyzer {
 // ===============================================
 
 export function createCLI(): Command {
-  const program = new Command();
+  const _program = new Command();
 
   program
     .name("solidity-analyzer")
@@ -1499,10 +1501,10 @@ export function createCLI(): Command {
         }
 
         // Read contract source
-        const sourceCode = fs.readFileSync(contractPath, "utf8");
+        const _sourceCode = fs.readFileSync(contractPath, "utf8");
 
         // Analyze contract
-        const analyzer = new SolidityAnalyzer();
+        const _analyzer = new SolidityAnalyzer();
         const analysis = await analyzer.parseContract(
           sourceCode,
           options.contractName,
@@ -1549,16 +1551,16 @@ export function createCLI(): Command {
         }
 
         // Read contract source
-        const sourceCode = fs.readFileSync(contractPath, "utf8");
+        const _sourceCode = fs.readFileSync(contractPath, "utf8");
 
         // Analyze and generate manifest
-        const analyzer = new SolidityAnalyzer();
+        const _analyzer = new SolidityAnalyzer();
         const analysis = await analyzer.parseContract(
           sourceCode,
           options.contractName,
         );
-        const chunks = await analyzer.generateOptimizedChunks(analysis);
-        const manifest = analyzer.generateManifest(analysis, chunks);
+        const _chunks = await analyzer.generateOptimizedChunks(analysis);
+        const _manifest = analyzer.generateManifest(analysis, chunks);
 
         fs.writeFileSync(options.output, JSON.stringify(manifest, null, 2));
         console.log(`Manifest saved to: ${options.output}`);
@@ -1594,6 +1596,6 @@ export { AnalysisError };
 export default SolidityAnalyzer;
 
 if (require.main === module) {
-  const cli = createCLI();
+  const _cli = createCLI();
   cli.parse();
 }

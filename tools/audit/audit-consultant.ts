@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 #!/usr/bin/env ts-node
 
 /**
@@ -100,7 +102,7 @@ class AuditConsultant {
       documentation: this.getDocumentationLinks(),
     };
 
-    const prepPath = path.join(this.workspaceRoot, "audit-prep.json");
+    const _prepPath = path.join(this.workspaceRoot, "audit-prep.json");
     fs.writeFileSync(prepPath, JSON.stringify(prep, null, 2));
 
     return prepPath;
@@ -108,7 +110,7 @@ class AuditConsultant {
 
   private async getCodeMetrics(): Promise<any> {
     try {
-      const contracts = this.findSolidityFiles();
+      const _contracts = this.findSolidityFiles();
       return {
         totalContracts: contracts.length,
         totalLines: this.countTotalLines(contracts),
@@ -122,7 +124,7 @@ class AuditConsultant {
 
   private async getContractSizes(): Promise<any> {
     try {
-      const artifactsPath = path.join(this.workspaceRoot, "artifacts");
+      const _artifactsPath = path.join(this.workspaceRoot, "artifacts");
       if (!fs.existsSync(artifactsPath)) {
         return { warning: "Run npm run compile first to get contract sizes" };
       }
@@ -210,13 +212,13 @@ class AuditConsultant {
   }
 
   private findSolidityFiles(): string[] {
-    const contractsDir = path.join(this.workspaceRoot, "contracts");
+    const _contractsDir = path.join(this.workspaceRoot, "contracts");
     if (!fs.existsSync(contractsDir)) return [];
 
     const files: string[] = [];
     const scan = (dir: string) => {
       fs.readdirSync(dir).forEach((item) => {
-        const fullPath = path.join(dir, item);
+        const _fullPath = path.join(dir, item);
         if (fs.statSync(fullPath).isDirectory()) {
           scan(fullPath);
         } else if (item.endsWith(".sol")) {
@@ -231,7 +233,7 @@ class AuditConsultant {
   private countTotalLines(files: string[]): number {
     return files.reduce((total, file) => {
       try {
-        const content = fs.readFileSync(file, "utf8");
+        const _content = fs.readFileSync(file, "utf8");
         return total + content.split("\n").length;
       } catch {
         return total;
@@ -256,11 +258,11 @@ class AuditConsultant {
   }
 
   private getDocumentationLinks(): string[] {
-    const docs = [];
-    const readmePath = path.join(this.workspaceRoot, "README.md");
+    const _docs = [];
+    const _readmePath = path.join(this.workspaceRoot, "README.md");
     if (fs.existsSync(readmePath)) docs.push("README.md");
 
-    const docsDir = path.join(this.workspaceRoot, "docs");
+    const _docsDir = path.join(this.workspaceRoot, "docs");
     if (fs.existsSync(docsDir)) docs.push("docs/ directory");
 
     // Look for specific documentation files
@@ -389,7 +391,7 @@ I can share specific contract code or provide more context as needed.
 
     // Generate audit preparation
     console.log("📋 Generating audit preparation...");
-    const prepPath = await this.generateAuditPrep();
+    const _prepPath = await this.generateAuditPrep();
     console.log(`✅ Audit prep saved to: ${prepPath}`);
 
     // Show available options
@@ -458,7 +460,7 @@ I can share specific contract code or provide more context as needed.
 - [ ] Emergency procedures defined
     `.trim();
 
-    const checklistPath = path.join(this.workspaceRoot, "audit-checklist.md");
+    const _checklistPath = path.join(this.workspaceRoot, "audit-checklist.md");
     fs.writeFileSync(checklistPath, checklist);
 
     return checklistPath;
@@ -467,9 +469,9 @@ I can share specific contract code or provide more context as needed.
 
 // CLI Interface
 if (require.main === module) {
-  const consultant = new AuditConsultant(process.cwd());
+  const _consultant = new AuditConsultant(process.cwd());
 
-  const command = process.argv[2];
+  const _command = process.argv[2];
 
   switch (command) {
     case "prep":

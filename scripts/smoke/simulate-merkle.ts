@@ -52,7 +52,7 @@ async function main () {
   console.log('Leaves count:', leaves.length)
 
   // Verify each proof with ordered-merkle helpers
-  for (let i = 0; i < leaves.length; i++) {
+  for (let _i = 0; i < leaves.length; i++) {
     const meta = leafMeta[i]
     const key = `${meta?.selector}:${meta?.facet}:${meta?.codehash}`
     const proof = proofs[key] || []

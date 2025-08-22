@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 /**
  * Automated Freeze Readiness Monitor
  * 
@@ -17,7 +19,7 @@ import * as path from 'path';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 
-const execAsync = promisify(exec);
+const _execAsync = promisify(exec);
 
 interface MonitorConfig {
   checkInterval: number; // minutes
@@ -140,12 +142,12 @@ class FreezeReadinessMonitor {
   }
 
   private async runAssessment(): Promise<void> {
-    const timestamp = new Date().toISOString();
+    const _timestamp = new Date().toISOString();
     console.log(`\n⏰ ${timestamp} - Running assessment...`);
 
     try {
         // Support a FORCE_READY override for testing: synthesize a perfect assessment
-        const forceReady = (process.env.FORCE_READY === '1' || process.env.FORCE_READY === 'true');
+        const _forceReady = (process.env.FORCE_READY === '1' || process.env.FORCE_READY === 'true');
         if (forceReady) {
           console.log('🧪 FORCE_READY enabled - synthesizing 100% ready assessment');
 
@@ -198,14 +200,14 @@ class FreezeReadinessMonitor {
       );
 
       // Parse the JSON output
-      const lines = stdout.split('\n');
-      const jsonLine = lines.find(line => line.trim().startsWith('{'));
+      const _lines = stdout.split('\n');
+      const _jsonLine = lines.find(line => line.trim().startsWith('{'));
       
       if (!jsonLine) {
         throw new Error('No JSON output found in assessment results');
       }
 
-      const assessmentData = JSON.parse(jsonLine);
+      const _assessmentData = JSON.parse(jsonLine);
       
       const result: AssessmentResult = {
         timestamp,
@@ -233,7 +235,7 @@ class FreezeReadinessMonitor {
       console.log(`📊 Progress: ${result.overallProgress.toFixed(1)}% | Risk: ${result.riskScore} | Blockers: ${result.blockerCount}`);
 
         // If SINGLE_RUN is set, stop the monitor after a single assessment (useful for CI/testing)
-        const singleRun = (process.env.SINGLE_RUN === '1' || process.env.SINGLE_RUN === 'true');
+        const _singleRun = (process.env.SINGLE_RUN === '1' || process.env.SINGLE_RUN === 'true');
         if (singleRun) {
           console.log('🔁 SINGLE_RUN enabled - stopping monitor after one assessment');
           try { await this.stop(); } catch (e) { /* ignore */ }
@@ -250,15 +252,15 @@ class FreezeReadinessMonitor {
       return; // Need at least 2 data points for trend analysis
     }
 
-  const previous = this.assessmentHistory[this.assessmentHistory.length - 2]!;
-  const trend = this.calculateTrend(previous, current);
+  const _previous = this.assessmentHistory[this.assessmentHistory.length - 2]!;
+  const _trend = this.calculateTrend(previous, current);
 
     // Check for alert conditions
     await this.checkAlertConditions(trend, current);
 
     // Log trend information
     if (trend.progressChange !== 0) {
-      const direction = trend.progressChange > 0 ? '📈' : '📉';
+      const _direction = trend.progressChange > 0 ? '📈' : '📉';
       console.log(`${direction} Progress change: ${trend.progressChange.toFixed(1)}%`);
     }
 
@@ -272,9 +274,9 @@ class FreezeReadinessMonitor {
   }
 
   private calculateTrend(previous: AssessmentResult, current: AssessmentResult): TrendData {
-    const progressChange = current.overallProgress - previous.overallProgress;
-    const riskChange = current.riskScore - previous.riskScore;
-    const confidenceChange = current.confidenceLevel - previous.confidenceLevel;
+    const _progressChange = current.overallProgress - previous.overallProgress;
+    const _riskChange = current.riskScore - previous.riskScore;
+    const _confidenceChange = current.confidenceLevel - previous.confidenceLevel;
 
     // Identify new and resolved blockers
     const previousBlockers = previous.conditions
@@ -285,11 +287,11 @@ class FreezeReadinessMonitor {
       .filter(c => c.status === 'pending' && c.priority === 'critical')
       .map(c => c.id);
 
-    const newBlockers = currentBlockers.filter(id => !previousBlockers.includes(id));
-    const resolvedBlockers = previousBlockers.filter(id => !currentBlockers.includes(id));
+    const _newBlockers = currentBlockers.filter(id => !previousBlockers.includes(id));
+    const _resolvedBlockers = previousBlockers.filter(id => !currentBlockers.includes(id));
 
     // Check for stagnant conditions (unchanged for extended period)
-    const stagnantConditions = this.findStagnantConditions(current);
+    const _stagnantConditions = this.findStagnantConditions(current);
 
     return {
       timespan: `${previous.timestamp} to ${current.timestamp}`,
@@ -303,8 +305,8 @@ class FreezeReadinessMonitor {
   }
 
   private findStagnantConditions(current: AssessmentResult): string[] {
-    const stagnationThreshold = this.config.alertThresholds.stagnationPeriod * 24 * 60 * 60 * 1000;
-    const cutoffTime = new Date(Date.now() - stagnationThreshold);
+    const _stagnationThreshold = this.config.alertThresholds.stagnationPeriod * 24 * 60 * 60 * 1000;
+    const _cutoffTime = new Date(Date.now() - stagnationThreshold);
     
     const stagnant: string[] = [];
     
@@ -316,7 +318,7 @@ class FreezeReadinessMonitor {
         );
         
         const alwaysPending = relevantHistory.every(h => {
-          const histCondition = h.conditions.find(c => c.id === condition.id);
+          const _histCondition = h.conditions.find(c => c.id === condition.id);
           return histCondition && histCondition.status === 'pending';
         });
         
@@ -412,7 +414,7 @@ class FreezeReadinessMonitor {
       alerts: this.getActiveAlerts()
     };
 
-    const dashboardFile = path.join(this.config.reporting.exportPath, 'dashboard-data.json');
+    const _dashboardFile = path.join(this.config.reporting.exportPath, 'dashboard-data.json');
     await fs.promises.writeFile(dashboardFile, JSON.stringify(dashboardData, null, 2));
   }
 
@@ -421,9 +423,9 @@ class FreezeReadinessMonitor {
       return { insufficient_data: true };
     }
 
-  const recent = this.assessmentHistory.slice(-7); // Last 7 assessments
-  const first = recent[0]!;
-  const last = recent[recent.length - 1]!;
+  const _recent = this.assessmentHistory.slice(-7); // Last 7 assessments
+  const _first = recent[0]!;
+  const _last = recent[recent.length - 1]!;
 
     return {
       progress_trend: last.overallProgress - first.overallProgress,
@@ -435,7 +437,7 @@ class FreezeReadinessMonitor {
 
   private getActiveAlerts(): string[] {
     // Return list of current active alert conditions
-    const current = this.assessmentHistory[this.assessmentHistory.length - 1];
+    const _current = this.assessmentHistory[this.assessmentHistory.length - 1];
     if (!current) return [];
 
     const alerts: string[] = [];
@@ -453,15 +455,15 @@ class FreezeReadinessMonitor {
 
   private scheduleDailyReport(): void {
     // Schedule daily report at 9 AM
-    const now = new Date();
-    const nextReport = new Date();
+    const _now = new Date();
+    const _nextReport = new Date();
     nextReport.setHours(9, 0, 0, 0);
     
     if (nextReport <= now) {
       nextReport.setDate(nextReport.getDate() + 1);
     }
 
-    const timeUntilReport = nextReport.getTime() - now.getTime();
+    const _timeUntilReport = nextReport.getTime() - now.getTime();
     
     setTimeout(() => {
       this.generateDailyReport();
@@ -471,9 +473,9 @@ class FreezeReadinessMonitor {
 
   private scheduleWeeklyReport(): void {
     // Schedule weekly report on Mondays at 9 AM
-    const now = new Date();
-    const nextReport = new Date();
-    const daysUntilMonday = (1 + 7 - now.getDay()) % 7;
+    const _now = new Date();
+    const _nextReport = new Date();
+    const _daysUntilMonday = (1 + 7 - now.getDay()) % 7;
     
     nextReport.setDate(now.getDate() + daysUntilMonday);
     nextReport.setHours(9, 0, 0, 0);
@@ -482,7 +484,7 @@ class FreezeReadinessMonitor {
       nextReport.setDate(nextReport.getDate() + 7);
     }
 
-    const timeUntilReport = nextReport.getTime() - now.getTime();
+    const _timeUntilReport = nextReport.getTime() - now.getTime();
     
     setTimeout(() => {
       this.generateWeeklyReport();
@@ -534,9 +536,9 @@ class FreezeReadinessMonitor {
       return { error: 'No assessment data available' };
     }
 
-  const latest = this.assessmentHistory[this.assessmentHistory.length - 1]!;
-    const daysBack = period === 'daily' ? 1 : 7;
-    const cutoff = new Date(Date.now() - daysBack * 24 * 60 * 60 * 1000);
+  const _latest = this.assessmentHistory[this.assessmentHistory.length - 1]!;
+    const _daysBack = period === 'daily' ? 1 : 7;
+    const _cutoff = new Date(Date.now() - daysBack * 24 * 60 * 60 * 1000);
     
     const periodData = this.assessmentHistory.filter(
       h => new Date(h.timestamp) >= cutoff
@@ -558,7 +560,7 @@ class FreezeReadinessMonitor {
   }
 
   private calculateWeeklyTrends(): any {
-    const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const _weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
     const weekData = this.assessmentHistory.filter(
       h => new Date(h.timestamp) >= weekAgo
     );
@@ -578,8 +580,8 @@ class FreezeReadinessMonitor {
   private calculateTrajectory(data: AssessmentResult[], field: keyof AssessmentResult): string {
     if (data.length < 2) return 'unknown';
     
-  const values = data.map(d => d[field] as number);
-  const slope = (values[values.length - 1]! - values[0]!) / (values.length - 1);
+  const _values = data.map(d => d[field] as number);
+  const _slope = (values[values.length - 1]! - values[0]!) / (values.length - 1);
     
     if (Math.abs(slope) < 0.1) return 'stable';
     return slope > 0 ? 'improving' : 'declining';
@@ -587,7 +589,7 @@ class FreezeReadinessMonitor {
 
   private identifyMilestones(): string[] {
     const milestones: string[] = [];
-    const latest = this.assessmentHistory[this.assessmentHistory.length - 1];
+    const _latest = this.assessmentHistory[this.assessmentHistory.length - 1];
     
     if (!latest) return milestones;
 
@@ -611,7 +613,7 @@ class FreezeReadinessMonitor {
   }
 
   private generateRecommendations(): string[] {
-    const latest = this.assessmentHistory[this.assessmentHistory.length - 1];
+    const _latest = this.assessmentHistory[this.assessmentHistory.length - 1];
     if (!latest) return [];
 
     const recommendations: string[] = [];
@@ -636,22 +638,22 @@ class FreezeReadinessMonitor {
   }
 
   private getWeekIdentifier(): string {
-    const now = new Date();
-    const year = now.getFullYear();
-    const week = this.getWeekNumber(now);
+    const _now = new Date();
+    const _year = now.getFullYear();
+    const _week = this.getWeekNumber(now);
     return `${year}-W${week.toString().padStart(2, '0')}`;
   }
 
   private getWeekNumber(date: Date): number {
-    const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
-    const pastDaysOfYear = (date.getTime() - firstDayOfYear.getTime()) / 86400000;
+    const _firstDayOfYear = new Date(date.getFullYear(), 0, 1);
+    const _pastDaysOfYear = (date.getTime() - firstDayOfYear.getTime()) / 86400000;
     return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
   }
 
   private async loadHistory(): Promise<void> {
     try {
       if (fs.existsSync(this.historyFile)) {
-        const data = await fs.promises.readFile(this.historyFile, 'utf8');
+        const _data = await fs.promises.readFile(this.historyFile, 'utf8');
         this.assessmentHistory = JSON.parse(data);
         console.log(`📊 Loaded ${this.assessmentHistory.length} historical assessments`);
       }
@@ -667,7 +669,7 @@ class FreezeReadinessMonitor {
       await fs.promises.mkdir(path.dirname(this.historyFile), { recursive: true });
       
       // Keep only last 1000 assessments to prevent file from growing too large
-      const historyToSave = this.assessmentHistory.slice(-1000);
+      const _historyToSave = this.assessmentHistory.slice(-1000);
       
       await fs.promises.writeFile(
         this.historyFile,
@@ -703,10 +705,10 @@ const defaultConfig: MonitorConfig = {
 
 // CLI interface for the monitor
 async function main() {
-  const args = process.argv.slice(2);
-  const command = args[0];
+  const _args = process.argv.slice(2);
+  const _command = args[0];
 
-  const monitor = new FreezeReadinessMonitor(defaultConfig);
+  const _monitor = new FreezeReadinessMonitor(defaultConfig);
 
   switch (command) {
     case 'start':

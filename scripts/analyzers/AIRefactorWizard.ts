@@ -61,7 +61,7 @@ function splitByMax (
   if (fns.length <= MAX_FUNCTIONS_PER_FACET) return [{ name, fns }]
   const out: Array<{ name: string, fns: FunctionInfo[] }> = []
   for (
-    let i = 0, part = 0;
+    let _i = 0, part = 0;
     i < fns.length;
     i += MAX_FUNCTIONS_PER_FACET, part++
   ) {

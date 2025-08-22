@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 import { parse } from '@solidity-parser/parser'
 import * as solc from 'solc'
 import { keccak256 } from 'ethers'
@@ -1759,7 +1761,7 @@ export class SolidityAnalyzer {
       patches.push({ file: fileName, snippet })
     }
 
-    const summary = `Refactor plan: ${chunkPlan.chunks.length} chunks suggested; ${patches.length} facet stubs prepared.`
+    const _summary = `Refactor plan: ${chunkPlan.chunks.length} chunks suggested; ${patches.length} facet stubs prepared.`
 
     return { chunks: chunkPlan.chunks, patches, summary }
   }
@@ -2034,8 +2036,8 @@ export class SolidityAnalyzer {
     // In practice, this would analyze actual function call relationships
     let crossDependencies = 0
 
-    for (let i = 0; i < chunks.length; i++) {
-      for (let j = i + 1; j < chunks.length; j++) {
+    for (let _i = 0; i < chunks.length; i++) {
+      for (let _j = i + 1; j < chunks.length; j++) {
         const chunk1Deps = new Set(chunks[i].dependencies)
         const chunk2Funcs = new Set(
           chunks[j].functions.map((f: any) => f.name)
@@ -2198,7 +2200,7 @@ export class SolidityAnalyzer {
     }
 
     const nextLevel: string[] = []
-    for (let i = 0; i < hashes.length; i += 2) {
+    for (let _i = 0; i < hashes.length; i += 2) {
       const left = hashes[i]
       const right = hashes[i + 1] ?? left // Duplicate last hash if odd number
 
@@ -2390,7 +2392,7 @@ export class SolidityAnalyzer {
    * Based on the Deployment Analysis Route implementation
    */
   private parseFunctionsLightweight (sourceCode: string): any[] {
-    const re = /function\s+([A-Za-z_]\w*)\s*\(([^)]*)\)\s*([^{};]*)({|;)/g
+    const _re = /function\s+([A-Za-z_]\w*)\s*\(([^)]*)\)\s*([^{};]*)({|;)/g
     const functions: any[] = []
     let m: RegExpExecArray | null
     const indices: number[] = []
@@ -2401,7 +2403,7 @@ export class SolidityAnalyzer {
       const name = m[1]
       const paramsRaw = m[2] ?? ''
       const afterSigBlob = (m[3] ?? '').trim()
-      const open = m[4] // '{' or ';'
+      const _open = m[4] // '{' or ';'
       functions.push({
         name,
         paramsRaw,
@@ -2414,7 +2416,7 @@ export class SolidityAnalyzer {
     }
 
     // Derive slices (rough): from this match index to next match index
-    for (let i = 0; i < functions.length; i++) {
+    for (let _i = 0; i < functions.length; i++) {
       const start = indices[i]
       const end = i + 1 < indices.length ? indices[i + 1] : sourceCode.length
       functions[i].bodyOrDecl = sourceCode.slice(start, end)

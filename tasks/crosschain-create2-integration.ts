@@ -125,7 +125,7 @@ export async function crossChainConsistencyCheck(
   }
 
   // Check consistency
-  const firstPrediction = predictions[0];
+  const _firstPrediction = predictions[0];
   if (!firstPrediction) {
     console.error("❌ No predictions available");
     return false;
@@ -188,7 +188,7 @@ if (!config.skipFactoryDeployment) {
     expectedDispatcherCodehash: config.expectedDispatcherCodehash,
   };
 
-  const preflightOk = await preDeploymentCreate2Check(hre, create2Config);
+  const _preflightOk = await preDeploymentCreate2Check(hre, create2Config);
   if (!preflightOk) {
     throw new Error("CREATE2 preflight check failed");
   }
@@ -196,7 +196,7 @@ if (!config.skipFactoryDeployment) {
   // ... your existing deployment logic ...
   
   // AFTER deployment:
-  const deployedAddress = await orchestrateDeployment(config);
+  const _deployedAddress = await orchestrateDeployment(config);
   
   const postVerifyOk = await postDeploymentCreate2Verify(
     hre, 

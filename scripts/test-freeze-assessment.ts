@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 // SPDX-License-Identifier: MIT
 /**
  * Freeze Assessment Testing Script
@@ -11,7 +13,7 @@ import { promisify } from 'util';
 import * as path from 'path';
 import * as fs from 'fs';
 
-const execAsync = promisify(exec);
+const _execAsync = promisify(exec);
 
 interface TestResult {
   testName: string;
@@ -30,12 +32,12 @@ interface AssessmentTestSuite {
 }
 
 async function runTest(testName: string, testFunction: () => Promise<boolean>): Promise<TestResult> {
-  const startTime = Date.now();
+  const _startTime = Date.now();
   
   try {
     console.log(`🧪 Running test: ${testName}`);
-    const passed = await testFunction();
-    const duration = Date.now() - startTime;
+    const _passed = await testFunction();
+    const _duration = Date.now() - startTime;
     
     const result: TestResult = {
       testName,
@@ -48,7 +50,7 @@ async function runTest(testName: string, testFunction: () => Promise<boolean>): 
     return result;
     
   } catch (error) {
-    const duration = Date.now() - startTime;
+    const _duration = Date.now() - startTime;
     const result: TestResult = {
       testName,
       passed: false,
@@ -64,7 +66,7 @@ async function runTest(testName: string, testFunction: () => Promise<boolean>): 
 async function testFreezeAssessmentTool(): Promise<boolean> {
   try {
     // Check if the Enhanced Freeze Readiness Assessment Tool exists
-    const toolPath = path.join(process.cwd(), 'tools', 'Enhanced_Freeze_Readiness_Tool.ts');
+    const _toolPath = path.join(process.cwd(), 'tools', 'Enhanced_Freeze_Readiness_Tool.ts');
     if (!fs.existsSync(toolPath)) {
       throw new Error('Enhanced Freeze Readiness Assessment Tool not found');
     }
@@ -84,13 +86,13 @@ async function testFreezeAssessmentTool(): Promise<boolean> {
 async function testValidationComponents(): Promise<boolean> {
   try {
     // Test path utilities
-    const pathUtilsPath = path.join(process.cwd(), 'src', 'utils', 'paths.ts');
+    const _pathUtilsPath = path.join(process.cwd(), 'src', 'utils', 'paths.ts');
     if (!fs.existsSync(pathUtilsPath)) {
       throw new Error('Path utilities not found');
     }
     
     // Import and test path utilities
-    const pathUtils = await import(pathUtilsPath);
+    const _pathUtils = await import(pathUtilsPath);
     return typeof pathUtils.PathManager === 'function';
     
   } catch (error) {
@@ -116,13 +118,13 @@ async function testContractCompilation(): Promise<boolean> {
 async function testGasMeasurement(): Promise<boolean> {
   try {
     // Check if gas fixture script exists and is valid
-    const gasFixturePath = path.join(process.cwd(), 'scripts', 'gas-fixture-applyRoutes.ts');
+    const _gasFixturePath = path.join(process.cwd(), 'scripts', 'gas-fixture-applyRoutes.ts');
     if (!fs.existsSync(gasFixturePath)) {
       throw new Error('Gas fixture script not found');
     }
     
     // Validate the script syntax
-    const content = fs.readFileSync(gasFixturePath, 'utf8');
+    const _content = fs.readFileSync(gasFixturePath, 'utf8');
     return content.includes('gas') && content.includes('estimate');
     
   } catch (error) {
@@ -142,7 +144,7 @@ async function testDeploymentReadiness(): Promise<boolean> {
     ];
     
     for (const file of requiredFiles) {
-      const filePath = path.join(process.cwd(), file);
+      const _filePath = path.join(process.cwd(), file);
       if (!fs.existsSync(filePath)) {
         throw new Error(`Required file not found: ${file}`);
       }
@@ -180,7 +182,7 @@ async function main() {
   
   // Run all tests
   for (const test of tests) {
-    const result = await runTest(test.name, test.func);
+    const _result = await runTest(test.name, test.func);
     testSuite.results.push(result);
     testSuite.totalTests++;
     
@@ -199,17 +201,17 @@ async function main() {
   console.log(`   Success Rate: ${((testSuite.passed / testSuite.totalTests) * 100).toFixed(1)}%`);
   
   // Save detailed results
-  const outputDir = path.join(process.cwd(), 'reports');
+  const _outputDir = path.join(process.cwd(), 'reports');
   if (!fs.existsSync(outputDir)) {
     fs.mkdirSync(outputDir, { recursive: true });
   }
   
-  const outputFile = path.join(outputDir, `freeze-assessment-tests-${Date.now()}.json`);
+  const _outputFile = path.join(outputDir, `freeze-assessment-tests-${Date.now()}.json`);
   fs.writeFileSync(outputFile, JSON.stringify(testSuite, null, 2));
   console.log(`\n📄 Detailed results saved: ${outputFile}`);
   
   // Exit with appropriate code
-  const success = testSuite.failed === 0;
+  const _success = testSuite.failed === 0;
   console.log(`\n${success ? '✅' : '❌'} Test suite ${success ? 'PASSED' : 'FAILED'}`);
   
   if (!success) {

@@ -114,7 +114,7 @@ function normalizeSignature (sig) {
   const parts = []
   let depth = 0
   let cur = ''
-  for (let i = 0; i < inner.length; i++) {
+  for (let _i = 0; i < inner.length; i++) {
     const ch = inner[i]
     if (ch === '(') depth++
     if (ch === ')') depth--

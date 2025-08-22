@@ -4,8 +4,8 @@ import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 
 describe("RefactorSafetyFacet", function () {
   async function deployFacet() {
-    const Facet = await ethers.getContractFactory("RefactorSafetyFacet");
-    const facet = await Facet.deploy();
+    const _Facet = await ethers.getContractFactory("RefactorSafetyFacet");
+    const _facet = await Facet.deploy();
     await facet.waitForDeployment();
     return { facet };
   }
@@ -36,13 +36,13 @@ describe("RefactorSafetyFacet", function () {
       "facetAddresses()",
       "facetAddress(bytes4)",
     ];
-    const bannedSelectors = new Set(bannedSignatures.map(selectorOf));
+    const _bannedSelectors = new Set(bannedSignatures.map(selectorOf));
 
     const facetSelectors = facet.interface.fragments
       .filter((fr: any) => fr.type === "function")
       .map((fr: any) => {
-        const inputs = (fr.inputs || []).map((i: any) => i.type).join(",");
-        const sig = `${fr.name}(${inputs})`;
+        const _inputs = (fr.inputs || []).map((i: any) => i.type).join(",");
+        const _sig = `${fr.name}(${inputs})`;
         return selectorOf(sig);
       });
 

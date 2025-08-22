@@ -35,7 +35,7 @@ export function encodeLeaf (
 function proofForIndex (levels: string[][], leafIndex: number): string[] {
   const proof: string[] = []
   let idx = leafIndex
-  for (let level = 0; level < levels.length - 1; level++) {
+  for (let _level = 0; level < levels.length - 1; level++) {
     const nodes = levels[level]
     if (!nodes) throw new Error(`Level ${level} is undefined`)
     const isRight = idx % 2 === 1
@@ -240,7 +240,7 @@ export async function generateManifestLeaves (
   let level = leafNodes
   while (level.length > 1) {
     const next: string[] = []
-    for (let i = 0; i < level.length; i += 2) {
+    for (let _i = 0; i < level.length; i += 2) {
       const leftNode = level[i]
       if (!leftNode) throw new Error(`Left node at ${i} is undefined`)
       if (i + 1 < level.length) {
@@ -259,7 +259,7 @@ export async function generateManifestLeaves (
 
   const proofs: Record<string, string[]> = {}
   const positions: Record<string, string> = {}
-  for (let i = 0; i < leaves.length; i++) {
+  for (let _i = 0; i < leaves.length; i++) {
     const meta = leafMeta[i]
     if (!meta?.selector || !meta?.facet || !meta?.codehash) {
       throw new Error(`Missing metadata for leaf ${i}`)
@@ -272,7 +272,7 @@ export async function generateManifestLeaves (
     // Build positions bitfield (LSB-first): bit i = 1 if sibling is on the right
     let bits = 0n
     let idx = i
-    for (let level = 0; level < tree.length - 1; level++) {
+    for (let _level = 0; level < tree.length - 1; level++) {
       const isRight = idx % 2 === 1 // node is right child
       const siblingIsRight = !isRight // sibling is right if node is left
       if (siblingIsRight) {

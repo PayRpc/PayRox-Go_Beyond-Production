@@ -5,14 +5,14 @@
  * @usage node local-refactor-validator.js [options]
  */
 
-var fs = require('fs');
-var path = require('path');
+var _fs = require('fs');
+var _path = require('path');
 
 // EIP-170 contract size limit (24576 bytes)
-var CONTRACT_SIZE_LIMIT = 24576;
+var _CONTRACT_SIZE_LIMIT = 24576;
 
 function validateContractSize(bytecode) {
-    var size = bytecode.length / 2; // Convert hex to bytes
+    var _size = bytecode.length / 2; // Convert hex to bytes
     return {
         size: size,
         isValid: size <= CONTRACT_SIZE_LIMIT,
@@ -23,7 +23,7 @@ function validateContractSize(bytecode) {
 
 function loadArtifact(artifactPath) {
     try {
-        var content = fs.readFileSync(artifactPath, 'utf8');
+        var _content = fs.readFileSync(artifactPath, 'utf8');
         return JSON.parse(content);
     } catch (error) {
         throw new Error('Failed to load artifact: ' + error.message);
@@ -31,21 +31,21 @@ function loadArtifact(artifactPath) {
 }
 
 function extractSelectors(abi) {
-    var selectors = [];
+    var _selectors = [];
 
-    for (var i = 0; i < abi.length; i++) {
-        var item = abi[i];
+    for (var _i = 0; i < abi.length; i++) {
+        var _item = abi[i];
         if (item.type === 'function') {
-            var inputs = item.inputs || [];
-            var inputTypes = [];
+            var _inputs = item.inputs || [];
+            var _inputTypes = [];
 
-            for (var j = 0; j < inputs.length; j++) {
+            for (var _j = 0; j < inputs.length; j++) {
                 inputTypes.push(inputs[j].type);
             }
 
-            var signature = item.name + '(' + inputTypes.join(',') + ')';
+            var _signature = item.name + '(' + inputTypes.join(',') + ')';
             // Simple selector calculation (first 4 bytes of keccak256)
-            var selector = '0x' + signature.slice(0, 8);
+            var _selector = '0x' + signature.slice(0, 8);
 
             selectors.push({
                 name: item.name,
@@ -59,8 +59,8 @@ function extractSelectors(abi) {
 }
 
 function validateContract(contractPath) {
-    var artifact = loadArtifact(contractPath);
-    var contractName = artifact.contractName || path.basename(contractPath, '.json');
+    var _artifact = loadArtifact(contractPath);
+    var _contractName = artifact.contractName || path.basename(contractPath, '.json');
 
     var results = {
         contractName: contractName,
@@ -72,8 +72,8 @@ function validateContract(contractPath) {
 
     // Validate bytecode size
     if (artifact.bytecode) {
-        var bytecode = artifact.bytecode.replace('0x', '');
-        var sizeValidation = validateContractSize(bytecode);
+        var _bytecode = artifact.bytecode.replace('0x', '');
+        var _sizeValidation = validateContractSize(bytecode);
 
         results.size = sizeValidation;
 
@@ -94,13 +94,13 @@ function validateContract(contractPath) {
 
     // Validate ABI
     if (artifact.abi && Array.isArray(artifact.abi)) {
-        var selectors = extractSelectors(artifact.abi);
+        var _selectors = extractSelectors(artifact.abi);
         results.selectors = selectors;
 
         // Check for duplicate selectors within contract
-        var selectorMap = {};
-        for (var i = 0; i < selectors.length; i++) {
-            var sel = selectors[i];
+        var _selectorMap = {};
+        for (var _i = 0; i < selectors.length; i++) {
+            var _sel = selectors[i];
             if (selectorMap[sel.selector]) {
                 results.errors.push(
                     'Duplicate selector ' + sel.selector + ' for functions: ' +
@@ -119,25 +119,25 @@ function validateContract(contractPath) {
 }
 
 function validateDirectory(artifactsDir) {
-    var results = [];
+    var _results = [];
 
     if (!fs.existsSync(artifactsDir)) {
         throw new Error('Artifacts directory not found: ' + artifactsDir);
     }
 
     function walkDirectory(dir) {
-        var files = fs.readdirSync(dir);
+        var _files = fs.readdirSync(dir);
 
-        for (var i = 0; i < files.length; i++) {
-            var file = files[i];
-            var fullPath = path.join(dir, file);
-            var stat = fs.statSync(fullPath);
+        for (var _i = 0; i < files.length; i++) {
+            var _file = files[i];
+            var _fullPath = path.join(dir, file);
+            var _stat = fs.statSync(fullPath);
 
             if (stat.isDirectory()) {
                 walkDirectory(fullPath);
             } else if (file.endsWith('.json') && !file.includes('.dbg.')) {
                 try {
-                    var result = validateContract(fullPath);
+                    var _result = validateContract(fullPath);
                     results.push(result);
                 } catch (error) {
                     results.push({
@@ -166,8 +166,8 @@ function generateReport(results, outputPath) {
         totalWarnings: 0
     };
 
-    for (var i = 0; i < results.length; i++) {
-        var result = results[i];
+    for (var _i = 0; i < results.length; i++) {
+        var _result = results[i];
         if (result.isValid) {
             summary.validContracts++;
         } else {
@@ -198,11 +198,11 @@ function generateReport(results, outputPath) {
 
     if (summary.invalidContracts > 0) {
         console.log('\n❌ Invalid Contracts:');
-        for (var j = 0; j < results.length; j++) {
-            var result = results[j];
+        for (var _j = 0; j < results.length; j++) {
+            var _result = results[j];
             if (!result.isValid) {
                 console.log('  ' + result.contractName + ':');
-                for (var k = 0; k < result.errors.length; k++) {
+                for (var _k = 0; k < result.errors.length; k++) {
                     console.log('    ❌ ' + result.errors[k]);
                 }
             }
@@ -211,11 +211,11 @@ function generateReport(results, outputPath) {
 
     if (summary.totalWarnings > 0) {
         console.log('\n⚠️  Warnings:');
-        for (var l = 0; l < results.length; l++) {
-            var result = results[l];
+        for (var _l = 0; l < results.length; l++) {
+            var _result = results[l];
             if (result.warnings.length > 0) {
                 console.log('  ' + result.contractName + ':');
-                for (var m = 0; m < result.warnings.length; m++) {
+                for (var _m = 0; m < result.warnings.length; m++) {
                     console.log('    ⚠️  ' + result.warnings[m]);
                 }
             }
@@ -230,12 +230,12 @@ function generateReport(results, outputPath) {
 }
 
 function main() {
-    var args = process.argv.slice(2);
-    var artifactsDir = 'artifacts';
-    var outputPath = null;
+    var _args = process.argv.slice(2);
+    var _artifactsDir = 'artifacts';
+    var _outputPath = null;
 
     // Parse arguments
-    for (var i = 0; i < args.length; i++) {
+    for (var _i = 0; i < args.length; i++) {
         if (args[i] === '--artifacts' && i + 1 < args.length) {
             artifactsDir = args[i + 1];
             i++;
@@ -254,8 +254,8 @@ function main() {
 
     try {
         console.log('🔍 Validating contracts in:', artifactsDir);
-        var results = validateDirectory(artifactsDir);
-        var isValid = generateReport(results, outputPath);
+        var _results = validateDirectory(artifactsDir);
+        var _isValid = generateReport(results, outputPath);
 
         process.exit(isValid ? 0 : 1);
     } catch (error) {

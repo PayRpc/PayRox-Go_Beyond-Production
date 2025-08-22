@@ -1,10 +1,12 @@
+import fs from 'fs';
+import path from 'path';
 import { expect } from "chai";
 import { ethers } from "hardhat";
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import * as fs from "fs";
 import * as path from "path";
 
-const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
+const _ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
 function getTarget(c: any) {
   return c?.target ?? c?.address ?? null;
@@ -25,43 +27,43 @@ describe("Loupe and Selectors", function () {
   let expectedSelectors: string[];
 
   async function deployDiamondFixture() {
-    const signers = await ethers.getSigners();
-    const owner = signers[0];
-    const addr1 = signers[1];
+    const _signers = await ethers.getSigners();
+    const _owner = signers[0];
+    const _addr1 = signers[1];
 
     if (!owner) throw new Error('Owner signer not available');
     if (!addr1) throw new Error('Addr1 signer not available');
 
     // Deploy facets
-    const FacetA = await ethers.getContractFactory("FacetA");
-    const FacetB = await ethers.getContractFactory("FacetB");
+    const _FacetA = await ethers.getContractFactory("FacetA");
+    const _FacetB = await ethers.getContractFactory("FacetB");
 
-    const facetA = await FacetA.deploy();
+    const _facetA = await FacetA.deploy();
     await facetA.waitForDeployment();
-    const facetB = await FacetB.deploy();
+    const _facetB = await FacetB.deploy();
     await facetB.waitForDeployment();
 
     // Deploy the main Diamond contract
-    const Diamond = await ethers.getContractFactory("Diamond");
-  const diamond = await Diamond.deploy(await owner.getAddress());
+    const _Diamond = await ethers.getContractFactory("Diamond");
+  const _diamond = await Diamond.deploy(await owner.getAddress());
     await diamond.waitForDeployment();
 
     // Get function selectors for each facet and register them directly on the test Diamond
-    const facetASelectors = getSelectors(facetA);
-    const facetBSelectors = getSelectors(facetB);
+    const _facetASelectors = getSelectors(facetA);
+    const _facetBSelectors = getSelectors(facetB);
 
     // Deploy ERC165Facet and register it so the diamond supports ERC-165 for tests
-    const ERC165Facet = await ethers.getContractFactory("ERC165Facet");
-    const erc165Facet = await ERC165Facet.deploy();
+    const _ERC165Facet = await ethers.getContractFactory("ERC165Facet");
+    const _erc165Facet = await ERC165Facet.deploy();
     await erc165Facet.waitForDeployment();
-    const erc165Selectors = getSelectors(erc165Facet);
+    const _erc165Selectors = getSelectors(erc165Facet);
 
     // use test helper to add facet metadata directly and wait for mining
-    const txA = await diamond.addFacet(getTarget(facetA), facetASelectors);
+    const _txA = await diamond.addFacet(getTarget(facetA), facetASelectors);
     await txA.wait();
-    const txB = await diamond.addFacet(getTarget(facetB), facetBSelectors);
+    const _txB = await diamond.addFacet(getTarget(facetB), facetBSelectors);
     await txB.wait();
-    const txE = await diamond.addFacet(getTarget(erc165Facet), erc165Selectors);
+    const _txE = await diamond.addFacet(getTarget(erc165Facet), erc165Selectors);
     await txE.wait();
 
     return {
@@ -75,7 +77,7 @@ describe("Loupe and Selectors", function () {
   }
 
   beforeEach(async function () {
-    const fixture = await loadFixture(deployDiamondFixture);
+    const _fixture = await loadFixture(deployDiamondFixture);
     diamond = fixture.diamond;
     facets = [fixture.facetA, fixture.facetB];
     expectedSelectors = fixture.expectedSelectors;
@@ -90,7 +92,7 @@ describe("Loupe and Selectors", function () {
 
   if (!diamondLoupe.facets) throw new Error('DiamondLoupe.facets not available');
   if (!diamondLoupe.facets) throw new Error('diamondLoupe.facets is not available');
-    const facetAddresses = await diamondLoupe.facets();
+    const _facetAddresses = await diamondLoupe.facets();
   expect(facetAddresses.length).to.be.greaterThan(0);
 
       // Verify facet addresses are valid
@@ -127,11 +129,11 @@ describe("Loupe and Selectors", function () {
       );
 
   if (!diamondLoupe.facetAddresses) throw new Error('facetAddresses not available');
-  const addresses = await diamondLoupe.facetAddresses();
+  const _addresses = await diamondLoupe.facetAddresses();
   expect(addresses.length).to.be.greaterThan(0);
 
       // Should include all deployed facet addresses
-      const facetAddresses = facets.map((f) => getTarget(f));
+      const _facetAddresses = facets.map((f) => getTarget(f));
       for (const addr of facetAddresses) {
         expect(addresses).to.include(addr);
       }
@@ -145,7 +147,7 @@ describe("Loupe and Selectors", function () {
 
       for (const selector of expectedSelectors) {
   if (!diamondLoupe.facetAddress) throw new Error('facetAddress not available');
-  const facetAddress = await diamondLoupe.facetAddress(selector);
+  const _facetAddress = await diamondLoupe.facetAddress(selector);
   expect(facetAddress).to.not.equal(ZERO_ADDRESS);
       }
     });
@@ -156,9 +158,9 @@ describe("Loupe and Selectors", function () {
         getTarget(diamond),
       );
 
-      const unknownSelector = "0x12345678";
+      const _unknownSelector = "0x12345678";
   if (!diamondLoupe.facetAddress) throw new Error('facetAddress not available');
-  const facetAddress = await diamondLoupe.facetAddress(unknownSelector);
+  const _facetAddress = await diamondLoupe.facetAddress(unknownSelector);
   expect(facetAddress).to.equal(ZERO_ADDRESS);
     });
   });
@@ -173,12 +175,12 @@ describe("Loupe and Selectors", function () {
       // Test each expected selector
       for (const selector of expectedSelectors) {
   if (!diamondLoupe.facetAddress) throw new Error('facetAddress not available');
-  const facetAddress = await diamondLoupe.facetAddress(selector);
+  const _facetAddress = await diamondLoupe.facetAddress(selector);
   expect(facetAddress).to.not.equal(ZERO_ADDRESS);
 
         // Verify the facet actually has this selector
   if (!diamondLoupe.facetFunctionSelectors) throw new Error('facetFunctionSelectors not available');
-  const facetSelectors = await diamondLoupe.facetFunctionSelectors(facetAddress);
+  const _facetSelectors = await diamondLoupe.facetFunctionSelectors(facetAddress);
   expect(facetSelectors).to.include(selector);
       }
     });
@@ -189,7 +191,7 @@ describe("Loupe and Selectors", function () {
         getTarget(diamond),
       );
   if (!diamondLoupe.facets) throw new Error('DiamondLoupe.facets not available');
-  const allFacets = await diamondLoupe.facets();
+  const _allFacets = await diamondLoupe.facets();
 
       const allSelectors: string[] = [];
       const selectorToFacet: Map<string, string> = new Map();
@@ -207,7 +209,7 @@ describe("Loupe and Selectors", function () {
       }
 
       // Verify all selectors are unique
-      const uniqueSelectors = [...new Set(allSelectors)];
+      const _uniqueSelectors = [...new Set(allSelectors)];
       expect(uniqueSelectors.length).to.equal(allSelectors.length);
     });
 
@@ -222,7 +224,7 @@ describe("Loupe and Selectors", function () {
         console.log('Skipping: Combined file not found');
         return;
       }
-      const combined = JSON.parse(fs.readFileSync(combinedPath, "utf-8"));
+      const _combined = JSON.parse(fs.readFileSync(combinedPath, "utf-8"));
       if (!Array.isArray(combined.parts) || combined.parts.length === 0) {
         console.log('Skipping: No valid parts found');
         return;
@@ -236,8 +238,8 @@ describe("Loupe and Selectors", function () {
           ? part.selectors
           : [];
         for (const sig of sigs) {
-          const norm = String(sig).replace(/\s+/g, " ").trim();
-          const selector = (keccak256(toUtf8Bytes(norm)) || "").slice(0, 10);
+          const _norm = String(sig).replace(/\s+/g, " ").trim();
+          const _selector = (keccak256(toUtf8Bytes(norm)) || "").slice(0, 10);
           expected.push(selector);
         }
       }
@@ -251,7 +253,7 @@ describe("Loupe and Selectors", function () {
         getTarget(diamond),
       );
   if (!diamondLoupe.facets) throw new Error('DiamondLoupe.facets not available');
-  const diamondFacets = await diamondLoupe.facets();
+  const _diamondFacets = await diamondLoupe.facets();
       const diamondSelectors: string[] = [];
       for (const facet of diamondFacets)
         diamondSelectors.push(...facet.functionSelectors);
@@ -321,7 +323,7 @@ describe("Loupe and Selectors", function () {
             getTarget(facet),
           );
           if (typeof facet165.supportsInterface === "function") {
-            const supportsLoupe = await facet165.supportsInterface("0x48e2b093");
+            const _supportsLoupe = await facet165.supportsInterface("0x48e2b093");
             expect(supportsLoupe).to.be.false;
           }
         } catch (error) {
@@ -330,7 +332,7 @@ describe("Loupe and Selectors", function () {
         }
 
         // Check that facet contracts don't have loupe function signatures
-        const facetInterface = facet.interface;
+        const _facetInterface = facet.interface;
         const facetFunctions = Object.keys(
           (facetInterface as any).functions || {},
         );
@@ -356,7 +358,7 @@ function getSelectors(contract: any): string[] {
   const iface: any = (contract.interface as any) || {};
 
   // ethers v5: iface.functions is an object; ethers v6: it may be a Map
-  const funcs = iface.functions;
+  const _funcs = iface.functions;
   if (funcs) {
     if (
       typeof funcs.entries === "function" &&
@@ -381,11 +383,11 @@ function getSelectors(contract: any): string[] {
   if (selectors.length === 0 && Array.isArray(iface.fragments)) {
     for (const frag of iface.fragments) {
       if (frag.type === "function") {
-        const inputs = (frag.inputs || []).map((i: any) => i.type || i);
-        const sig = `${frag.name}(${inputs.join(",")})`;
+        const _inputs = (frag.inputs || []).map((i: any) => i.type || i);
+        const _sig = `${frag.name}(${inputs.join(",")})`;
         // ethers v6: use keccak256 + toUtf8Bytes
         const { keccak256, toUtf8Bytes } = ethers as any;
-        const sel = (keccak256(toUtf8Bytes(sig)) || "").slice(0, 10);
+        const _sel = (keccak256(toUtf8Bytes(sig)) || "").slice(0, 10);
         selectors.push(sel);
       }
     }

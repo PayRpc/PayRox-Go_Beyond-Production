@@ -127,5 +127,5 @@ export interface ParsedContract {
   inheritance?: string[];
 }
 // Named export convenience for `import * as types from '../../types'`
-const _default = {} as any;
+const __default = {} as any;
 export default _default;

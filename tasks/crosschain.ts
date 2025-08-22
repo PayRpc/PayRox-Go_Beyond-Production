@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 // tasks/crosschain.ts
 // SPDX-License-Identifier: MIT
 /**
@@ -39,12 +41,12 @@ type CleanupArgs = {
   force?: boolean;
 };
 
-const DEFAULT_NETWORKS = 'sepolia,base-sepolia,arbitrum-sepolia';
+const _DEFAULT_NETWORKS = 'sepolia,base-sepolia,arbitrum-sepolia';
 
 function parseNetworks(hre: HardhatRuntimeEnvironment, csv?: string): string[] {
-  const list = (csv || DEFAULT_NETWORKS).split(',').map((n) => n.trim()).filter(Boolean);
-  const known = new Set(Object.keys(hre.config.networks));
-  const unknown = list.filter((n) => !known.has(n));
+  const _list = (csv || DEFAULT_NETWORKS).split(',').map((n) => n.trim()).filter(Boolean);
+  const _known = new Set(Object.keys(hre.config.networks));
+  const _unknown = list.filter((n) => !known.has(n));
   if (unknown.length) {
     throw new Error(
       `Unknown network(s): ${unknown.join(', ')}. Known: ${Array.from(known).join(', ')}`
@@ -68,13 +70,13 @@ task('crosschain:deploy-full', 'Execute complete cross-chain deployment runbook'
     console.log('🎭 PayRox Go Beyond - Full Cross-Chain Deployment');
     console.log('='.repeat(65));
 
-    const networks = parseNetworks(hre, taskArgs.networks);
+    const _networks = parseNetworks(hre, taskArgs.networks);
 
     // Enforce manifest presence unless explicitly skipped
-    const manifestPath = taskArgs.manifest?.trim() || undefined;
+    const _manifestPath = taskArgs.manifest?.trim() || undefined;
     if (!taskArgs.skipmanifest) {
       if (!manifestPath) throw new Error('Manifest path is required (or pass --skipmanifest).');
-      const fs = await import('fs');
+      const _fs = await import('fs');
       if (!fs.existsSync(manifestPath)) {
         throw new Error(`Manifest file not found: ${manifestPath}`);
       }
@@ -102,11 +104,11 @@ task('crosschain:deploy-full', 'Execute complete cross-chain deployment runbook'
         if (typeof result.duration === 'number') console.log(`⏱️  Duration: ${result.duration}ms`);
 
         console.log('\n📊 NETWORK RESULTS:');
-        const entries = Object.entries(result.deploymentResults || {});
+        const _entries = Object.entries(result.deploymentResults || {});
         for (const [network, netResultRaw] of entries) {
           const netResult: any = netResultRaw || {};
           const errs: string[] = Array.isArray(netResult.errors) ? netResult.errors : [];
-          const status = errs.length === 0 ? '✅' : '❌';
+          const _status = errs.length === 0 ? '✅' : '❌';
           console.log(
             `   ${status} ${network}: Factory(${!!netResult.factoryDeployed}) Dispatcher(${!!netResult.dispatcherDeployed}) Manifest(${!!netResult.manifestValidated})`
           );
@@ -132,7 +134,7 @@ task('crosschain:deploy-factory', 'Deploy DeterministicChunkFactory with identic
     console.log('🏭 Deterministic Factory Deployment');
     console.log('='.repeat(50));
 
-    const networks = parseNetworks(hre, taskArgs.networks);
+    const _networks = parseNetworks(hre, taskArgs.networks);
     console.log(`🌐 Target networks: ${networks.join(', ')}`);
 
     try {
@@ -143,7 +145,7 @@ task('crosschain:deploy-factory', 'Deploy DeterministicChunkFactory with identic
         const { DeterministicFactoryDeployer } = await import(
           '../scripts/deploy-deterministic-factory'
         );
-        const deployer = new DeterministicFactoryDeployer();
+        const _deployer = new DeterministicFactoryDeployer();
 
         const parityResult: any = await deployer.validateFactoryAddressParity(networks, hre);
 
@@ -156,7 +158,7 @@ task('crosschain:deploy-factory', 'Deploy DeterministicChunkFactory with identic
 
       // Dynamic import to avoid config loading issues
       const { main: deployDeterministicFactory } = await import('../scripts/deploy-deterministic-factory');
-      const factoryAddress = await deployDeterministicFactory(hre, { networks });
+      const _factoryAddress = await deployDeterministicFactory(hre, { networks });
       console.log(`✅ Factory deployed at identical address: ${factoryAddress}`);
       return factoryAddress;
     } catch (error) {
@@ -176,11 +178,11 @@ task('crosschain:validate-manifest', 'Run manifest preflight validation across n
     console.log('📋 Manifest Preflight Validation');
     console.log('='.repeat(45));
 
-    const networks = parseNetworks(hre, taskArgs.networks);
-    const manifestPath = taskArgs.manifest.trim();
-    const outputPath = taskArgs.output?.trim() || undefined;
+    const _networks = parseNetworks(hre, taskArgs.networks);
+    const _manifestPath = taskArgs.manifest.trim();
+    const _outputPath = taskArgs.output?.trim() || undefined;
 
-    const fs = await import('fs');
+    const _fs = await import('fs');
     if (!fs.existsSync(manifestPath)) {
       throw new Error(`Manifest file not found: ${manifestPath}`);
     }
@@ -191,7 +193,7 @@ task('crosschain:validate-manifest', 'Run manifest preflight validation across n
     try {
       // Dynamic import to avoid config loading issues
       const { validateManifestPreflight } = await import('../scripts/manifest-preflight');
-      const isValid = await validateManifestPreflight(manifestPath, networks, hre, outputPath);
+      const _isValid = await validateManifestPreflight(manifestPath, networks, hre, outputPath);
       if (isValid) {
         console.log('✅ Manifest preflight validation PASSED');
         console.log('🚀 Ready for cross-chain deployment');
@@ -217,8 +219,8 @@ task('crosschain:cleanup', 'Clean up deployment artifacts')
     console.log('🧹 Cross-Chain Deployment Cleanup');
     console.log('='.repeat(40));
 
-    const fs = await import('fs');
-    const path = await import('path');
+    const _fs = await import('fs');
+    const _path = await import('path');
 
     if (!taskArgs.force) {
       console.log('⚠️  This will delete deployment artifacts');
@@ -234,14 +236,14 @@ task('crosschain:cleanup', 'Clean up deployment artifacts')
     try {
       if (networks.length > 0) {
         for (const network of networks) {
-          const deploymentDir = path.join(process.cwd(), 'deployments', network);
+          const _deploymentDir = path.join(process.cwd(), 'deployments', network);
           if (fs.existsSync(deploymentDir)) {
             fs.rmSync(deploymentDir, { recursive: true, force: true });
             console.log(`✅ Cleaned deployments for ${network}`);
           }
         }
       } else {
-        const deploymentsDir = path.join(process.cwd(), 'deployments');
+        const _deploymentsDir = path.join(process.cwd(), 'deployments');
         if (fs.existsSync(deploymentsDir)) {
           fs.rmSync(deploymentsDir, { recursive: true, force: true });
           console.log('✅ Cleaned all deployment artifacts');
@@ -249,7 +251,7 @@ task('crosschain:cleanup', 'Clean up deployment artifacts')
       }
 
       if (taskArgs.reports) {
-        const reportsDir = path.join(process.cwd(), 'reports');
+        const _reportsDir = path.join(process.cwd(), 'reports');
         if (fs.existsSync(reportsDir)) {
           fs.rmSync(reportsDir, { recursive: true, force: true });
           console.log('✅ Cleaned reports directory');

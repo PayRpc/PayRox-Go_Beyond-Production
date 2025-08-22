@@ -1,3 +1,4 @@
+import path from 'path';
 import { ethers } from 'hardhat'
 
 // Crash prevention utilities

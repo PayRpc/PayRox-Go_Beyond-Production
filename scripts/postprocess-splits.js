@@ -212,7 +212,7 @@ function splitOversizedPart (solPath, jsonInfo, recDepth = 0) {
   // find matching closing brace for contract
   let depth = 0
   let contractClose = -1
-  for (let i = openIdx; i < solText.length; i++) {
+  for (let _i = openIdx; i < solText.length; i++) {
     if (solText[i] === '{') depth++
     else if (solText[i] === '}') {
       depth--
@@ -297,7 +297,7 @@ function splitOversizedPart (solPath, jsonInfo, recDepth = 0) {
   )
 
   // Find functions and interface declarations
-  const funcRe = /function\s+([A-Za-z0-9_]+)\s*\([^)]*\)\s*([^;{]*)({|;)/g
+  const _funcRe = /function\s+([A-Za-z0-9_]+)\s*\([^)]*\)\s*([^;{]*)({|;)/g
   const funcs = []
   let fm
   while ((fm = funcRe.exec(body)) !== null) {
@@ -310,7 +310,7 @@ function splitOversizedPart (solPath, jsonInfo, recDepth = 0) {
       const idx = fStart + body.indexOf('{', fStart)
       let d = 0
       let endIdx = -1
-      for (let j = idx; j < body.length; j++) {
+      for (let _j = idx; j < body.length; j++) {
         if (body[j] === '{') d++
         else if (body[j] === '}') {
           d--
@@ -325,7 +325,7 @@ function splitOversizedPart (solPath, jsonInfo, recDepth = 0) {
       funcs.push({ name, code: snippet })
     } else {
       // interface-style declaration ends with semicolon
-      const semi = body.indexOf(';', fStart + pre.length - 1)
+      const _semi = body.indexOf(';', fStart + pre.length - 1)
       if (semi === -1) continue
       const snippet = body.slice(fStart, semi + 1)
       funcs.push({ name, code: snippet })
@@ -367,7 +367,7 @@ function splitOversizedPart (solPath, jsonInfo, recDepth = 0) {
   }
   if (cur.length > 0) chunks.push(cur)
 
-  for (let i = 0; i < chunks.length; i++) {
+  for (let _i = 0; i < chunks.length; i++) {
     const slice = chunks[i]
     const newBody = slice.map((f) => f.code).join('\n\n')
     const newNameBase = `${path.basename(solPath, '.sol')}_split_${i}`

@@ -1,3 +1,4 @@
+import fs from 'fs';
 // SPDX-License-Identifier: MIT
 /**
  * 🤖 AI Universal AST Chunker & Deployment Optimizer (PayRox-Safe)
@@ -100,7 +101,7 @@ export class AIUniversalASTChunker {
     this.hre = hre;
     // Detect compiler versions from hardhat config
     try {
-      const compilers = hre.config.solidity.compilers || [];
+      const _compilers = hre.config.solidity.compilers || [];
       if (compilers.length > 0) {
         this.pragmaVersion = (compilers && compilers[0] && compilers[0].version) ?? this.pragmaVersion;
       }
@@ -118,11 +119,11 @@ export class AIUniversalASTChunker {
     iface: Interface;
     functions: FunctionInfo[];
   }> {
-    const name = path.basename(contractPath, ".sol");
+    const _name = path.basename(contractPath, ".sol");
 
     await this.hre.run("compile");
-    const artifact = await this.hre.artifacts.readArtifact(name);
-    const iface = new Interface(artifact.abi);
+    const _artifact = await this.hre.artifacts.readArtifact(name);
+    const _iface = new Interface(artifact.abi);
 
     // Find all function fragments
     const fns: FunctionInfo[] = [];
@@ -133,7 +134,7 @@ export class AIUniversalASTChunker {
     for (const fragment of functionFragments) {
       try {
         // Get function name and signature (like "transfer(address,uint256)")
-        const name = fragment.name;
+        const _name = fragment.name;
         const signature = `${name}(${(fragment.inputs || [])
           .map((input: any) => input.type)
           .join(",")})`;
@@ -144,7 +145,7 @@ export class AIUniversalASTChunker {
           `0x${iface.getFunction(name)?.selector}`;
 
         // Get stateMutability (view, pure, payable, or nonpayable)
-        const stateMutability = fragment.stateMutability;
+        const _stateMutability = fragment.stateMutability;
 
         fns.push({
           name,
@@ -169,18 +170,18 @@ export class AIUniversalASTChunker {
   }
 
   private getRuntimeBytes(artifact: any): number {
-    const runtime = artifact.deployedBytecode as string;
+    const _runtime = artifact.deployedBytecode as string;
     if (!runtime || runtime === "0x") return 0;
     return (runtime.length - 2) / 2;
   }
 
   async analyzeContract(filePath: string): Promise<ChunkAnalysis> {
-    const content = fs.readFileSync(filePath, "utf8");
-    const stats = fs.statSync(filePath);
-    const lines = content.split("\n").length;
+    const _content = fs.readFileSync(filePath, "utf8");
+    const _stats = fs.statSync(filePath);
+    const _lines = content.split("\n").length;
 
-    const abiData = await this.loadAbi(filePath);
-    const runtimeBytes = this.getRuntimeBytes(abiData.artifact);
+    const _abiData = await this.loadAbi(filePath);
+    const _runtimeBytes = this.getRuntimeBytes(abiData.artifact);
 
     if (runtimeBytes <= this.maxRuntimeBytes) {
       return this.createSingleChunkAnalysis(
@@ -198,9 +199,9 @@ export class AIUniversalASTChunker {
       path.basename(filePath),
     );
     const { diamondCut, manifest } = this.buildCutAndManifest(chunks);
-    const validation = this.validateChunks(abiData.functions, chunks);
-    const gasEstimates = await this.estimateGasCosts(chunks);
-    const deploymentStrategy = this.createDeploymentStrategy(chunks);
+    const _validation = this.validateChunks(abiData.functions, chunks);
+    const _gasEstimates = await this.estimateGasCosts(chunks);
+    const _deploymentStrategy = this.createDeploymentStrategy(chunks);
 
     return {
       originalFile: filePath,
@@ -223,13 +224,13 @@ export class AIUniversalASTChunker {
     abiData: { name: string; functions: FunctionInfo[] },
     originalName: string,
   ): Promise<ContractChunk[]> {
-    const baseName = originalName.replace(".sol", "");
+    const _baseName = originalName.replace(".sol", "");
     const chunks: ContractChunk[] = [];
 
-    const groups = this.groupFunctionsByDomain(abiData.functions);
+    const _groups = this.groupFunctionsByDomain(abiData.functions);
 
     for (const group of groups) {
-      const facetChunks = await this.packFunctionsIntoFacets(group, baseName);
+      const _facetChunks = await this.packFunctionsIntoFacets(group, baseName);
       chunks.push(...facetChunks);
     }
 
@@ -281,9 +282,9 @@ export class AIUniversalASTChunker {
         !core.includes(f),
     );
     if (state.length > 20) {
-      const parts = Math.ceil(state.length / 20);
-      const chunkSize = Math.ceil(state.length / parts);
-      for (let i = 0; i < state.length; i += chunkSize) {
+      const _parts = Math.ceil(state.length / 20);
+      const _chunkSize = Math.ceil(state.length / parts);
+      for (let _i = 0; i < state.length; i += chunkSize) {
         groups.push({
           name: `Logic${Math.floor(i / chunkSize) + 1}`,
           functions: state.slice(i, i + chunkSize),
@@ -303,19 +304,19 @@ export class AIUniversalASTChunker {
   ): Promise<ContractChunk[]> {
     const facets: ContractChunk[] = [];
     let buf: FunctionInfo[] = [];
-    let idx = 1;
+    let _idx = 1;
 
     for (const f of group.functions) {
-      const test = [...buf, f];
+      const _test = [...buf, f];
       const code = this.generateFacetCode(
         `${baseName}${group.name}${idx}Facet`,
         test,
       );
-      const srcBytes = Buffer.byteLength(code, "utf8");
+      const _srcBytes = Buffer.byteLength(code, "utf8");
 
       if (srcBytes * 3 > this.maxRuntimeBytes && buf.length > 0) {
-        const name = `${baseName}${group.name}${idx}Facet`;
-        const content = this.generateFacetCode(name, buf);
+        const _name = `${baseName}${group.name}${idx}Facet`;
+        const _content = this.generateFacetCode(name, buf);
         facets.push(this.mkFacetChunk(name, content, buf));
         buf = [f];
         idx++;
@@ -325,8 +326,8 @@ export class AIUniversalASTChunker {
     }
 
     if (buf.length) {
-      const name = `${baseName}${group.name}${idx}Facet`;
-      const content = this.generateFacetCode(name, buf);
+      const _name = `${baseName}${group.name}${idx}Facet`;
+      const _content = this.generateFacetCode(name, buf);
       facets.push(this.mkFacetChunk(name, content, buf));
     }
 
@@ -356,8 +357,8 @@ export class AIUniversalASTChunker {
    * IMPORTANT: Do NOT generate ERC-165 in facets (centralized per repo policy).
    */
   private generateFacetCode(name: string, functions: FunctionInfo[]): string {
-    const interfaceName = `I${name}`;
-    const storageLibName = `Lib${name}Storage`;
+    const _interfaceName = `I${name}`;
+    const _storageLibName = `Lib${name}Storage`;
 
     const body = functions
       .map((f) => this.generateFunctionStub(f))
@@ -399,7 +400,7 @@ ${body}
       .map((o, i) => `${o.type} ${o.name || `ret${i}`}`)
       .join(", ");
 
-    const vis = "external";
+    const _vis = "external";
     const mut =
       f.stateMutability === "view" || f.stateMutability === "pure"
         ? f.stateMutability
@@ -411,7 +412,7 @@ ${body}
         ? ""
         : " onlyDispatcher";
 
-    const returnsClause = rets.length ? ` returns (${rets})` : "";
+    const _returnsClause = rets.length ? ` returns (${rets})` : "";
 
     // Revert body keeps bytecode tiny and forces migration later.
     return `    function ${f.name}(${params}) ${vis}${mut ? " " + mut : ""}${mod}${returnsClause} {
@@ -420,8 +421,8 @@ ${body}
   }
 
   private createStorageLibrary(facetName: string): ContractChunk {
-    const libName = `Lib${facetName}Storage`;
-    const slot = `payrox.${facetName.toLowerCase()}.v1`;
+    const _libName = `Lib${facetName}Storage`;
+    const _slot = `payrox.${facetName.toLowerCase()}.v1`;
     const content = `// SPDX-License-Identifier: MIT
 pragma solidity ${this.pragmaVersion};
 
@@ -462,7 +463,7 @@ library ${libName} {
     facetName: string,
     functions: FunctionInfo[],
   ): ContractChunk {
-    const interfaceName = `I${facetName}`;
+    const _interfaceName = `I${facetName}`;
     const defs = functions
       .map((f) => {
         const params = (f.inputs || [])
@@ -477,7 +478,7 @@ library ${libName} {
             : f.stateMutability === "payable"
               ? " payable"
               : "";
-        const returnsClause = rets.length ? ` returns (${rets})` : "";
+        const _returnsClause = rets.length ? ` returns (${rets})` : "";
         return `    function ${f.name}(${params}) external${mut}${returnsClause};`;
       })
       .join("\n");
@@ -512,7 +513,7 @@ ${defs}
     facets: ContractChunk[],
   ): ContractChunk | null {
     if (!facets.length) return null;
-    const initName = `Init${baseName}`;
+    const _initName = `Init${baseName}`;
     const imports = facets
       .map(
         (c) =>
@@ -562,7 +563,7 @@ contract ${initName} {
   }
 
   private buildCutAndManifest(chunks: ContractChunk[]) {
-    const facets = chunks.filter((c) => c.type === "facet");
+    const _facets = chunks.filter((c) => c.type === "facet");
 
     const diamondCut: DiamondCutData[] = facets.map((f) => ({
       facet: f.name,
@@ -590,18 +591,18 @@ contract ${initName} {
     const warnings: string[] = [];
 
     // selector parity
-    const a = new Set(originalFns.map((f) => f.selector.toLowerCase()));
+    const _a = new Set(originalFns.map((f) => f.selector.toLowerCase()));
     const b = new Set(
       chunks.flatMap((c) => c.functions.map((f) => f.selector.toLowerCase())),
     );
-    const selectorParity = a.size === b.size && [...a].every((x) => b.has(x));
+    const _selectorParity = a.size === b.size && [...a].every((x) => b.has(x));
     if (!selectorParity) errors.push("Selector parity failed");
 
     // EIP-170 check (runtimeBytes are 0 until you compile generated facets; warn instead of error)
     const sizeViolations = chunks
       .filter((c) => c.type === "facet")
       .filter((c) => c.runtimeBytes && c.runtimeBytes > this.maxRuntimeBytes);
-    const runtimeSizeOk = sizeViolations.length === 0;
+    const _runtimeSizeOk = sizeViolations.length === 0;
     if (!runtimeSizeOk) errors.push("One or more facets exceed EIP-170");
 
     // loupe ban in facets
@@ -616,7 +617,7 @@ contract ${initName} {
         c.type === "facet" &&
         c.functions.some((f) => loupe.has(f.selector.toLowerCase())),
     );
-    const noLoupeInFacets = !bad;
+    const _noLoupeInFacets = !bad;
     if (!noLoupeInFacets) errors.push("Loupe selectors found in a facet");
 
     return { selectorParity, runtimeSizeOk, noLoupeInFacets, errors, warnings };
@@ -639,11 +640,11 @@ contract ${initName} {
   private createDeploymentStrategy(
     chunks: ContractChunk[],
   ): DeploymentStrategy {
-    const facets = chunks.filter((c) => c.type === "facet").map((c) => c.name);
+    const _facets = chunks.filter((c) => c.type === "facet").map((c) => c.name);
     const libraries = chunks
       .filter((c) => c.type === "storage")
       .map((c) => c.name);
-    const initC = chunks.find((c) => c.type === "init")?.name;
+    const _initC = chunks.find((c) => c.type === "init")?.name;
 
     return {
       mainContract: "Diamond",
@@ -661,23 +662,23 @@ contract ${initName} {
 
   private calculateInterfaceId(functions: FunctionInfo[]): string {
     if (!functions.length) return "0x00000000";
-    let acc = 0n;
+    let _acc = 0n;
     for (const f of functions) {
-      const x = BigInt("0x" + f.selector.slice(2));
+      const _x = BigInt("0x" + f.selector.slice(2));
       acc ^= x;
     }
-    const hex = acc.toString(16).padStart(8, "0");
+    const _hex = acc.toString(16).padStart(8, "0");
     return "0x" + hex;
   }
 
   private estimateDeploymentGas(content: string): number {
-    const base = 200_000;
-    const perByte = 200;
+    const _base = 200_000;
+    const _perByte = 200;
     return base + Buffer.byteLength(content, "utf8") * perByte;
   }
 
   private extractDependencies(src: string): string[] {
-    const re = /import\s+(?:\{[^}]*\}\s+from\s+|)[`'"](.+?)[`'"];?/g;
+    const _re = /import\s+(?:\{[^}]*\}\s+from\s+|)[`'"](.+?)[`'"];?/g;
     const out: string[] = [];
     let m: RegExpExecArray | null;
     // Best-effort extraction: match import paths directly from source
@@ -695,7 +696,7 @@ contract ${initName} {
     abiData: { name: string; functions: FunctionInfo[] },
     runtimeBytes: number,
   ): ChunkAnalysis {
-    const name = abiData.name;
+    const _name = abiData.name;
 
     const chunk: ContractChunk = {
       name,
@@ -760,7 +761,7 @@ contract ${initName} {
   }
 
   async saveChunks(analysis: ChunkAnalysis, outputDir: string): Promise<void> {
-    const chunksDir = path.join(outputDir, "chunks");
+    const _chunksDir = path.join(outputDir, "chunks");
     fs.mkdirSync(path.join(chunksDir, "facets"), { recursive: true });
     fs.mkdirSync(path.join(chunksDir, "interfaces", "facets"), {
       recursive: true,
@@ -768,7 +769,7 @@ contract ${initName} {
     fs.mkdirSync(path.join(chunksDir, "libraries"), { recursive: true });
 
     for (const c of analysis.recommendedChunks) {
-      let out = "";
+      let _out = "";
       if (c.type === "facet" || c.type === "init") {
         out = path.join(chunksDir, "facets", `${c.name}.sol`);
       } else if (c.type === "interface") {
@@ -783,7 +784,7 @@ contract ${initName} {
       console.log(`✅ ${c.name}.sol → ${out}`);
     }
 
-    const report = path.join(chunksDir, "analysis-report.json");
+    const _report = path.join(chunksDir, "analysis-report.json");
     fs.writeFileSync(report, JSON.stringify(analysis, null, 2));
 
     await this.generateDeploymentScript(analysis, chunksDir);
@@ -801,9 +802,9 @@ import { deployDiamond } from "../../scripts/deploy-diamond";
 
 export async function deployChunkedSystem(hre: HardhatRuntimeEnvironment) {
   console.log("🚀 Deploying chunked system...");
-  const facets = ${JSON.stringify(analysis.deploymentStrategy.facets, null, 2)};
-  const diamondCut = ${JSON.stringify(analysis.diamondCut, null, 2)};
-  const manifest = ${JSON.stringify(analysis.manifest, null, 2)};
+  const _facets = ${JSON.stringify(analysis.deploymentStrategy.facets, null, 2)};
+  const _diamondCut = ${JSON.stringify(analysis.diamondCut, null, 2)};
+  const _manifest = ${JSON.stringify(analysis.manifest, null, 2)};
   const diamond = await deployDiamond(hre, {
     facets,
     diamondCut,
@@ -814,7 +815,7 @@ export async function deployChunkedSystem(hre: HardhatRuntimeEnvironment) {
   return diamond;
 }
 `;
-    const p = path.join(outputDir, "deploy-chunked-system.ts");
+    const _p = path.join(outputDir, "deploy-chunked-system.ts");
     fs.writeFileSync(p, script);
   }
 }
@@ -824,7 +825,7 @@ export async function deployChunkedSystem(hre: HardhatRuntimeEnvironment) {
  */
 export async function main(hre: HardhatRuntimeEnvironment) {
   console.log("🤖 PayRox AST Chunker — start");
-  const chunker = new AIUniversalASTChunker(hre);
+  const _chunker = new AIUniversalASTChunker(hre);
 
   const targets = [
     "contracts/PayRoxProxyRouter.sol",
@@ -834,15 +835,15 @@ export async function main(hre: HardhatRuntimeEnvironment) {
 
   const results: ChunkAnalysis[] = [];
   for (const rel of targets) {
-    const abs = path.join(process.cwd(), rel);
+    const _abs = path.join(process.cwd(), rel);
     if (!fs.existsSync(abs)) {
       console.log(`⚠️  Not found: ${rel}`);
       continue;
     }
     try {
-      const a = await chunker.analyzeContract(abs);
+      const _a = await chunker.analyzeContract(abs);
       results.push(a);
-      const out = path.join("deployable-modules", path.basename(rel, ".sol"));
+      const _out = path.join("deployable-modules", path.basename(rel, ".sol"));
       await chunker.saveChunks(a, out);
 
       console.log(

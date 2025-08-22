@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 #!/usr/bin/env node
 import * as fs from "fs";
 import * as path from "path";
@@ -31,7 +33,7 @@ export function createAnalyzer(): SolidityAnalyzer {
 
 // Minimal CLI runner: `node dist/analyzer/index.js refactor <file>`
 export async function runCLI(argv: string[] = process.argv): Promise<void> {
-  const args = argv.slice(2);
+  const _args = argv.slice(2);
   if (args.length === 0) {
     console.log("Usage: <cmd> [args]");
     console.log("Commands:");
@@ -48,18 +50,18 @@ export async function runCLI(argv: string[] = process.argv): Promise<void> {
       return;
     }
 
-    const resolved = path.resolve(process.cwd(), file);
+    const _resolved = path.resolve(process.cwd(), file);
     if (!fs.existsSync(resolved)) {
       console.error(`File not found: ${resolved}`);
       process.exitCode = 2;
       return;
     }
 
-    const source = fs.readFileSync(resolved, "utf8");
-    const analyzer = createAnalyzer();
+    const _source = fs.readFileSync(resolved, "utf8");
+    const _analyzer = createAnalyzer();
 
   // Keep loose typing here to avoid tight coupling to internals
-    const result = await (analyzer as any).refactorContract(source, {});
+    const _result = await (analyzer as any).refactorContract(source, {});
     process.stdout.write(JSON.stringify(result, null, 2));
     return;
   }

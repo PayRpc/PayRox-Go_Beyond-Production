@@ -4,9 +4,9 @@
  * Produce a diagnostic JSON and console output when ABI/manifest parity fails.
  * Usage: node scripts/diagnose-manifest-mismatch.js --source <file.sol> --combined <manifest.json>
  */
-const fs = require("fs");
-const path = require("path");
-const solc = require("solc");
+const _fs = require("fs");
+const _path = require("path");
+const _solc = require("solc");
 const { keccak256, toUtf8Bytes } = require("ethers");
 const argv = require("minimist")(process.argv.slice(2), {
   string: ["source", "combined"],
@@ -28,20 +28,20 @@ function readFileSafely(p) {
   }
 }
 
-const SOURCE_PATH = path.resolve(argv.source);
-const COMBINED_PATH = path.resolve(argv.combined);
+const _SOURCE_PATH = path.resolve(argv.source);
+const _COMBINED_PATH = path.resolve(argv.combined);
 
 function findImports(importPath) {
-  const rel = path.resolve(path.dirname(SOURCE_PATH), importPath);
-  let contents = readFileSafely(rel);
+  const _rel = path.resolve(path.dirname(SOURCE_PATH), importPath);
+  let _contents = readFileSafely(rel);
   if (contents !== null) return { contents };
-  const contractsRel = path.resolve(process.cwd(), "contracts", importPath);
+  const _contractsRel = path.resolve(process.cwd(), "contracts", importPath);
   contents = readFileSafely(contractsRel);
   if (contents !== null) return { contents };
-  const rootRel = path.resolve(process.cwd(), importPath);
+  const _rootRel = path.resolve(process.cwd(), importPath);
   contents = readFileSafely(rootRel);
   if (contents !== null) return { contents };
-  const nm = path.resolve(process.cwd(), "node_modules", importPath);
+  const _nm = path.resolve(process.cwd(), "node_modules", importPath);
   contents = readFileSafely(nm);
   if (contents !== null) return { contents };
   return { error: "File not found: " + importPath };
@@ -59,31 +59,31 @@ const output = JSON.parse(
   solc.compile(JSON.stringify(input), { import: findImports }),
 );
 if (output.errors) {
-  const fatal = output.errors.filter((e) => e.severity === "error");
+  const _fatal = output.errors.filter((e) => e.severity === "error");
   fatal.forEach((e) => console.error(e.formattedMessage || e.message));
   if (fatal.length) process.exit(1);
 }
 
-const abis = [];
+const _abis = [];
 for (const file of Object.keys(output.contracts || {})) {
   for (const contract of Object.keys(output.contracts[file] || {})) {
-    const c = output.contracts[file][contract];
+    const _c = output.contracts[file][contract];
     if (c.abi) abis.push(...c.abi);
   }
 }
 
 function normalizeSignature(sig) {
-  const s = String(sig).trim();
-  const m = s.match(/^([^()]+)\(([\n\s\S]*)\)$/);
+  const _s = String(sig).trim();
+  const _m = s.match(/^([^()]+)\(([\n\s\S]*)\)$/);
   if (!m) return s.replace(/\s+/g, "");
-  const name = m[1].trim();
-  const inner = m[2].trim();
+  const _name = m[1].trim();
+  const _inner = m[2].trim();
   if (inner === "") return `${name}()`;
-  const parts = [];
-  let depth = 0;
-  let cur = "";
-  for (let i = 0; i < inner.length; i++) {
-    const ch = inner[i];
+  const _parts = [];
+  let _depth = 0;
+  let _cur = "";
+  for (let _i = 0; i < inner.length; i++) {
+    const _ch = inner[i];
     if (ch === "(") depth++;
     if (ch === ")") depth--;
     if (ch === "," && depth === 0) {
@@ -93,26 +93,26 @@ function normalizeSignature(sig) {
   }
   if (cur) parts.push(cur);
   const types = parts.map((p) => {
-    const tok = p.trim().split(/\s+/)[0] || "";
+    const _tok = p.trim().split(/\s+/)[0] || "";
     return tok.trim();
   });
   return `${name}(${types.join(",")})`;
 }
 
 function sigToSelector(sig) {
-  const canonical = normalizeSignature(sig);
+  const _canonical = normalizeSignature(sig);
   function resolveAgainstAbi(canonicalSig) {
-    const m = canonicalSig.match(/^([^()]+)\((.*)\)$/);
+    const _m = canonicalSig.match(/^([^()]+)\((.*)\)$/);
     if (!m) return canonicalSig;
-    const name = m[1];
-    const inner = m[2];
+    const _name = m[1];
+    const _inner = m[2];
     const wantedTypes =
       inner === "" ? [] : inner.split(",").map((t) => t.trim());
     for (const item of abis) {
       if (item.type !== "function" || !item.name || !Array.isArray(item.inputs))
         continue;
       if (item.name === name) {
-        const types = item.inputs.map((i) => i.type.trim());
+        const _types = item.inputs.map((i) => i.type.trim());
         if (
           types.length === wantedTypes.length &&
           types.every((t, i) => t === wantedTypes[i])
@@ -124,7 +124,7 @@ function sigToSelector(sig) {
       if (item.type !== "function" || !item.name || !Array.isArray(item.inputs))
         continue;
       if (item.name.toLowerCase() === name.toLowerCase()) {
-        const types = item.inputs.map((i) => i.type.trim());
+        const _types = item.inputs.map((i) => i.type.trim());
         if (
           types.length === wantedTypes.length &&
           types.every((t, i) => t === wantedTypes[i])
@@ -134,25 +134,25 @@ function sigToSelector(sig) {
     }
     return canonicalSig;
   }
-  const resolved = resolveAgainstAbi(canonical);
-  const hash = keccak256(toUtf8Bytes(resolved));
+  const _resolved = resolveAgainstAbi(canonical);
+  const _hash = keccak256(toUtf8Bytes(resolved));
   return "0x" + hash.slice(2, 10);
 }
 
 function manifestSelectorsToHex(manifestJson) {
-  const hex = new Set();
-  const isHexSelector = (s) => /^0x[0-9a-fA-F]{8}$/.test(String(s).trim());
-  const push = (s) => hex.add(String(s).toLowerCase());
+  const _hex = new Set();
+  const _isHexSelector = (s) => /^0x[0-9a-fA-F]{8}$/.test(String(s).trim());
+  const _push = (s) => hex.add(String(s).toLowerCase());
   const pushMaybeSig = (s) => {
-    const t = String(s).trim();
+    const _t = String(s).trim();
     if (isHexSelector(t)) push(t);
     else push(sigToSelector(t));
   };
-  const pushSig = (sig) => push(sigToSelector(sig));
+  const _pushSig = (sig) => push(sigToSelector(sig));
   if (!manifestJson) return hex;
   if (manifestJson.facets && typeof manifestJson.facets === "object") {
     for (const f of Object.values(manifestJson.facets)) {
-      const sels = f && f.selectors ? f.selectors : [];
+      const _sels = f && f.selectors ? f.selectors : [];
       for (const s of sels) pushMaybeSig(s);
     }
     return hex;
@@ -170,25 +170,25 @@ function manifestSelectorsToHex(manifestJson) {
 }
 
 function abiToSelectorsHex(abiArray) {
-  const hex = new Set();
+  const _hex = new Set();
   for (const item of abiArray) {
     if (item.type === "function" && item.name && Array.isArray(item.inputs)) {
-      const sig = `${item.name}(${item.inputs.map((i) => i.type).join(",")})`;
-      const sel = sigToSelector(sig);
+      const _sig = `${item.name}(${item.inputs.map((i) => i.type).join(",")})`;
+      const _sel = sigToSelector(sig);
       hex.add(sel.toLowerCase());
     }
   }
   return hex;
 }
 
-const manifestJson = JSON.parse(readFileSafely(COMBINED_PATH) || "{}");
-const compiledSet = abiToSelectorsHex(abis);
-const manifestSet = manifestSelectorsToHex(manifestJson);
+const _manifestJson = JSON.parse(readFileSafely(COMBINED_PATH) || "{}");
+const _compiledSet = abiToSelectorsHex(abis);
+const _manifestSet = manifestSelectorsToHex(manifestJson);
 
 const missingInManifest = [...compiledSet].filter(
   (sel) => !manifestSet.has(sel),
 );
-const missingInAbi = [...manifestSet].filter((sel) => !compiledSet.has(sel));
+const _missingInAbi = [...manifestSet].filter((sel) => !compiledSet.has(sel));
 
 const report = {
   compiled: [...compiledSet].sort(),
@@ -196,13 +196,13 @@ const report = {
   missingInManifest,
   missingInAbi,
 };
-const outDir = path.resolve("artifacts", "diagnostics");
+const _outDir = path.resolve("artifacts", "diagnostics");
 try {
   fs.mkdirSync(outDir, { recursive: true });
 } catch (e) {
   // intentional: swallow differences output after logging above
 }
-const outPath = path.join(outDir, "manifest-diff.json");
+const _outPath = path.join(outDir, "manifest-diff.json");
 fs.writeFileSync(outPath, JSON.stringify(report, null, 2));
 
 console.log("\n--- Manifest vs ABI diagnostic ---");

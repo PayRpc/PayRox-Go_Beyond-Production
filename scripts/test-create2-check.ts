@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 // SPDX-License-Identifier: MIT
 /**
  * CREATE2 Check Testing Script
@@ -6,7 +8,7 @@
  * to ensure deterministic deployment capabilities.
  */
 
-const hre = require('hardhat');
+import hre from 'hardhat';
 const { ethers } = hre;
 import * as crypto from 'crypto';
 import * as fs from 'fs';
@@ -33,19 +35,19 @@ async function testAddressPrediction(): Promise<CREATE2TestResult> {
   console.log('🔮 Testing address prediction...');
   
   try {
-    const signers = await ethers.getSigners();
+    const _signers = await ethers.getSigners();
     if (signers.length === 0) {
       throw new Error('No signers available');
     }
     
-  const deployer = signers[0]!;
-    const salt = ethers.hexlify(crypto.randomBytes(32));
+  const _deployer = signers[0]!;
+    const _salt = ethers.hexlify(crypto.randomBytes(32));
     
     // Get contract bytecode
-    const ContractFactory = await ethers.getContractFactory('DiamondCutFacet');
-    const deployTransaction = await ContractFactory.getDeployTransaction();
-    const initCode = deployTransaction.data;
-    const initCodeHash = ethers.keccak256(initCode);
+    const _ContractFactory = await ethers.getContractFactory('DiamondCutFacet');
+    const _deployTransaction = await ContractFactory.getDeployTransaction();
+    const _initCode = deployTransaction.data;
+    const _initCodeHash = ethers.keccak256(initCode);
     
     // Predict address
     const predictedAddress = ethers.getCreate2Address(
@@ -76,25 +78,25 @@ async function testSaltDeterminism(): Promise<CREATE2TestResult> {
   console.log('🧂 Testing salt determinism...');
   
   try {
-    const signers = await ethers.getSigners();
+    const _signers = await ethers.getSigners();
     if (signers.length === 0) {
       throw new Error('No signers available');
     }
     
-    const deployer = signers[0];
-    const salt = '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
+    const _deployer = signers[0];
+    const _salt = '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
     
     // Get contract bytecode
-    const ContractFactory = await ethers.getContractFactory('DiamondCutFacet');
-    const deployTransaction = await ContractFactory.getDeployTransaction();
-    const initCode = deployTransaction.data;
-    const initCodeHash = ethers.keccak256(initCode);
+    const _ContractFactory = await ethers.getContractFactory('DiamondCutFacet');
+    const _deployTransaction = await ContractFactory.getDeployTransaction();
+    const _initCode = deployTransaction.data;
+    const _initCodeHash = ethers.keccak256(initCode);
     
     // Predict address twice with same salt
-    const address1 = ethers.getCreate2Address(deployer.address, salt, initCodeHash);
-    const address2 = ethers.getCreate2Address(deployer.address, salt, initCodeHash);
+    const _address1 = ethers.getCreate2Address(deployer.address, salt, initCodeHash);
+    const _address2 = ethers.getCreate2Address(deployer.address, salt, initCodeHash);
     
-    const success = address1 === address2;
+    const _success = address1 === address2;
     
     return {
       testName: 'Salt Determinism',
@@ -120,26 +122,26 @@ async function testSaltVariation(): Promise<CREATE2TestResult> {
   console.log('🎲 Testing salt variation...');
   
   try {
-    const signers = await ethers.getSigners();
+    const _signers = await ethers.getSigners();
     if (signers.length === 0) {
       throw new Error('No signers available');
     }
     
-    const deployer = signers[0];
-    const salt1 = '0x1111111111111111111111111111111111111111111111111111111111111111';
-    const salt2 = '0x2222222222222222222222222222222222222222222222222222222222222222';
+    const _deployer = signers[0];
+    const _salt1 = '0x1111111111111111111111111111111111111111111111111111111111111111';
+    const _salt2 = '0x2222222222222222222222222222222222222222222222222222222222222222';
     
     // Get contract bytecode
-    const ContractFactory = await ethers.getContractFactory('DiamondCutFacet');
-    const deployTransaction = await ContractFactory.getDeployTransaction();
-    const initCode = deployTransaction.data;
-    const initCodeHash = ethers.keccak256(initCode);
+    const _ContractFactory = await ethers.getContractFactory('DiamondCutFacet');
+    const _deployTransaction = await ContractFactory.getDeployTransaction();
+    const _initCode = deployTransaction.data;
+    const _initCodeHash = ethers.keccak256(initCode);
     
     // Predict addresses with different salts
-    const address1 = ethers.getCreate2Address(deployer.address, salt1, initCodeHash);
-    const address2 = ethers.getCreate2Address(deployer.address, salt2, initCodeHash);
+    const _address1 = ethers.getCreate2Address(deployer.address, salt1, initCodeHash);
+    const _address2 = ethers.getCreate2Address(deployer.address, salt2, initCodeHash);
     
-    const success = address1 !== address2;
+    const _success = address1 !== address2;
     
     return {
       testName: 'Salt Variation',
@@ -165,32 +167,32 @@ async function testContractVariation(): Promise<CREATE2TestResult> {
   console.log('📄 Testing contract variation...');
   
   try {
-    const signers = await ethers.getSigners();
+    const _signers = await ethers.getSigners();
     if (signers.length === 0) {
       throw new Error('No signers available');
     }
     
-    const deployer = signers[0];
-    const salt = ethers.hexlify(crypto.randomBytes(32));
+    const _deployer = signers[0];
+    const _salt = ethers.hexlify(crypto.randomBytes(32));
     
     // Get bytecode for different contracts
-    const Contract1 = await ethers.getContractFactory('DiamondCutFacet');
-    const Contract2 = await ethers.getContractFactory('DiamondLoupeFacet');
+    const _Contract1 = await ethers.getContractFactory('DiamondCutFacet');
+    const _Contract2 = await ethers.getContractFactory('DiamondLoupeFacet');
     
-    const deployTx1 = await Contract1.getDeployTransaction();
-    const deployTx2 = await Contract2.getDeployTransaction();
+    const _deployTx1 = await Contract1.getDeployTransaction();
+    const _deployTx2 = await Contract2.getDeployTransaction();
     
-    const initCode1 = deployTx1.data;
-    const initCode2 = deployTx2.data;
+    const _initCode1 = deployTx1.data;
+    const _initCode2 = deployTx2.data;
     
-    const initCodeHash1 = ethers.keccak256(initCode1);
-    const initCodeHash2 = ethers.keccak256(initCode2);
+    const _initCodeHash1 = ethers.keccak256(initCode1);
+    const _initCodeHash2 = ethers.keccak256(initCode2);
     
     // Predict addresses
-    const address1 = ethers.getCreate2Address(deployer.address, salt, initCodeHash1);
-    const address2 = ethers.getCreate2Address(deployer.address, salt, initCodeHash2);
+    const _address1 = ethers.getCreate2Address(deployer.address, salt, initCodeHash1);
+    const _address2 = ethers.getCreate2Address(deployer.address, salt, initCodeHash2);
     
-    const success = address1 !== address2;
+    const _success = address1 !== address2;
     
     return {
       testName: 'Contract Variation',
@@ -216,7 +218,7 @@ async function testDeployerVariation(): Promise<CREATE2TestResult> {
   console.log('👤 Testing deployer variation...');
   
   try {
-    const signers = await ethers.getSigners();
+    const _signers = await ethers.getSigners();
     if (signers.length < 2) {
       // Skip this test if we don't have enough signers
       return {
@@ -228,21 +230,21 @@ async function testDeployerVariation(): Promise<CREATE2TestResult> {
       };
     }
     
-    const deployer1 = signers[0];
-    const deployer2 = signers[1];
-    const salt = ethers.hexlify(crypto.randomBytes(32));
+    const _deployer1 = signers[0];
+    const _deployer2 = signers[1];
+    const _salt = ethers.hexlify(crypto.randomBytes(32));
     
     // Get contract bytecode
-    const ContractFactory = await ethers.getContractFactory('DiamondCutFacet');
-    const deployTransaction = await ContractFactory.getDeployTransaction();
-    const initCode = deployTransaction.data;
-    const initCodeHash = ethers.keccak256(initCode);
+    const _ContractFactory = await ethers.getContractFactory('DiamondCutFacet');
+    const _deployTransaction = await ContractFactory.getDeployTransaction();
+    const _initCode = deployTransaction.data;
+    const _initCodeHash = ethers.keccak256(initCode);
     
     // Predict addresses with different deployers
-    const address1 = ethers.getCreate2Address(deployer1.address, salt, initCodeHash);
-    const address2 = ethers.getCreate2Address(deployer2.address, salt, initCodeHash);
+    const _address1 = ethers.getCreate2Address(deployer1.address, salt, initCodeHash);
+    const _address2 = ethers.getCreate2Address(deployer2.address, salt, initCodeHash);
     
-    const success = address1 !== address2;
+    const _success = address1 !== address2;
     
     return {
       testName: 'Deployer Variation',
@@ -288,7 +290,7 @@ async function main() {
   // Run all tests
   for (const test of tests) {
     try {
-      const result = await test();
+      const _result = await test();
       testSuite.results.push(result);
       testSuite.totalTests++;
       
@@ -324,17 +326,17 @@ async function main() {
   console.log(`   Success Rate: ${((testSuite.passedTests / testSuite.totalTests) * 100).toFixed(1)}%`);
   
   // Save results
-  const outputDir = path.join(process.cwd(), 'reports');
+  const _outputDir = path.join(process.cwd(), 'reports');
   if (!fs.existsSync(outputDir)) {
     fs.mkdirSync(outputDir, { recursive: true });
   }
   
-  const outputFile = path.join(outputDir, `create2-check-tests-${Date.now()}.json`);
+  const _outputFile = path.join(outputDir, `create2-check-tests-${Date.now()}.json`);
   fs.writeFileSync(outputFile, JSON.stringify(testSuite, null, 2));
   console.log(`\n📄 Results saved: ${outputFile}`);
   
   // Exit with appropriate code
-  const allPassed = testSuite.failedTests === 0;
+  const _allPassed = testSuite.failedTests === 0;
   console.log(`\n${allPassed ? '✅' : '❌'} CREATE2 tests ${allPassed ? 'PASSED' : 'FAILED'}`);
   
   if (!allPassed) {
