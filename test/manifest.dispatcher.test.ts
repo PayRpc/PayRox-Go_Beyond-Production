@@ -53,4 +53,60 @@ describe("ManifestDispatcher - commit/apply lifecycle", function () {
     const route = await dispatcher.routes(selector);
     expect(route[0]).to.equal(await facet.getAddress());
   });
+
+  it("respects pause state and blocks configuration changes", async function () {
+    const signers = await hardhatEthers.getSigners();
+    const owner = signers[0];
+    const Factory: any = await hardhatEthers.getContractFactory("contracts/manifest/ManifestDispatcher.sol:ManifestDispatcher");
+    const dispatcher: any = await Factory.deploy();
+    await dispatcher.waitForDeployment();
+    await dispatcher.initialize(owner.address);
+
+    // pause the dispatcher
+    await dispatcher.setPaused(true);
+
+    const root = ethers.hexlify(ethers.randomBytes(32));
+    const selector = "0x12345678";
+
+    // applying routes should revert when paused
+    await expect(dispatcher.applyRoutes([selector], [ethers.ZeroAddress], [ethers.ZeroHash], [], []))
+      .to.be.revertedWithCustomError(dispatcher, "Paused");
+
+    // removing routes should revert when paused
+    await expect(dispatcher.removeRoutes([selector]))
+      .to.be.revertedWithCustomError(dispatcher, "Paused");
+
+    // unpause and verify operations work
+    await dispatcher.setPaused(false);
+    await dispatcher.applyRoutes([selector], [ethers.ZeroAddress], [ethers.ZeroHash], [], []);
+  });
+
+  it("respects freeze state and blocks all configuration", async function () {
+    const signers = await hardhatEthers.getSigners();
+    const owner = signers[0];
+    const Factory: any = await hardhatEthers.getContractFactory("contracts/manifest/ManifestDispatcher.sol:ManifestDispatcher");
+    const dispatcher: any = await Factory.deploy();
+    await dispatcher.waitForDeployment();
+    await dispatcher.initialize(owner.address);
+
+    // freeze the dispatcher (irreversible)
+    await expect(dispatcher.freeze()).to.emit(dispatcher, "Frozen");
+    expect(await dispatcher.frozen()).to.be.true;
+
+    const root = ethers.hexlify(ethers.randomBytes(32));
+    const selector = "0x12345678";
+
+    // all configuration operations should revert when frozen
+    await expect(dispatcher.commitRoot(root, 1))
+      .to.be.revertedWithCustomError(dispatcher, "FrozenState");
+
+    await expect(dispatcher.activateCommittedRoot())
+      .to.be.revertedWithCustomError(dispatcher, "FrozenState");
+
+    await expect(dispatcher.applyRoutes([selector], [ethers.ZeroAddress], [ethers.ZeroHash], [], []))
+      .to.be.revertedWithCustomError(dispatcher, "FrozenState");
+
+    await expect(dispatcher.setActivationDelay(300))
+      .to.be.revertedWithCustomError(dispatcher, "FrozenState");
+  });
 });

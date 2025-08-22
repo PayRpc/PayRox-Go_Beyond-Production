@@ -31,4 +31,23 @@ describe("DeterministicChunkFactory - deploy/idempotency", function () {
     // ensure address equals computed
     expect(againAddr).to.equal(computed);
   });
+
+  it("enforces codehash exactness and reverts on mismatch", async function () {
+    const Factory: any = await hardhatEthers.getContractFactory("contracts/factory/DeterministicChunkFactory.sol:DeterministicChunkFactory");
+    const factory: any = await Factory.deploy();
+    await factory.waitForDeployment();
+
+    const Facet: any = await hardhatEthers.getContractFactory("SimpleFacet");
+    const bytecode = Facet.bytecode;
+
+    const salt = ethers.id("codehash-test");
+    const wrongCodehash = ethers.id("wrong-hash");
+
+    // Deploy first time
+    await factory.deploy(salt, bytecode, ethers.ZeroHash);
+
+    // Second deploy with wrong expected codehash should revert
+    await expect(factory.deploy(salt, bytecode, wrongCodehash))
+      .to.be.revertedWithCustomError(factory, "CodehashMismatch");
+  });
 });

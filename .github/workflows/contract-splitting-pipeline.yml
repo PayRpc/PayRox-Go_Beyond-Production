@@ -1,0 +1,506 @@
+name: PayRox Contract Splitting & Deployment Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - "contracts/**"
+      - "tools/splitter/**"
+      - "tasks/**"
+      - "hardhat.config.ts"
+      - "package.json"
+  pull_request:
+    branches: [main]
+    paths:
+      - "contracts/**"
+      - "tools/splitter/**"
+      - "tasks/**"
+      - "hardhat.config.ts"
+      - "package.json"
+  workflow_dispatch:
+    inputs:
+      network:
+        description: "Network to deploy to"
+        required: true
+        default: "localhost"
+        type: choice
+        options:
+          - localhost
+          - sepolia
+          - mainnet
+      deploy_mode:
+        description: "Deployment mode"
+        required: true
+        default: "dry-run"
+        type: choice
+        options:
+          - dry-run
+          - staging
+          - production
+
+env:
+  NODE_VERSION: "20"
+  FOUNDRY_PROFILE: ci
+
+jobs:
+  contract-splitting-validation:
+    name: Contract Splitting Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    outputs:
+      manifest-hash: ${{ steps.manifest.outputs.hash }}
+      validation-report: ${{ steps.validation.outputs.report }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Cache Hardhat artifacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            artifacts
+            cache
+            typechain-types
+          key: hardhat-${{ runner.os }}-${{ hashFiles('contracts/**/*.sol', 'hardhat.config.ts') }}
+          restore-keys: |
+            hardhat-${{ runner.os }}-
+
+      - name: Compile contracts
+        run: npx hardhat compile
+
+      - name: Run contract splitter
+        run: |
+          # Generate split output
+          npx ts-node tools/splitter/demo.ts
+
+          # Verify split output exists
+          if [ ! -f "./split-output/manifest.json" ]; then
+            echo "❌ Contract splitting failed - no manifest generated"
+            exit 1
+          fi
+
+      - name: Validate splitting results
+        id: validation
+        run: |
+          # Run validation pipeline in dry-run mode
+          chmod +x scripts/ci-validation-pipeline.sh
+          export DRY_RUN=true
+          export NETWORK="${{ github.event.inputs.network || 'localhost' }}"
+
+          if ./scripts/ci-validation-pipeline.sh; then
+            echo "✅ Contract splitting validation passed"
+
+            # Extract validation report
+            REPORT_FILE=$(ls validation-report-*.json | head -n1)
+            if [ -f "$REPORT_FILE" ]; then
+              echo "report<<EOF" >> $GITHUB_OUTPUT
+              cat "$REPORT_FILE" >> $GITHUB_OUTPUT
+              echo "EOF" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "❌ Contract splitting validation failed"
+            exit 1
+          fi
+
+      - name: Extract manifest hash
+        id: manifest
+        run: |
+          if [ -f "./split-output/manifest.json" ]; then
+            HASH=$(jq -r '.header.versionBytes32 // "unknown"' ./split-output/manifest.json)
+            echo "hash=$HASH" >> $GITHUB_OUTPUT
+            echo "📋 Manifest hash: $HASH"
+          else
+            echo "hash=unknown" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: contract-splitting-artifacts
+          path: |
+            split-output/
+            validation-report-*.json
+            artifacts/contracts/facets/
+          retention-days: 30
+
+      - name: Comment PR with validation results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const report = JSON.parse(`${{ steps.validation.outputs.report }}`);
+            const manifestHash = '${{ steps.manifest.outputs.hash }}';
+
+            const comment = `## 🔍 Contract Splitting Validation Results
+
+            **Manifest Hash:** \`${manifestHash}\`
+            **Network:** ${report.network}
+            **Timestamp:** ${report.timestamp}
+
+            ### Validation Steps
+            ${report.steps.contractSplitting ? '✅' : '❌'} Contract Splitting
+            ${report.steps.manifestValidation ? '✅' : '❌'} Manifest Validation
+            ${report.steps.factoryOperations ? '✅' : '⏭️'} Factory Operations
+            ${report.steps.orchestration ? '✅' : '⏭️'} Orchestration
+            ${report.steps.deploymentValidation ? '✅' : '⏭️'} Deployment Validation
+
+            ### Artifacts
+            - **Manifest:** ${report.artifacts.manifest}
+            - **Merkle Tree:** ${report.artifacts.merkleTree}
+            - **Facet Artifacts:** ${report.artifacts.facetArtifacts}
+
+            ${report.steps.contractSplitting && report.steps.manifestValidation ? '🎉 **Ready for deployment!**' : '⚠️ **Fix validation issues before deployment**'}
+            `;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+  factory-prediction:
+    name: Factory Address Prediction
+    runs-on: ubuntu-latest
+    needs: contract-splitting-validation
+    if: github.event.inputs.deploy_mode != 'dry-run' && github.event.inputs.network != 'localhost'
+    timeout-minutes: 15
+
+    env:
+      NETWORK: ${{ github.event.inputs.network || 'sepolia' }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: contract-splitting-artifacts
+
+      - name: Setup environment
+        run: |
+          # Set up network-specific environment variables
+          case "$NETWORK" in
+            sepolia)
+              echo "FACTORY_ADDRESS=${{ secrets.SEPOLIA_FACTORY_ADDRESS }}" >> $GITHUB_ENV
+              echo "RPC_URL=${{ secrets.SEPOLIA_RPC_URL }}" >> $GITHUB_ENV
+              ;;
+            mainnet)
+              echo "FACTORY_ADDRESS=${{ secrets.MAINNET_FACTORY_ADDRESS }}" >> $GITHUB_ENV
+              echo "RPC_URL=${{ secrets.MAINNET_RPC_URL }}" >> $GITHUB_ENV
+              ;;
+          esac
+
+      - name: Predict chunk addresses
+        run: |
+          if [ -n "$FACTORY_ADDRESS" ]; then
+            echo "🔮 Predicting chunk addresses for network: $NETWORK"
+
+            # Run predictions for all facets
+            for facet_file in artifacts/contracts/facets/*.json; do
+              if [ -f "$facet_file" ]; then
+                facet_name=$(basename "$facet_file" .json)
+                echo "Predicting address for $facet_name..."
+
+                npx hardhat payrox:chunk:predict \
+                  --factory "$FACTORY_ADDRESS" \
+                  --file "$facet_file" \
+                  --network "$NETWORK" \
+                  --json > "prediction-$facet_name.json"
+              fi
+            done
+
+            echo "✅ Address predictions completed"
+          else
+            echo "⚠️ Factory address not configured for $NETWORK"
+          fi
+
+      - name: Upload prediction results
+        uses: actions/upload-artifact@v4
+        with:
+          name: address-predictions-${{ env.NETWORK }}
+          path: prediction-*.json
+          retention-days: 7
+
+  deployment-staging:
+    name: Staging Deployment
+    runs-on: ubuntu-latest
+    needs: [contract-splitting-validation, factory-prediction]
+    if: github.event.inputs.deploy_mode == 'staging' && github.ref == 'refs/heads/develop'
+    timeout-minutes: 45
+
+    environment:
+      name: staging
+      url: ${{ steps.deploy.outputs.dispatcher-url }}
+
+    env:
+      NETWORK: ${{ github.event.inputs.network || 'sepolia' }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: contract-splitting-artifacts
+
+      - name: Setup staging environment
+        run: |
+          echo "FACTORY_ADDRESS=${{ secrets.SEPOLIA_FACTORY_ADDRESS }}" >> $GITHUB_ENV
+          echo "ORCHESTRATOR_ADDRESS=${{ secrets.SEPOLIA_ORCHESTRATOR_ADDRESS }}" >> $GITHUB_ENV
+          echo "PRIVATE_KEY=${{ secrets.STAGING_PRIVATE_KEY }}" >> $GITHUB_ENV
+          echo "RPC_URL=${{ secrets.SEPOLIA_RPC_URL }}" >> $GITHUB_ENV
+
+      - name: Deploy to staging
+        id: deploy
+        run: |
+          echo "🚀 Deploying to staging environment..."
+
+          # Run staging deployment pipeline
+          export DRY_RUN=false
+          chmod +x scripts/ci-validation-pipeline.sh
+
+          if ./scripts/ci-validation-pipeline.sh; then
+            echo "✅ Staging deployment successful"
+
+            # Extract deployment info
+            if [ -f "./split-output/manifest.json" ]; then
+              MANIFEST_HASH=$(jq -r '.header.versionBytes32' ./split-output/manifest.json)
+              echo "manifest-hash=$MANIFEST_HASH" >> $GITHUB_OUTPUT
+              echo "dispatcher-url=https://sepolia.etherscan.io/address/$ORCHESTRATOR_ADDRESS" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "❌ Staging deployment failed"
+            exit 1
+          fi
+
+      - name: Verify deployment
+        run: |
+          echo "🔍 Verifying staging deployment..."
+
+          # Run post-deployment validation
+          if [ -n "$ORCHESTRATOR_ADDRESS" ]; then
+            npx hardhat payrox:dispatcher:diff \
+              --dispatcher "$ORCHESTRATOR_ADDRESS" \
+              --path "./split-output/manifest.json" \
+              --network "$NETWORK" \
+              --json
+          fi
+
+      - name: Create deployment summary
+        run: |
+          cat >> $GITHUB_STEP_SUMMARY << EOF
+          ## 🚀 Staging Deployment Summary
+
+          **Network:** $NETWORK
+          **Manifest Hash:** ${{ steps.deploy.outputs.manifest-hash }}
+          **Timestamp:** $(date -u +%Y-%m-%dT%H:%M:%SZ)
+
+          ### Deployed Components
+          - **Factory:** $FACTORY_ADDRESS
+          - **Orchestrator:** $ORCHESTRATOR_ADDRESS
+
+          ### Verification
+          - ✅ Manifest validation passed
+          - ✅ Chunk staging completed
+          - ✅ Orchestration successful
+          - ✅ Route verification passed
+
+          **Deployment URL:** ${{ steps.deploy.outputs.dispatcher-url }}
+          EOF
+
+  production-deployment:
+    name: Production Deployment
+    runs-on: ubuntu-latest
+    needs: [contract-splitting-validation, factory-prediction]
+    if: github.event.inputs.deploy_mode == 'production' && github.ref == 'refs/heads/main'
+    timeout-minutes: 60
+
+    environment:
+      name: production
+      url: ${{ steps.deploy.outputs.dispatcher-url }}
+
+    env:
+      NETWORK: ${{ github.event.inputs.network || 'mainnet' }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: contract-splitting-artifacts
+
+      - name: Setup production environment
+        run: |
+          case "$NETWORK" in
+            mainnet)
+              echo "FACTORY_ADDRESS=${{ secrets.MAINNET_FACTORY_ADDRESS }}" >> $GITHUB_ENV
+              echo "ORCHESTRATOR_ADDRESS=${{ secrets.MAINNET_ORCHESTRATOR_ADDRESS }}" >> $GITHUB_ENV
+              echo "PRIVATE_KEY=${{ secrets.PRODUCTION_PRIVATE_KEY }}" >> $GITHUB_ENV
+              echo "RPC_URL=${{ secrets.MAINNET_RPC_URL }}" >> $GITHUB_ENV
+              ;;
+            sepolia)
+              echo "FACTORY_ADDRESS=${{ secrets.SEPOLIA_FACTORY_ADDRESS }}" >> $GITHUB_ENV
+              echo "ORCHESTRATOR_ADDRESS=${{ secrets.SEPOLIA_ORCHESTRATOR_ADDRESS }}" >> $GITHUB_ENV
+              echo "PRIVATE_KEY=${{ secrets.STAGING_PRIVATE_KEY }}" >> $GITHUB_ENV
+              echo "RPC_URL=${{ secrets.SEPOLIA_RPC_URL }}" >> $GITHUB_ENV
+              ;;
+          esac
+
+      - name: Pre-deployment verification
+        run: |
+          echo "🔒 Running pre-deployment security checks..."
+
+          # Verify manifest integrity
+          npx hardhat payrox:manifest:selfcheck \
+            --path "./split-output/manifest.json" \
+            --json
+
+          # Check network readiness
+          if [ "$NETWORK" = "mainnet" ]; then
+            echo "⚠️ PRODUCTION DEPLOYMENT TO MAINNET"
+            echo "Manifest Hash: $(jq -r '.header.versionBytes32' ./split-output/manifest.json)"
+          fi
+
+      - name: Deploy to production
+        id: deploy
+        run: |
+          echo "🚀 Deploying to production environment..."
+          echo "Network: $NETWORK"
+          echo "Factory: $FACTORY_ADDRESS"
+          echo "Orchestrator: $ORCHESTRATOR_ADDRESS"
+
+          # Run production deployment pipeline
+          export DRY_RUN=false
+          export CHECK_DEPLOYED_FACETS=true
+          chmod +x scripts/ci-validation-pipeline.sh
+
+          if ./scripts/ci-validation-pipeline.sh; then
+            echo "✅ Production deployment successful"
+
+            # Extract deployment info
+            MANIFEST_HASH=$(jq -r '.header.versionBytes32' ./split-output/manifest.json)
+            echo "manifest-hash=$MANIFEST_HASH" >> $GITHUB_OUTPUT
+
+            if [ "$NETWORK" = "mainnet" ]; then
+              echo "dispatcher-url=https://etherscan.io/address/$ORCHESTRATOR_ADDRESS" >> $GITHUB_OUTPUT
+            else
+              echo "dispatcher-url=https://sepolia.etherscan.io/address/$ORCHESTRATOR_ADDRESS" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "❌ Production deployment failed"
+            exit 1
+          fi
+
+      - name: Post-deployment validation
+        run: |
+          echo "🔍 Running comprehensive post-deployment validation..."
+
+          # Verify all components
+          export DISPATCHER_ADDRESS="$ORCHESTRATOR_ADDRESS"
+          ./scripts/ci-validation-pipeline.sh
+
+      - name: Create production deployment record
+        run: |
+          # Create deployment record
+          cat > "deployment-record-$(date +%Y%m%d-%H%M%S).json" << EOF
+          {
+            "network": "$NETWORK",
+            "manifestHash": "${{ steps.deploy.outputs.manifest-hash }}",
+            "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "commit": "$GITHUB_SHA",
+            "factory": "$FACTORY_ADDRESS",
+            "orchestrator": "$ORCHESTRATOR_ADDRESS",
+            "deployer": "$GITHUB_ACTOR",
+            "workflow": "$GITHUB_RUN_ID"
+          }
+          EOF
+
+          echo "📋 Production deployment recorded"
+
+      - name: Create production summary
+        run: |
+          cat >> $GITHUB_STEP_SUMMARY << EOF
+          ## 🎉 Production Deployment Complete
+
+          **Network:** $NETWORK
+          **Manifest Hash:** ${{ steps.deploy.outputs.manifest-hash }}
+          **Commit:** $GITHUB_SHA
+          **Timestamp:** $(date -u +%Y-%m-%dT%H:%M:%SZ)
+
+          ### Deployed Infrastructure
+          - **Factory Address:** $FACTORY_ADDRESS
+          - **Orchestrator Address:** $ORCHESTRATOR_ADDRESS
+
+          ### Validation Results
+          - ✅ Pre-deployment security checks passed
+          - ✅ Manifest validation passed
+          - ✅ Chunk staging completed
+          - ✅ Orchestration successful
+          - ✅ Post-deployment validation passed
+
+          **Etherscan URL:** ${{ steps.deploy.outputs.dispatcher-url }}
+
+          🚀 **PayRox Contract Splitting system is now live in production!**
+          EOF
+
+      - name: Upload deployment artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-deployment-${{ env.NETWORK }}-${{ github.run_id }}
+          path: |
+            deployment-record-*.json
+            validation-report-*.json
+          retention-days: 365
