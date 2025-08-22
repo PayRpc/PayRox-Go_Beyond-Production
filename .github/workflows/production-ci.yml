@@ -1,9 +1,10 @@
 name: PayRox Production CI/CD Pipeline
 on:
   push:
-    branches: [main, develop]
+    branches: [main, develop, fix/ci-codecov-guard]
   pull_request:
     branches: [main]
+  workflow_dispatch:
 
 env:
   NODE_VERSION: "20"
