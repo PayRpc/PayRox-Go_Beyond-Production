@@ -15,10 +15,18 @@ const config: HardhatUserConfig = {
         settings: {
           optimizer: { enabled: true, runs: 200 },
           evmVersion: 'cancun',
-          viaIR: true
+          viaIR: true,
+          outputSelection: {
+            '*': {
+              '*': ['abi', 'evm.bytecode', 'evm.deployedBytecode', 'storageLayout']
+            }
+          }
         }
       }
     ]
+  },
+  mocha: {
+    timeout: 200000
   },
   paths: {
     sources: './contracts',

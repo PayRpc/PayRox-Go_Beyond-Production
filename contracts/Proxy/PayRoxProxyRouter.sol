@@ -68,6 +68,7 @@ contract PayRoxProxyRouter {
     error EmptyBatch();
     error BatchReentrancy();
     error Reentrancy();
+    error BadInitSalt();
 
     // ─────────────────────────────────────────────────────────────────────────────
     // Constants
@@ -90,7 +91,7 @@ contract PayRoxProxyRouter {
         bool batchLock; // tiny reentrancy lock for batch
         bool reentrancyLock; // reentrancy lock for fallback
         mapping(bytes4 => bool) forbidden; // hot kill-switch per selector
-        
+
         // L2 governance (optional)
         address l2Messenger; // e.g., OP: 0x4200000000000000000000000000000000000007, Arbitrum: L2CrossDomainMessenger
         address l1Governor;  // L1 governor that's allowed through messenger
@@ -161,7 +162,7 @@ contract PayRoxProxyRouter {
     ) external {
         RouterStorage storage s = _s();
         if (s.owner != address(0)) revert AlreadyInitialized();
-        if (initSalt != INIT_SALT) revert NotOwner(); // Reuse existing error for unauthorized access
+        if (initSalt != INIT_SALT) revert BadInitSalt(); // specific error for bad init salt
         if (dispatcher_ == address(0)) revert DispatcherZero();
 
         _validateDispatcherCompatibility(dispatcher_);
@@ -271,7 +272,7 @@ contract PayRoxProxyRouter {
         if (_s().paused) revert Paused();
     }
 
-    fallback() external payable nonReentrant {
+    fallback() external payable {
         RouterStorage storage s = _s();
         if (s.paused) revert Paused();
 
@@ -294,20 +295,20 @@ contract PayRoxProxyRouter {
             }
         }
 
-        // Delegatecall to dispatcher; bubble exact returndata
-        assembly {
-            let ptr := mload(0x40)
-            calldatacopy(ptr, 0, calldatasize())
-            let result := delegatecall(gas(), target, ptr, calldatasize(), 0, 0)
-            let size := returndatasize()
-            returndatacopy(ptr, 0, size)
-            switch result
-            case 0 {
-                revert(ptr, size)
-            }
-            default {
-                return(ptr, size)
-            }
+        // Manual reentrancy protection (do not rely on modifier; modifier's epilogue
+        // can be skipped by assembly bubbling). Symmetric with batch locks.
+        if (s.reentrancyLock) revert Reentrancy();
+        s.reentrancyLock = true;
+
+        (bool ok, bytes memory ret) = _delegateTo(target, msg.data);
+
+        // IMPORTANT: release lock before bubbling
+        s.reentrancyLock = false;
+
+        if (!ok) {
+            assembly { revert(add(ret, 0x20), mload(ret)) }
+        } else {
+            assembly { return(add(ret, 0x20), mload(ret)) }
         }
     }
 
