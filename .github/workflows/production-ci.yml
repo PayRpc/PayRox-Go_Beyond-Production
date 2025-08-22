@@ -33,11 +33,11 @@ jobs:
         run: |
           EMPTY_FILES=$(find . -name "*.sol" -o -name "*.ts" -o -name "*.js" | xargs -r ls -la | awk '$5 == 0 {print $9}' | grep -v node_modules || true)
           if [ ! -z "$EMPTY_FILES" ]; then
-            echo "❌ Empty files detected:"
+            echo "ERROR: Empty files detected:"
             echo "$EMPTY_FILES"
             exit 1
           fi
-          echo "✅ No empty files found"
+          echo "SUCCESS: No empty files found"
 
       - name: Lint check (fail fast)
         run: npm run lint:check || echo "⚠️ Lint issues detected - will be fixed automatically"
@@ -215,7 +215,7 @@ jobs:
                     const size = (artifact.bytecode.length - 2) / 2;
                     console.log(\`\${artifact.contractName}: \${size} bytes\`);
                     if (size > 24576) {
-                      console.error(\`❌ \${artifact.contractName} exceeds 24KB limit: \${size} bytes\`);
+                      console.error(`ERROR: ${artifact.contractName} exceeds 24KB limit: ${size} bytes`);
                       process.exit(1);
                     }
                   }
@@ -224,7 +224,7 @@ jobs:
             }
 
             checkContractSizes('./artifacts/contracts');
-            console.log('✅ All contracts within size limits');
+            console.log('SUCCESS: All contracts within size limits');
           "
 
       - name: Determinism & manifest generation
@@ -278,9 +278,9 @@ jobs:
     steps:
       - name: Success notification
         run: |
-          echo "🎉 PayRox CI/CD Pipeline completed successfully!"
-          echo "✅ All validations passed"
-          echo "✅ Code quality maintained"
-          echo "✅ Contracts compiled and tested"
-          echo "✅ Integration tests passed"
-          echo "✅ Ready for deployment"
+          echo "SUCCESS: PayRox CI/CD Pipeline completed successfully!"
+          echo "SUCCESS: All validations passed"
+          echo "SUCCESS: Code quality maintained"
+          echo "SUCCESS: Contracts compiled and tested"
+          echo "SUCCESS: Integration tests passed"
+          echo "SUCCESS: Ready for deployment"
