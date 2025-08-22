@@ -146,23 +146,6 @@ jobs:
       - name: Run Jest tests
         run: npm test -- --coverage --ci
 
-      # NOTE: This upload step is guarded by the presence of the repository secret
-      # `CODECOV_TOKEN`. Some static workflow linters cannot resolve `secrets` at
-      # parse time and will report a false-positive "Unrecognized named-value: 'secrets'".
-      # The guard below is intentional: it prevents referencing the secret when
-      # it isn't set and avoids runtime failures in forks or environments without
-      # the secret. If the linter still flags this, it's safe to ignore.
-      - name: Upload coverage reports
-        if: ${{ secrets.CODECOV_TOKEN != '' }}
-        uses: codecov/codecov-action@v3
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./coverage/lcov.info
-
-      - name: Skip coverage upload (no CODECOV_TOKEN)
-        if: ${{ secrets.CODECOV_TOKEN == '' }}
-        run: echo "Skipping Codecov upload because CODECOV_TOKEN is not set"
-
   # Integration testing
   integration:
     name: Integration Tests
