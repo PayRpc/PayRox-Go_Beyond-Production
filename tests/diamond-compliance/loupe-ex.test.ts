@@ -5,7 +5,7 @@ describe("ManifestDispatcher - IDiamondLoupeEx compliance", function () {
   let dispatcher: any;
   let owner: any;
 
-  before(async function () {
+  beforeEach(async function () {
     [owner] = await ethers.getSigners();
     const Factory = await ethers.getContractFactory("ManifestDispatcher");
     dispatcher = await Factory.deploy(owner.address, 1);
