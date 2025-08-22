@@ -173,32 +173,38 @@ export class DeterministicBuilder {
    * Find all facet artifact files
    */
   private findFacetArtifacts(artifactsDir: string): string[] {
-    const results: string[] = [];
-
-    const searchDir = path.join(artifactsDir, "contracts", "facets");
-    if (!fs.existsSync(searchDir)) {
-      throw new Error(`Facets directory not found: ${searchDir}`);
-    }
+    // Prefer generated stubs under contracts/facets-fixed, then fall back to contracts/facets
+    const byName = new Map<string, string>();
+    const bases = [
+      path.join(artifactsDir, "contracts", "facets-fixed"),
+      path.join(artifactsDir, "contracts", "facets")
+    ];
 
     const scan = (dir: string) => {
+      if (!fs.existsSync(dir)) return;
       const entries = fs.readdirSync(dir, { withFileTypes: true });
-
       for (const entry of entries) {
         const fullPath = path.join(dir, entry.name);
-
         if (entry.isDirectory()) {
           scan(fullPath);
         } else if (entry.isFile() && entry.name.endsWith(".json")) {
-          // Only include facet contracts (name ends with "Facet")
           const contractName = entry.name.replace(".json", "");
-          if (contractName.endsWith("Facet")) {
-            results.push(fullPath);
+          if (!contractName.endsWith("Facet")) continue;
+          if (!byName.has(contractName)) {
+            byName.set(contractName, fullPath);
           }
         }
       }
     };
 
-    scan(searchDir);
+    for (const b of bases) scan(b);
+
+    const results = Array.from(byName.values());
+    if (results.length === 0) {
+      throw new Error(
+        `No facet artifacts found under ${bases.join(", ")}. Did you compile?`
+      );
+    }
     return results;
   }
 

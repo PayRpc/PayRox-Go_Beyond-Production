@@ -1,6 +1,6 @@
 {
-  "timestamp": "2025-08-22T07:13:00.500Z",
-  "planId": "0x9941520469188e1c5f274a2a0e0a1e84be2bd2cd7bc0f0486de7460413e1737b",
+  "timestamp": "2025-08-22T09:09:28.859Z",
+  "planId": "0xce563892d96349e6a20649b77856547ca5809c5d1027989d5949509ad6458d57",
   "buildHash": "0x8f4982c9289a44652bbb51f532ec3f328a94d463bb3bc994d3b28bc50551b073",
   "deployer": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
   "network": "hardhat",
@@ -9,97 +9,105 @@
     {
       "name": "AccessControlFacet",
       "address": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
-      "predictedCodehash": "0x8707fe9144dd3611c77630bda9e0cd107e359c2fcc3dbbcb3dea68bf39689b51",
-      "actualCodehash": "0x8707fe9144dd3611c77630bda9e0cd107e359c2fcc3dbbcb3dea68bf39689b51",
+      "predictedCodehash": "0x7087915d16c08c1c13957801d166ad5e014e04dd5d60249961b7f0dddd4030ab",
+      "actualCodehash": "0x7087915d16c08c1c13957801d166ad5e014e04dd5d60249961b7f0dddd4030ab",
       "matches": true,
-      "gasUsed": "236836"
+      "gasUsed": "107055"
+    },
+    {
+      "name": "ChunkFactoryFacet",
+      "address": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
+      "predictedCodehash": "0x4d4dda8ffc977b0244c94501ad49ec79f135e3eff5445052d48da9b212cf5bda",
+      "actualCodehash": "0x4d4dda8ffc977b0244c94501ad49ec79f135e3eff5445052d48da9b212cf5bda",
+      "matches": true,
+      "gasUsed": "318990"
     },
     {
       "name": "ERC165Facet",
       "address": "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
-      "predictedCodehash": "0x4be06651d4ab5abc15785703ca5790384442012166ccf3f7a3920c0ebf743b13",
-      "actualCodehash": "0x4be06651d4ab5abc15785703ca5790384442012166ccf3f7a3920c0ebf743b13",
+      "predictedCodehash": "0xcb6cc4ffa40a041b1d206b8f7eb5b092263ce7a64440d3aa07b548142ecf87ff",
+      "actualCodehash": "0xcb6cc4ffa40a041b1d206b8f7eb5b092263ce7a64440d3aa07b548142ecf87ff",
       "matches": true,
-      "gasUsed": "101643"
+      "gasUsed": "91471"
     },
     {
       "name": "PauseFacet",
       "address": "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
-      "predictedCodehash": "0x6ca9fd70f91a0b331a65bc0380ef4e739f53601a9e3441c350cd63e1eecfd820",
-      "actualCodehash": "0x6ca9fd70f91a0b331a65bc0380ef4e739f53601a9e3441c350cd63e1eecfd820",
+      "predictedCodehash": "0xbb30032645c5d4ee6a8c33b97ab270e5c9673ae0b147d54bd1d0febc555d51b8",
+      "actualCodehash": "0xbb30032645c5d4ee6a8c33b97ab270e5c9673ae0b147d54bd1d0febc555d51b8",
       "matches": true,
-      "gasUsed": "174339"
+      "gasUsed": "92563"
     },
     {
       "name": "PaymentsFacet",
       "address": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
-      "predictedCodehash": "0xeda04e0aa99b670cb206204e9307397b56df57936247095020ab07825b3b64cc",
-      "actualCodehash": "0xeda04e0aa99b670cb206204e9307397b56df57936247095020ab07825b3b64cc",
+      "predictedCodehash": "0xf0bae8dc6558ea30cb37e10e5bb07e94bad806ea6e61dd28c0d9ff7db81ddf7b",
+      "actualCodehash": "0xf0bae8dc6558ea30cb37e10e5bb07e94bad806ea6e61dd28c0d9ff7db81ddf7b",
       "matches": true,
-      "gasUsed": "448828"
+      "gasUsed": "124567"
     },
     {
       "name": "PayRoxAdminFacet",
       "address": "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707",
-      "predictedCodehash": "0x4a910ab1541ba5b96c59be1b9ac9db442c82d2e194aa4e9381632ad97646d99a",
-      "actualCodehash": "0x4a910ab1541ba5b96c59be1b9ac9db442c82d2e194aa4e9381632ad97646d99a",
+      "predictedCodehash": "0xe763f7d775fd96773bfbf6c43818d3e63ffe5aa5648620b4675ff87fa64686f7",
+      "actualCodehash": "0xe763f7d775fd96773bfbf6c43818d3e63ffe5aa5648620b4675ff87fa64686f7",
       "matches": true,
-      "gasUsed": "392224"
+      "gasUsed": "127111"
     },
     {
       "name": "PayRoxPaymentsFacet",
       "address": "0x0165878A594ca255338adfa4d48449f69242Eb8F",
-      "predictedCodehash": "0x43321cc0814e81d493fdcfdc4c812761640476215bae8213975818993e118bd8",
-      "actualCodehash": "0x43321cc0814e81d493fdcfdc4c812761640476215bae8213975818993e118bd8",
+      "predictedCodehash": "0x8bac1c13de4a5957c260783c4770837f7227c0124783d6160f722c3bd12f5009",
+      "actualCodehash": "0x8bac1c13de4a5957c260783c4770837f7227c0124783d6160f722c3bd12f5009",
       "matches": true,
-      "gasUsed": "345867"
+      "gasUsed": "99699"
     },
     {
       "name": "RefactorSafetyFacet",
       "address": "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853",
-      "predictedCodehash": "0x4564d51d7e3ad91b759c76574019fb1af65d8548d7f3cbac8d759b8869c4cd1e",
-      "actualCodehash": "0x4564d51d7e3ad91b759c76574019fb1af65d8548d7f3cbac8d759b8869c4cd1e",
+      "predictedCodehash": "0x9008fdec1e7694c4aca35350e4090466ed52a1180559b3c8a030e0728a87d79f",
+      "actualCodehash": "0x9008fdec1e7694c4aca35350e4090466ed52a1180559b3c8a030e0728a87d79f",
       "matches": true,
-      "gasUsed": "99483"
+      "gasUsed": "90403"
     },
     {
       "name": "RewardsFacet",
       "address": "0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6",
-      "predictedCodehash": "0x01eb9bd5e0fea14d4f8472c4eba30ac1dbafbc9390dc9dc351861a42a036802b",
-      "actualCodehash": "0x01eb9bd5e0fea14d4f8472c4eba30ac1dbafbc9390dc9dc351861a42a036802b",
+      "predictedCodehash": "0xae6003692275bde13292c9758a2421e081da361183158a467a7aaa279744258b",
+      "actualCodehash": "0xae6003692275bde13292c9758a2421e081da361183158a467a7aaa279744258b",
       "matches": true,
-      "gasUsed": "298254"
+      "gasUsed": "109021"
     },
     {
       "name": "SaltViewFacet",
       "address": "0x8A791620dd6260079BF849Dc5567aDC3F2FdC318",
-      "predictedCodehash": "0x0d407c3e3a809e044c1a5fb7a8e1dab2308c70aca217fd285d890959981d1b6e",
-      "actualCodehash": "0x0d407c3e3a809e044c1a5fb7a8e1dab2308c70aca217fd285d890959981d1b6e",
+      "predictedCodehash": "0xb34553c8ef06c4232127405af73be6bbd6e52929456ff06710653547d356f75f",
+      "actualCodehash": "0xb34553c8ef06c4232127405af73be6bbd6e52929456ff06710653547d356f75f",
       "matches": true,
-      "gasUsed": "269193"
+      "gasUsed": "152415"
     },
     {
       "name": "SecurityFacet",
       "address": "0x610178dA211FEF7D417bC0e6FeD39F05609AD788",
-      "predictedCodehash": "0x069374a5792f2ed953c77c4ec22efa303abcfaac6ea386fe5894d1a75eb84f6c",
-      "actualCodehash": "0x069374a5792f2ed953c77c4ec22efa303abcfaac6ea386fe5894d1a75eb84f6c",
+      "predictedCodehash": "0x2697c51b0db4ab42a829d38a118c82ab6a1b0d4523507e883519339dfb83a0cf",
+      "actualCodehash": "0x2697c51b0db4ab42a829d38a118c82ab6a1b0d4523507e883519339dfb83a0cf",
       "matches": true,
-      "gasUsed": "1053933"
+      "gasUsed": "128239"
     },
     {
       "name": "VersionFacet",
       "address": "0xB7f8BC63BbcaD18155201308C8f3540b07f84F5e",
-      "predictedCodehash": "0x261f1b57b005f0b872c34c80dc67713eb877379902ecae73cc607ae2da1cd38c",
-      "actualCodehash": "0x261f1b57b005f0b872c34c80dc67713eb877379902ecae73cc607ae2da1cd38c",
+      "predictedCodehash": "0x239c23d1f4b65168a18cd4395a6e34ce7ca8526717d20c96532889b7d8d3c3d8",
+      "actualCodehash": "0x239c23d1f4b65168a18cd4395a6e34ce7ca8526717d20c96532889b7d8d3c3d8",
       "matches": true,
-      "gasUsed": "108567"
+      "gasUsed": "90403"
     }
   ],
   "summary": {
-    "totalDeployed": 11,
+    "totalDeployed": 12,
     "totalPredicted": 12,
-    "codehashMatches": 11,
+    "codehashMatches": 12,
     "matchRate": 1,
-    "totalGasUsed": "3529167"
+    "totalGasUsed": "1531937"
   }
 }

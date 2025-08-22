@@ -89,19 +89,18 @@ async function main() {
     try {
       console.log(`\n📦 Deploying ${prediction.name}...`);
 
-      // Get the contract factory
-      const contractFactory = await hre.ethers.getContractFactory(prediction.name);
-
-      // Handle special constructor arguments
-      let contract;
-      if (prediction.name === "ChunkFactoryFacet") {
-        // Deploy a dummy factory address for testing (in production, use real factory)
-        const dummyFactoryAddress = "0x1000000000000000000000000000000000000001";
-        contract = await contractFactory.deploy(dummyFactoryAddress);
-      } else {
-        // Most facets have no constructor arguments
-        contract = await contractFactory.deploy();
+      // Prefer generated facets under contracts/facets-fixed using fully-qualified names
+      const fqName = `contracts/facets-fixed/${prediction.name}.sol:${prediction.name}`;
+      let contractFactory;
+      try {
+        contractFactory = await hre.ethers.getContractFactory(fqName);
+      } catch (e) {
+        // Fallback to unqualified if only one artifact exists
+        contractFactory = await hre.ethers.getContractFactory(prediction.name);
       }
+
+      // Generated stubs have no constructor args; deploy with zero args
+      const contract = await contractFactory.deploy();
 
       await contract.waitForDeployment();
 
