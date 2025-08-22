@@ -22,7 +22,7 @@ async function main() {
   const config: PipelineConfig = {
     mode,
     outputDir: "./split-output",
-    artifactsDir: "../../artifacts", // Go up from tools/splitter to root
+    artifactsDir: "./artifacts",
     chainId: 1,
     epoch: 1,
     deterministic: {
@@ -44,25 +44,19 @@ async function main() {
     if (deployedFacetsJson) {
       config.deployedFacets = JSON.parse(deployedFacetsJson);
     } else {
-      // Try to load from deployment results
-      const deployedAddressesPath = "./split-output/deployed-addresses.json";
-      if (fs.existsSync(deployedAddressesPath)) {
-        config.deployedFacets = JSON.parse(fs.readFileSync(deployedAddressesPath, "utf8"));
+      // Try to load from file
+      const deployedFacetsPath = "./split-output/deployed-facets.json";
+      if (fs.existsSync(deployedFacetsPath)) {
+        config.deployedFacets = JSON.parse(fs.readFileSync(deployedFacetsPath, "utf8"));
       } else {
-        // Fallback to old format
-        const deployedFacetsPath = "./split-output/deployed-facets.json";
-        if (fs.existsSync(deployedFacetsPath)) {
-          config.deployedFacets = JSON.parse(fs.readFileSync(deployedFacetsPath, "utf8"));
-        } else {
-          console.error("❌ Deployed facets not found. Set DEPLOYED_FACETS env var or create deployed-addresses.json");
-          process.exit(1);
-        }
+        console.error("❌ Deployed facets not found. Set DEPLOYED_FACETS env var or create deployed-facets.json");
+        process.exit(1);
       }
     }
   }
 
   // Add reference path for selector parity checking
-  const referencePath = process.env.REFERENCE_PATH || "../../artifacts/contracts/PayRoxMonolith.sol/PayRoxMonolith.json";
+  const referencePath = process.env.REFERENCE_PATH || "./artifacts/contracts/PayRoxMonolith.sol/PayRoxMonolith.json";
   if (fs.existsSync(referencePath)) {
     config.referencePath = referencePath;
   }
@@ -126,84 +120,4 @@ Validation:
   }
 }
 
-// Legacy exports for backwards compatibility
-export async function buildPredictiveTree(
-  artifactsDir: string = "artifacts/contracts/facets",
-  manifestPath: string = "./split-output/manifest.json"
-) {
-  const config: PipelineConfig = {
-    mode: "predictive",
-    outputDir: "./split-output",
-    artifactsDir,
-    chainId: 1,
-    epoch: 1,
-    deterministic: {
-      solcVersion: "0.8.30",
-      optimizer: { enabled: true, runs: 200 },
-      evmVersion: "cancun",
-      viaIR: true,
-      metadataBytecodeHash: "none"
-    }
-  };
-
-  const pipeline = new OfflinePipeline(config);
-  const result = await pipeline.execute();
-
-  if (!result.success) {
-    throw new Error("Pipeline execution failed");
-  }
-
-  return {
-    root: result.tree.root,
-    leaves: result.tree.leaves,
-    proofs: Object.fromEntries(
-      Array.from(result.tree.proofs.entries()).map(([selector, proof]) => [
-        selector,
-        proof.proof
-      ])
-    )
-  };
-}
-
-export async function buildObservedTree(
-  deploymentPlan: string = "./split-output/dispatcher.plan.json",
-  rpcUrl: string = "http://127.0.0.1:8545"
-) {
-  const config: PipelineConfig = {
-    mode: "observed",
-    outputDir: "./split-output",
-    artifactsDir: "./artifacts",
-    chainId: 1,
-    epoch: 1,
-    provider: new ethers.JsonRpcProvider(rpcUrl),
-    deterministic: {
-      solcVersion: "0.8.30",
-      optimizer: { enabled: true, runs: 200 },
-      evmVersion: "cancun",
-      viaIR: true,
-      metadataBytecodeHash: "none"
-    }
-  };
-
-  const pipeline = new OfflinePipeline(config);
-  const result = await pipeline.execute();
-
-  if (!result.success) {
-    throw new Error("Pipeline execution failed");
-  }
-
-  return {
-    root: result.tree.root,
-    leaves: result.tree.leaves,
-    proofs: Object.fromEntries(
-      Array.from(result.tree.proofs.entries()).map(([selector, proof]) => [
-        selector,
-        proof.proof
-      ])
-    )
-  };
-}
-
-if (require.main === module) {
-  main().catch(console.error);
-}
+main().catch(console.error);

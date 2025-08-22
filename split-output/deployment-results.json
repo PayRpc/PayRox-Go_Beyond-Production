@@ -1,0 +1,105 @@
+{
+  "timestamp": "2025-08-22T07:13:00.500Z",
+  "planId": "0x9941520469188e1c5f274a2a0e0a1e84be2bd2cd7bc0f0486de7460413e1737b",
+  "buildHash": "0x8f4982c9289a44652bbb51f532ec3f328a94d463bb3bc994d3b28bc50551b073",
+  "deployer": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+  "network": "hardhat",
+  "chainId": "31337",
+  "deployedFacets": [
+    {
+      "name": "AccessControlFacet",
+      "address": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+      "predictedCodehash": "0x8707fe9144dd3611c77630bda9e0cd107e359c2fcc3dbbcb3dea68bf39689b51",
+      "actualCodehash": "0x8707fe9144dd3611c77630bda9e0cd107e359c2fcc3dbbcb3dea68bf39689b51",
+      "matches": true,
+      "gasUsed": "236836"
+    },
+    {
+      "name": "ERC165Facet",
+      "address": "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
+      "predictedCodehash": "0x4be06651d4ab5abc15785703ca5790384442012166ccf3f7a3920c0ebf743b13",
+      "actualCodehash": "0x4be06651d4ab5abc15785703ca5790384442012166ccf3f7a3920c0ebf743b13",
+      "matches": true,
+      "gasUsed": "101643"
+    },
+    {
+      "name": "PauseFacet",
+      "address": "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
+      "predictedCodehash": "0x6ca9fd70f91a0b331a65bc0380ef4e739f53601a9e3441c350cd63e1eecfd820",
+      "actualCodehash": "0x6ca9fd70f91a0b331a65bc0380ef4e739f53601a9e3441c350cd63e1eecfd820",
+      "matches": true,
+      "gasUsed": "174339"
+    },
+    {
+      "name": "PaymentsFacet",
+      "address": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
+      "predictedCodehash": "0xeda04e0aa99b670cb206204e9307397b56df57936247095020ab07825b3b64cc",
+      "actualCodehash": "0xeda04e0aa99b670cb206204e9307397b56df57936247095020ab07825b3b64cc",
+      "matches": true,
+      "gasUsed": "448828"
+    },
+    {
+      "name": "PayRoxAdminFacet",
+      "address": "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707",
+      "predictedCodehash": "0x4a910ab1541ba5b96c59be1b9ac9db442c82d2e194aa4e9381632ad97646d99a",
+      "actualCodehash": "0x4a910ab1541ba5b96c59be1b9ac9db442c82d2e194aa4e9381632ad97646d99a",
+      "matches": true,
+      "gasUsed": "392224"
+    },
+    {
+      "name": "PayRoxPaymentsFacet",
+      "address": "0x0165878A594ca255338adfa4d48449f69242Eb8F",
+      "predictedCodehash": "0x43321cc0814e81d493fdcfdc4c812761640476215bae8213975818993e118bd8",
+      "actualCodehash": "0x43321cc0814e81d493fdcfdc4c812761640476215bae8213975818993e118bd8",
+      "matches": true,
+      "gasUsed": "345867"
+    },
+    {
+      "name": "RefactorSafetyFacet",
+      "address": "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853",
+      "predictedCodehash": "0x4564d51d7e3ad91b759c76574019fb1af65d8548d7f3cbac8d759b8869c4cd1e",
+      "actualCodehash": "0x4564d51d7e3ad91b759c76574019fb1af65d8548d7f3cbac8d759b8869c4cd1e",
+      "matches": true,
+      "gasUsed": "99483"
+    },
+    {
+      "name": "RewardsFacet",
+      "address": "0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6",
+      "predictedCodehash": "0x01eb9bd5e0fea14d4f8472c4eba30ac1dbafbc9390dc9dc351861a42a036802b",
+      "actualCodehash": "0x01eb9bd5e0fea14d4f8472c4eba30ac1dbafbc9390dc9dc351861a42a036802b",
+      "matches": true,
+      "gasUsed": "298254"
+    },
+    {
+      "name": "SaltViewFacet",
+      "address": "0x8A791620dd6260079BF849Dc5567aDC3F2FdC318",
+      "predictedCodehash": "0x0d407c3e3a809e044c1a5fb7a8e1dab2308c70aca217fd285d890959981d1b6e",
+      "actualCodehash": "0x0d407c3e3a809e044c1a5fb7a8e1dab2308c70aca217fd285d890959981d1b6e",
+      "matches": true,
+      "gasUsed": "269193"
+    },
+    {
+      "name": "SecurityFacet",
+      "address": "0x610178dA211FEF7D417bC0e6FeD39F05609AD788",
+      "predictedCodehash": "0x069374a5792f2ed953c77c4ec22efa303abcfaac6ea386fe5894d1a75eb84f6c",
+      "actualCodehash": "0x069374a5792f2ed953c77c4ec22efa303abcfaac6ea386fe5894d1a75eb84f6c",
+      "matches": true,
+      "gasUsed": "1053933"
+    },
+    {
+      "name": "VersionFacet",
+      "address": "0xB7f8BC63BbcaD18155201308C8f3540b07f84F5e",
+      "predictedCodehash": "0x261f1b57b005f0b872c34c80dc67713eb877379902ecae73cc607ae2da1cd38c",
+      "actualCodehash": "0x261f1b57b005f0b872c34c80dc67713eb877379902ecae73cc607ae2da1cd38c",
+      "matches": true,
+      "gasUsed": "108567"
+    }
+  ],
+  "summary": {
+    "totalDeployed": 11,
+    "totalPredicted": 12,
+    "codehashMatches": 11,
+    "matchRate": 1,
+    "totalGasUsed": "3529167"
+  }
+}

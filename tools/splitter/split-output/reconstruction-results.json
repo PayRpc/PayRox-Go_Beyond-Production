@@ -1,0 +1,577 @@
+{
+  "timestamp": "2025-08-22T07:26:13.881Z",
+  "merkleRoot": "0x8f9d1a35dc7e72a190860f4ffa153b636c6d9221d377242ae28cd69a0b73aa5f",
+  "totalFacets": 12,
+  "totalSelectors": 72,
+  "reconstructedFacets": [
+    {
+      "name": "UnknownFacet_0x4be066",
+      "address": "0x0000000000000000000000000000000000000000",
+      "codehash": "0x4be06651d4ab5abc15785703ca5790384442012166ccf3f7a3920c0ebf743b13",
+      "selectors": [
+        null
+      ],
+      "functions": [
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 0,
+          "proofLength": 7
+        }
+      ],
+      "gasEstimate": 100000,
+      "deploymentOrder": 0
+    },
+    {
+      "name": "UnknownFacet_0xd055dd",
+      "address": "0x0000000000000000000000000000000000000000",
+      "codehash": "0xd055dd55e20608eee13f5452e6675e80e7da5bf8929d894a64c06366a053e813",
+      "selectors": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "functions": [
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 1,
+          "proofLength": 7
+        },
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 2,
+          "proofLength": 7
+        },
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 3,
+          "proofLength": 7
+        },
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 4,
+          "proofLength": 7
+        },
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 8,
+          "proofLength": 7
+        },
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 14,
+          "proofLength": 7
+        },
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 19,
+          "proofLength": 7
+        },
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 21,
+          "proofLength": 7
+        },
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 23,
+          "proofLength": 7
+        },
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 26,
+          "proofLength": 7
+        },
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 28,
+          "proofLength": 7
+        },
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 29,
+          "proofLength": 7
+        },
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 34,
+          "proofLength": 7
+        },
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 35,
+          "proofLength": 7
+        },
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 38,
+          "proofLength": 7
+        },
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 41,
+          "proofLength": 7
+        },
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 44,
+          "proofLength": 7
+        },
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 46,
+          "proofLength": 7
+        },
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 49,
+          "proofLength": 7
+        },
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 50,
+          "proofLength": 7
+        },
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 51,
+          "proofLength": 7
+        },
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 53,
+          "proofLength": 7
+        },
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 54,
+          "proofLength": 7
+        },
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 55,
+          "proofLength": 7
+        },
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 56,
+          "proofLength": 7
+        },
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 57,
+          "proofLength": 7
+        },
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 59,
+          "proofLength": 7
+        },
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 64,
+          "proofLength": 7
+        },
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 68,
+          "proofLength": 7
+        },
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 69,
+          "proofLength": 7
+        },
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 71,
+          "proofLength": 7
+        }
+      ],
+      "gasEstimate": 1550000,
+      "deploymentOrder": 1
+    },
+    {
+      "name": "UnknownFacet_0x261f1b",
+      "address": "0x0000000000000000000000000000000000000000",
+      "codehash": "0x261f1b57b005f0b872c34c80dc67713eb877379902ecae73cc607ae2da1cd38c",
+      "selectors": [
+        null,
+        null
+      ],
+      "functions": [
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 5,
+          "proofLength": 7
+        },
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 24,
+          "proofLength": 7
+        }
+      ],
+      "gasEstimate": 100000,
+      "deploymentOrder": 2
+    },
+    {
+      "name": "UnknownFacet_0xeda04e",
+      "address": "0x0000000000000000000000000000000000000000",
+      "codehash": "0xeda04e0aa99b670cb206204e9307397b56df57936247095020ab07825b3b64cc",
+      "selectors": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "functions": [
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 6,
+          "proofLength": 7
+        },
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 11,
+          "proofLength": 7
+        },
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 15,
+          "proofLength": 7
+        },
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 30,
+          "proofLength": 7
+        },
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 32,
+          "proofLength": 7
+        },
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 33,
+          "proofLength": 7
+        },
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 37,
+          "proofLength": 7
+        },
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 61,
+          "proofLength": 7
+        },
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 65,
+          "proofLength": 7
+        },
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 70,
+          "proofLength": 7
+        }
+      ],
+      "gasEstimate": 500000,
+      "deploymentOrder": 3
+    },
+    {
+      "name": "UnknownFacet_0x01eb9b",
+      "address": "0x0000000000000000000000000000000000000000",
+      "codehash": "0x01eb9bd5e0fea14d4f8472c4eba30ac1dbafbc9390dc9dc351861a42a036802b",
+      "selectors": [
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "functions": [
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 7,
+          "proofLength": 7
+        },
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 27,
+          "proofLength": 7
+        },
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 47,
+          "proofLength": 7
+        },
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 52,
+          "proofLength": 7
+        },
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 67,
+          "proofLength": 7
+        }
+      ],
+      "gasEstimate": 250000,
+      "deploymentOrder": 4
+    },
+    {
+      "name": "UnknownFacet_0x8707fe",
+      "address": "0x0000000000000000000000000000000000000000",
+      "codehash": "0x8707fe9144dd3611c77630bda9e0cd107e359c2fcc3dbbcb3dea68bf39689b51",
+      "selectors": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "functions": [
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 9,
+          "proofLength": 7
+        },
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 12,
+          "proofLength": 7
+        },
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 43,
+          "proofLength": 7
+        },
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 60,
+          "proofLength": 7
+        }
+      ],
+      "gasEstimate": 200000,
+      "deploymentOrder": 5
+    },
+    {
+      "name": "UnknownFacet_0x0d407c",
+      "address": "0x0000000000000000000000000000000000000000",
+      "codehash": "0x0d407c3e3a809e044c1a5fb7a8e1dab2308c70aca217fd285d890959981d1b6e",
+      "selectors": [
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "functions": [
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 10,
+          "proofLength": 7
+        },
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 16,
+          "proofLength": 7
+        },
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 31,
+          "proofLength": 7
+        },
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 40,
+          "proofLength": 7
+        },
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 66,
+          "proofLength": 7
+        }
+      ],
+      "gasEstimate": 250000,
+      "deploymentOrder": 6
+    },
+    {
+      "name": "UnknownFacet_0x43321c",
+      "address": "0x0000000000000000000000000000000000000000",
+      "codehash": "0x43321cc0814e81d493fdcfdc4c812761640476215bae8213975818993e118bd8",
+      "selectors": [
+        null,
+        null,
+        null
+      ],
+      "functions": [
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 13,
+          "proofLength": 7
+        },
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 22,
+          "proofLength": 7
+        },
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 63,
+          "proofLength": 7
+        }
+      ],
+      "gasEstimate": 150000,
+      "deploymentOrder": 7
+    },
+    {
+      "name": "UnknownFacet_0x069374",
+      "address": "0x0000000000000000000000000000000000000000",
+      "codehash": "0x069374a5792f2ed953c77c4ec22efa303abcfaac6ea386fe5894d1a75eb84f6c",
+      "selectors": [
+        null,
+        null,
+        null
+      ],
+      "functions": [
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 17,
+          "proofLength": 7
+        },
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 45,
+          "proofLength": 7
+        },
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 48,
+          "proofLength": 7
+        }
+      ],
+      "gasEstimate": 150000,
+      "deploymentOrder": 8
+    },
+    {
+      "name": "UnknownFacet_0x6ca9fd",
+      "address": "0x0000000000000000000000000000000000000000",
+      "codehash": "0x6ca9fd70f91a0b331a65bc0380ef4e739f53601a9e3441c350cd63e1eecfd820",
+      "selectors": [
+        null,
+        null,
+        null
+      ],
+      "functions": [
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 18,
+          "proofLength": 7
+        },
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 25,
+          "proofLength": 7
+        },
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 36,
+          "proofLength": 7
+        }
+      ],
+      "gasEstimate": 150000,
+      "deploymentOrder": 9
+    },
+    {
+      "name": "UnknownFacet_0x4a910a",
+      "address": "0x0000000000000000000000000000000000000000",
+      "codehash": "0x4a910ab1541ba5b96c59be1b9ac9db442c82d2e194aa4e9381632ad97646d99a",
+      "selectors": [
+        null,
+        null,
+        null
+      ],
+      "functions": [
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 20,
+          "proofLength": 7
+        },
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 39,
+          "proofLength": 7
+        },
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 42,
+          "proofLength": 7
+        }
+      ],
+      "gasEstimate": 150000,
+      "deploymentOrder": 10
+    },
+    {
+      "name": "UnknownFacet_0x4564d5",
+      "address": "0x0000000000000000000000000000000000000000",
+      "codehash": "0x4564d51d7e3ad91b759c76574019fb1af65d8548d7f3cbac8d759b8869c4cd1e",
+      "selectors": [
+        null,
+        null
+      ],
+      "functions": [
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 58,
+          "proofLength": 7
+        },
+        {
+          "signature": "unknownFunction(undefined)",
+          "leafIndex": 62,
+          "proofLength": 7
+        }
+      ],
+      "gasEstimate": 100000,
+      "deploymentOrder": 11
+    }
+  ],
+  "verification": {
+    "validProofs": 0,
+    "totalProofs": 72,
+    "integrityPassed": false
+  }
+}

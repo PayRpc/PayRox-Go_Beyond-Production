@@ -1,0 +1,688 @@
+{
+  "timestamp": "2025-08-22T07:07:44.788Z",
+  "totalSelectors": 85,
+  "totalConflicts": 0,
+  "selectors": [
+    {
+      "signature": "supportsInterface(bytes4)",
+      "selector": "0x01ffc9a7",
+      "facet": "ERC165Facet",
+      "contractName": "ERC165Facet",
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "signature": "setTierFee(uint8,uint256)",
+      "selector": "0x0bfde0da",
+      "facet": "ChunkFactoryFacet",
+      "contractName": "ChunkFactoryFacet",
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "signature": "ensureBuybackAllowed()",
+      "selector": "0x0d2644d2",
+      "facet": "IAntiBotFacet",
+      "contractName": "IAntiBotFacet",
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "signature": "predictAddress(bytes32,bytes32)",
+      "selector": "0x10a93528",
+      "facet": "ChunkFactoryFacet",
+      "contractName": "ChunkFactoryFacet",
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "signature": "withdrawRefund()",
+      "selector": "0x110f8874",
+      "facet": "ChunkFactoryFacet",
+      "contractName": "ChunkFactoryFacet",
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "signature": "stageBatch(bytes[])",
+      "selector": "0x1d513465",
+      "facet": "ChunkFactoryFacet",
+      "contractName": "ChunkFactoryFacet",
+      "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "signature": "versionNumber()",
+      "selector": "0x1f38275f",
+      "facet": "VersionFacet",
+      "contractName": "VersionFacet",
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "signature": "getPaymentConfig()",
+      "selector": "0x1fad9100",
+      "facet": "PaymentsFacet",
+      "contractName": "PaymentsFacet",
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "signature": "initializeRewards(address)",
+      "selector": "0x240581d4",
+      "facet": "RewardsFacet",
+      "contractName": "RewardsFacet",
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "signature": "userTiers(address)",
+      "selector": "0x24063c82",
+      "facet": "ChunkFactoryFacet",
+      "contractName": "ChunkFactoryFacet",
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "signature": "getRoleAdmin(bytes32)",
+      "selector": "0x248a9ca3",
+      "facet": "AccessControlFacet",
+      "contractName": "AccessControlFacet",
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "signature": "eip2470()",
+      "selector": "0x279e8f3e",
+      "facet": "SaltViewFacet",
+      "contractName": "SaltViewFacet",
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "signature": "setPaymentConfig(uint256)",
+      "selector": "0x2bf827f8",
+      "facet": "PaymentsFacet",
+      "contractName": "PaymentsFacet",
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "signature": "grantRole(bytes32,address)",
+      "selector": "0x2f2ff15d",
+      "facet": "AccessControlFacet",
+      "contractName": "AccessControlFacet",
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "signature": "settlePayment(bytes32)",
+      "selector": "0x325fda8a",
+      "facet": "PayRoxPaymentsFacet",
+      "contractName": "PayRoxPaymentsFacet",
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "signature": "setEnabled(bool)",
+      "selector": "0x328d8f72",
+      "facet": "IAntiBotFacet",
+      "contractName": "IAntiBotFacet",
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "signature": "exists(bytes32)",
+      "selector": "0x38a699a4",
+      "facet": "ChunkFactoryFacet",
+      "contractName": "ChunkFactoryFacet",
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "signature": "isInitialized()",
+      "selector": "0x392e53cd",
+      "facet": "PaymentsFacet",
+      "contractName": "PaymentsFacet",
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "signature": "factorySalt(string)",
+      "selector": "0x3bef06b4",
+      "facet": "SaltViewFacet",
+      "contractName": "SaltViewFacet",
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "signature": "isSecurityInitialized()",
+      "selector": "0x3ea6b343",
+      "facet": "SecurityFacet",
+      "contractName": "SecurityFacet",
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "signature": "unpause()",
+      "selector": "0x3f4ba83a",
+      "facet": "PauseFacet",
+      "contractName": "PauseFacet",
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "signature": "setIdempotentMode(bool)",
+      "selector": "0x40fca008",
+      "facet": "ChunkFactoryFacet",
+      "contractName": "ChunkFactoryFacet",
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "signature": "getAdminConfig()",
+      "selector": "0x46e4c41c",
+      "facet": "PayRoxAdminFacet",
+      "contractName": "PayRoxAdminFacet",
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "signature": "withdrawFees()",
+      "selector": "0x476343ee",
+      "facet": "ChunkFactoryFacet",
+      "contractName": "ChunkFactoryFacet",
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "signature": "createPayment(address,uint256,bytes32)",
+      "selector": "0x498ae704",
+      "facet": "PayRoxPaymentsFacet",
+      "contractName": "PayRoxPaymentsFacet",
+      "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "signature": "deploymentCount()",
+      "selector": "0x4c36f10d",
+      "facet": "ChunkFactoryFacet",
+      "contractName": "ChunkFactoryFacet",
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "signature": "MONITOR_ROLE()",
+      "selector": "0x4d9b47e2",
+      "facet": "IAntiBotFacet",
+      "contractName": "IAntiBotFacet",
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "signature": "setBuybackPaused(bool)",
+      "selector": "0x527555da",
+      "facet": "IAntiBotFacet",
+      "contractName": "IAntiBotFacet",
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "signature": "version()",
+      "selector": "0x54fd4d50",
+      "facet": "VersionFacet",
+      "contractName": "VersionFacet",
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "signature": "paused()",
+      "selector": "0x5c975abb",
+      "facet": "PauseFacet",
+      "contractName": "PauseFacet",
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "signature": "transferDefaultAdmin(address)",
+      "selector": "0x5ea31b98",
+      "facet": "ChunkFactoryFacet",
+      "contractName": "ChunkFactoryFacet",
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "signature": "getRewardState()",
+      "selector": "0x61597e30",
+      "facet": "RewardsFacet",
+      "contractName": "RewardsFacet",
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "signature": "isDeployedContract(address)",
+      "selector": "0x6290caec",
+      "facet": "ChunkFactoryFacet",
+      "contractName": "ChunkFactoryFacet",
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "signature": "getFacetFunctionSelectors()",
+      "selector": "0x699ffc7e",
+      "facet": "ChunkFactoryFacet",
+      "contractName": "ChunkFactoryFacet",
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "signature": "getOps()",
+      "selector": "0x6a41aae0",
+      "facet": "PaymentsFacet",
+      "contractName": "PaymentsFacet",
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "signature": "universalSalt(address,string,uint256,string)",
+      "selector": "0x6a9f1e16",
+      "facet": "SaltViewFacet",
+      "contractName": "SaltViewFacet",
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "signature": "setThrottleBlocks(uint256)",
+      "selector": "0x75b9f5b2",
+      "facet": "IAntiBotFacet",
+      "contractName": "IAntiBotFacet",
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "signature": "getFacetInfo()",
+      "selector": "0x7ab7b94b",
+      "facet": "PaymentsFacet",
+      "contractName": "PaymentsFacet",
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "signature": "initializePayments(address)",
+      "selector": "0x7baf948f",
+      "facet": "PaymentsFacet",
+      "contractName": "PaymentsFacet",
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "signature": "getExpectedFactoryBytecodeHash()",
+      "selector": "0x7ed1cd47",
+      "facet": "ChunkFactoryFacet",
+      "contractName": "ChunkFactoryFacet",
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "signature": "stageMany(bytes[])",
+      "selector": "0x7f4aedfe",
+      "facet": "ChunkFactoryFacet",
+      "contractName": "ChunkFactoryFacet",
+      "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "signature": "pause()",
+      "selector": "0x8456cb59",
+      "facet": "PauseFacet",
+      "contractName": "PauseFacet",
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "signature": "getLastCaller()",
+      "selector": "0x880b36e7",
+      "facet": "PaymentsFacet",
+      "contractName": "PaymentsFacet",
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "signature": "reportMarketMove(int256)",
+      "selector": "0x88ded880",
+      "facet": "IAntiBotFacet",
+      "contractName": "IAntiBotFacet",
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "signature": "owner()",
+      "selector": "0x8da5cb5b",
+      "facet": "ChunkFactoryFacet",
+      "contractName": "ChunkFactoryFacet",
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "signature": "setFee(uint16)",
+      "selector": "0x8e005553",
+      "facet": "PayRoxAdminFacet",
+      "contractName": "PayRoxAdminFacet",
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "signature": "hashInitCode(bytes)",
+      "selector": "0x8e6a2c1d",
+      "facet": "SaltViewFacet",
+      "contractName": "SaltViewFacet",
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "signature": "predictAddressBatch(bytes32[],bytes32[])",
+      "selector": "0x8e7163c2",
+      "facet": "ChunkFactoryFacet",
+      "contractName": "ChunkFactoryFacet",
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "signature": "validateTransaction(address)",
+      "selector": "0x8fa3a84c",
+      "facet": "IAntiBotFacet",
+      "contractName": "IAntiBotFacet",
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "signature": "initPayRox(address,address,uint16,bytes32)",
+      "selector": "0x9159aba8",
+      "facet": "PayRoxAdminFacet",
+      "contractName": "PayRoxAdminFacet",
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "signature": "hasRole(bytes32,address)",
+      "selector": "0x91d14854",
+      "facet": "AccessControlFacet",
+      "contractName": "AccessControlFacet",
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "signature": "verifySystemIntegrity()",
+      "selector": "0x939e255c",
+      "facet": "ChunkFactoryFacet",
+      "contractName": "ChunkFactoryFacet",
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "signature": "initializeSecurityFacet(bool,uint256,uint256,uint256,address[],address,address)",
+      "selector": "0x94e096e4",
+      "facet": "SecurityFacet",
+      "contractName": "SecurityFacet",
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "signature": "factoryAddress()",
+      "selector": "0x966dae0e",
+      "facet": "ChunkFactoryFacet",
+      "contractName": "ChunkFactoryFacet",
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "signature": "REWARDS_OPERATOR_ROLE()",
+      "selector": "0x96a95086",
+      "facet": "RewardsFacet",
+      "contractName": "RewardsFacet",
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "signature": "isTrusted(address)",
+      "selector": "0x96d64879",
+      "facet": "IAntiBotFacet",
+      "contractName": "IAntiBotFacet",
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "signature": "getSecurityConfig()",
+      "selector": "0x9f8e6da1",
+      "facet": "SecurityFacet",
+      "contractName": "SecurityFacet",
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "signature": "setUserTier(address,uint8)",
+      "selector": "0xa04725c6",
+      "facet": "ChunkFactoryFacet",
+      "contractName": "ChunkFactoryFacet",
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "signature": "read(address)",
+      "selector": "0xa087a87e",
+      "facet": "ChunkFactoryFacet",
+      "contractName": "ChunkFactoryFacet",
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "signature": "predict(bytes)",
+      "selector": "0xa64139fa",
+      "facet": "ChunkFactoryFacet",
+      "contractName": "ChunkFactoryFacet",
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "signature": "setRewardConfig(uint256)",
+      "selector": "0xa8632662",
+      "facet": "RewardsFacet",
+      "contractName": "RewardsFacet",
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "signature": "setFeesEnabled(bool)",
+      "selector": "0xa901dd92",
+      "facet": "ChunkFactoryFacet",
+      "contractName": "ChunkFactoryFacet",
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "signature": "getFactoryAddress()",
+      "selector": "0xa9c2e36c",
+      "facet": "ChunkFactoryFacet",
+      "contractName": "ChunkFactoryFacet",
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "signature": "validateBytecodeSize(bytes)",
+      "selector": "0xb697ff8a",
+      "facet": "ChunkFactoryFacet",
+      "contractName": "ChunkFactoryFacet",
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "signature": "getExpectedManifestHash()",
+      "selector": "0xbc2e51df",
+      "facet": "ChunkFactoryFacet",
+      "contractName": "ChunkFactoryFacet",
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "signature": "deployDeterministicBatch(bytes32[],bytes[],bytes[])",
+      "selector": "0xc2c8e21a",
+      "facet": "ChunkFactoryFacet",
+      "contractName": "ChunkFactoryFacet",
+      "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "signature": "getRefactorSafetyVersion()",
+      "selector": "0xc34c492f",
+      "facet": "RefactorSafetyFacet",
+      "contractName": "RefactorSafetyFacet",
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "signature": "setBaseFeeWei(uint256)",
+      "selector": "0xc97237be",
+      "facet": "ChunkFactoryFacet",
+      "contractName": "ChunkFactoryFacet",
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "signature": "addTrusted(address)",
+      "selector": "0xd4d0d6e6",
+      "facet": "IAntiBotFacet",
+      "contractName": "IAntiBotFacet",
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "signature": "revokeRole(bytes32,address)",
+      "selector": "0xd547741f",
+      "facet": "AccessControlFacet",
+      "contractName": "AccessControlFacet",
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "signature": "removeTrusted(address)",
+      "selector": "0xd55e62a0",
+      "facet": "IAntiBotFacet",
+      "contractName": "IAntiBotFacet",
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "signature": "getPaymentState()",
+      "selector": "0xda632a11",
+      "facet": "PaymentsFacet",
+      "contractName": "PaymentsFacet",
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "signature": "resetCircuitBreaker()",
+      "selector": "0xde5f8d93",
+      "facet": "IAntiBotFacet",
+      "contractName": "IAntiBotFacet",
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "signature": "setThresholds(uint256,uint256)",
+      "selector": "0xe3064a77",
+      "facet": "IAntiBotFacet",
+      "contractName": "IAntiBotFacet",
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "signature": "emergencyRefactorValidation()",
+      "selector": "0xe623a87c",
+      "facet": "RefactorSafetyFacet",
+      "contractName": "RefactorSafetyFacet",
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "signature": "getPayment(bytes32)",
+      "selector": "0xe66eefc8",
+      "facet": "PayRoxPaymentsFacet",
+      "contractName": "PayRoxPaymentsFacet",
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "signature": "setFeeRecipient(address)",
+      "selector": "0xe74b981b",
+      "facet": "ChunkFactoryFacet",
+      "contractName": "ChunkFactoryFacet",
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "signature": "getOperator()",
+      "selector": "0xe7f43c68",
+      "facet": "PaymentsFacet",
+      "contractName": "PaymentsFacet",
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "signature": "predictCreate2(address,bytes32,bytes32)",
+      "selector": "0xeb117be8",
+      "facet": "SaltViewFacet",
+      "contractName": "SaltViewFacet",
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "signature": "getRewardConfig()",
+      "selector": "0xec147806",
+      "facet": "RewardsFacet",
+      "contractName": "RewardsFacet",
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "signature": "deployDeterministic(bytes32,bytes,bytes)",
+      "selector": "0xee05163a",
+      "facet": "ChunkFactoryFacet",
+      "contractName": "ChunkFactoryFacet",
+      "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "signature": "getManifestDispatcher()",
+      "selector": "0xee9d1ef5",
+      "facet": "ChunkFactoryFacet",
+      "contractName": "ChunkFactoryFacet",
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "signature": "GOVERNANCE_ROLE()",
+      "selector": "0xf36c8f5c",
+      "facet": "IAntiBotFacet",
+      "contractName": "IAntiBotFacet",
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "signature": "OPERATOR_ROLE()",
+      "selector": "0xf5b541a6",
+      "facet": "PaymentsFacet",
+      "contractName": "PaymentsFacet",
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "signature": "stage(bytes)",
+      "selector": "0xfa8c96ef",
+      "facet": "ChunkFactoryFacet",
+      "contractName": "ChunkFactoryFacet",
+      "stateMutability": "payable",
+      "type": "function"
+    }
+  ],
+  "conflicts": []
+}

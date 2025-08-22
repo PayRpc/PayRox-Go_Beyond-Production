@@ -102,7 +102,12 @@
     "postinstall": "npm run build:splitter || true",
     "new:facet": "ts-node scripts/generators/new-facet.ts",
     "routes:add": "ts-node scripts/manifest/add-facet-routes.ts",
-    "spell:prepare": "node tools/spell/prepare-json-for-spellcheck.cjs deployable-modules/SecurityFacet/chunks/analysis-report.json"
+    "spell:prepare": "node tools/spell/prepare-json-for-spellcheck.cjs deployable-modules/SecurityFacet/chunks/analysis-report.json",
+    "facets:regen": "ts-node --transpile-only tools/fix-facets-from-abi.ts --manifest split-output/selectors.json --out contracts/facets-fixed",
+    "facets:compile": "npx hardhat compile",
+  "facets:check:size": "node scripts/check-contract-sizes.js",
+  "facets:check:parity": "node scripts/check-selector-parity.js",
+  "facets:gate": "npm run facets:compile && npm run facets:check:size && npm run facets:check:parity"
   },
   "health": "npx hardhat payrox:health",
   "keywords": [],

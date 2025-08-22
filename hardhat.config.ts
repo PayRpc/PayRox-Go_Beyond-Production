@@ -6,7 +6,7 @@ import '@nomicfoundation/hardhat-chai-matchers'
 import './tasks/prx.chunk'
 import './tasks/facet-init'
 import './tasks/crosschain'
-import './tasks/payrox'
+// import './tasks/payrox' // Temporarily disabled
 
 const config: HardhatUserConfig = {
   solidity: {

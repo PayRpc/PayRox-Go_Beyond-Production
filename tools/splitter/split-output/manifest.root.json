@@ -1,0 +1,15 @@
+{
+  "chainId": 1,
+  "epoch": 1,
+  "root": "0x8f9d1a35dc7e72a190860f4ffa153b636c6d9221d377242ae28cd69a0b73aa5f",
+  "solc": "0.8.30",
+  "optimizer": {
+    "enabled": true,
+    "runs": 200
+  },
+  "metadata": "none",
+  "leafOrder": "selector-asc",
+  "leaves": 72,
+  "buildHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+  "timestamp": "2025-08-22T07:25:59.295Z"
+}
