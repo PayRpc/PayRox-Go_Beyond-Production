@@ -1,9 +1,0 @@
-{
-  "facets": [
-    {
-      "name": "Core",
-      "predictedAddress": "0x0000000000000000000000000000000000000001",
-      "signatures": ["transfer(address,uint256)", "approve(address,uint256)"]
-    }
-  ]
-}
