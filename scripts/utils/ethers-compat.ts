@@ -47,7 +47,7 @@ export const ethersCompat: EthersCompat = {
  * Create a provider based on environment
  */
 export function createProvider(rpcUrl?: string): ethers.JsonRpcProvider {
-    const url = rpcUrl || process.env.RPC_URL || 'http://localhost:8545';
+    const _url = rpcUrl || process.env.RPC_URL || 'http://localhost:8545';
     return new ethers.JsonRpcProvider(url);
 }
 

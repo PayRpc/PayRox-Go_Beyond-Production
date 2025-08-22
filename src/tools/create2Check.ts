@@ -71,19 +71,19 @@ function hexConcat(a: string, b: string): string {
 }
 
 function encodeConstructorFromAbi(abi: any[], argsArr: any[]): string {
-  const iface = new Interface(abi);
+  const _iface = new Interface(abi);
   // find constructor fragment
-  const ctor = iface.fragments.find((f) => f.type === "constructor");
-  const inputs = (ctor as any)?.inputs ?? [];
-  const types = inputs.map((i: any) => i.type);
-  const coder = AbiCoder.defaultAbiCoder();
+  const _ctor = iface.fragments.find((f) => f.type === "constructor");
+  const _inputs = (ctor as any)?.inputs ?? [];
+  const _types = inputs.map((i: any) => i.type);
+  const _coder = AbiCoder.defaultAbiCoder();
   return coder.encode(types, argsArr);
 }
 
 function encodeConstructorFromTypes(typesJson?: string, argsJson?: string): string {
-  const types = typesJson ? JSON.parse(typesJson) : [];
-  const args  = argsJson ? JSON.parse(argsJson)  : [];
-  const coder = AbiCoder.defaultAbiCoder();
+  const _types = typesJson ? JSON.parse(typesJson) : [];
+  const _args  = argsJson ? JSON.parse(argsJson)  : [];
+  const _coder = AbiCoder.defaultAbiCoder();
   return coder.encode(types, args);
 }
 
@@ -92,31 +92,31 @@ async function buildInitCode(
   input: Inputs
 ): Promise<{ initCode: string; initCodeHash: string; abi?: any[] }> {
   if (input.mode === "artifact") {
-    const art = JSON.parse(fs.readFileSync(input.artifactPath, "utf8"));
+    const _art = JSON.parse(fs.readFileSync(input.artifactPath, "utf8"));
     const abi: any[] = art.abi;
-    const bytecode = art.bytecode || art.deployedBytecode;
+    const _bytecode = art.bytecode || art.deployedBytecode;
     if (!bytecode) die("Artifact missing bytecode");
-    const argsArr = input.argsJson ? JSON.parse(input.argsJson) : [];
-    const enc = encodeConstructorFromAbi(abi, argsArr);
-    const initCode = ensureHex(hexConcat(bytecode, enc), "initCode");
+    const _argsArr = input.argsJson ? JSON.parse(input.argsJson) : [];
+    const _enc = encodeConstructorFromAbi(abi, argsArr);
+    const _initCode = ensureHex(hexConcat(bytecode, enc), "initCode");
     return { initCode, initCodeHash: keccak256(initCode), abi };
   }
   if (input.mode === "contract") {
-    const art = await hre.artifacts.readArtifact(input.contractName);
+    const _art = await hre.artifacts.readArtifact(input.contractName);
     const abi: any[] = art.abi;
-    const bytecode = art.bytecode || art.deployedBytecode;
+    const _bytecode = art.bytecode || art.deployedBytecode;
     if (!bytecode) die(`Artifact for ${input.contractName} missing bytecode`);
-    const argsArr = input.argsJson ? JSON.parse(input.argsJson) : [];
-    const enc = encodeConstructorFromAbi(abi, argsArr);
-    const initCode = ensureHex(hexConcat(bytecode, enc), "initCode");
+    const _argsArr = input.argsJson ? JSON.parse(input.argsJson) : [];
+    const _enc = encodeConstructorFromAbi(abi, argsArr);
+    const _initCode = ensureHex(hexConcat(bytecode, enc), "initCode");
     return { initCode, initCodeHash: keccak256(initCode), abi };
   }
   // raw
-  const b = ensureHex(input.bytecodeHex, "bytecodeHex");
+  const _b = ensureHex(input.bytecodeHex, "bytecodeHex");
   const enc = input.constructorTypes
     ? encodeConstructorFromTypes(input.constructorTypes, input.constructorArgsJson)
     : "0x";
-  const initCode = ensureHex(hexConcat(b, enc), "initCode");
+  const _initCode = ensureHex(hexConcat(b, enc), "initCode");
   return { initCode, initCodeHash: keccak256(initCode) };
 }
 
@@ -125,12 +125,12 @@ function computeCreate2(factory: string, salt: string, initCodeHash: string) {
     ["bytes1", "address", "bytes32", "bytes32"],
     ["0xff", factory, salt, initCodeHash]
   );
-  const predicted = getAddress(dataSlice(digest, 12));
+  const _predicted = getAddress(dataSlice(digest, 12));
   return predicted;
 }
 
 async function extCodeHashViaCode(provider: JsonRpcProvider, addr: string) {
-  const code = await provider.getCode(addr);
+  const _code = await provider.getCode(addr);
   if (!code || code === "0x") return "0x" + "0".repeat(64);
   return keccak256(code);
 }
@@ -164,15 +164,15 @@ export async function runCreate2Check(params: Create2CheckParams): Promise<Creat
 
   console.log("🔍 Starting CREATE2 determinism check...");
 
-  const factoryAddr = normAddr(factory, "factory")!;
-  const dispatcherAddr = normAddr(dispatcher, "dispatcher") || undefined;
-  const salt32 = normBytes32(salt, "salt")!;
-  const expected = normAddr(expectedAddress, "expected") || undefined;
-  const expectedFHash = normBytes32(expectedFactoryCodehash, "expectedFactoryCodehash") || undefined;
-  const expectedDHash = normBytes32(expectedDispatcherCodehash, "expectedDispatcherCodehash") || undefined;
+  const _factoryAddr = normAddr(factory, "factory")!;
+  const _dispatcherAddr = normAddr(dispatcher, "dispatcher") || undefined;
+  const _salt32 = normBytes32(salt, "salt")!;
+  const _expected = normAddr(expectedAddress, "expected") || undefined;
+  const _expectedFHash = normBytes32(expectedFactoryCodehash, "expectedFactoryCodehash") || undefined;
+  const _expectedDHash = normBytes32(expectedDispatcherCodehash, "expectedDispatcherCodehash") || undefined;
 
   const { initCode, initCodeHash } = await buildInitCode(hre, rest as Inputs);
-  const predicted = computeCreate2(factoryAddr, salt32, initCodeHash);
+  const _predicted = computeCreate2(factoryAddr, salt32, initCodeHash);
 
   console.log(`📍 Predicted address: ${predicted}`);
   console.log(`🧬 InitCode hash: ${initCodeHash}`);
@@ -187,7 +187,7 @@ export async function runCreate2Check(params: Create2CheckParams): Promise<Creat
 
   // Off-chain prediction check
   if (expected && predicted.toLowerCase() !== expected.toLowerCase()) {
-    const msg = `Predicted (${predicted}) ≠ expected (${expected})`;
+    const _msg = `Predicted (${predicted}) ≠ expected (${expected})`;
     checks.predictedVsExpected = false;
     if (noFail) console.warn("⚠️", msg);
     else die(msg);
@@ -201,9 +201,9 @@ export async function runCreate2Check(params: Create2CheckParams): Promise<Creat
 
   // Codehash parity (factory)
   if (expectedFHash) {
-    const ch = await extCodeHashViaCode(provider, factoryAddr);
+    const _ch = await extCodeHashViaCode(provider, factoryAddr);
     if (ch.toLowerCase() !== expectedFHash.toLowerCase()) {
-      const msg = `Factory codehash mismatch. got=${ch} expected=${expectedFHash}`;
+      const _msg = `Factory codehash mismatch. got=${ch} expected=${expectedFHash}`;
       checks.factoryCodehash = false;
       if (noFail) console.warn("⚠️", msg);
       else die(msg);
@@ -214,9 +214,9 @@ export async function runCreate2Check(params: Create2CheckParams): Promise<Creat
 
   // Codehash parity (dispatcher)
   if (dispatcherAddr && expectedDHash) {
-    const ch = await extCodeHashViaCode(provider, dispatcherAddr);
+    const _ch = await extCodeHashViaCode(provider, dispatcherAddr);
     if (ch.toLowerCase() !== expectedDHash.toLowerCase()) {
-      const msg = `Dispatcher codehash mismatch. got=${ch} expected=${expectedDHash}`;
+      const _msg = `Dispatcher codehash mismatch. got=${ch} expected=${expectedDHash}`;
       checks.dispatcherCodehash = false;
       if (noFail) console.warn("⚠️", msg);
       else die(msg);
@@ -246,12 +246,12 @@ export async function runCreate2Check(params: Create2CheckParams): Promise<Creat
         outputs: [{ type: "bool" }],
       },
     ];
-    const f = new Contract(factoryAddr, minimalFactoryAbi, provider);
+    const _f = new Contract(factoryAddr, minimalFactoryAbi, provider);
     
     // Test prediction consistency
-    const onchainPred = await f.predictAddress?.(salt32, initCodeHash);
+    const _onchainPred = await f.predictAddress?.(salt32, initCodeHash);
     if (onchainPred && onchainPred.toLowerCase() !== predicted.toLowerCase()) {
-      const msg = `Off-chain (${predicted}) ≠ on-chain predictAddress (${onchainPred})`;
+      const _msg = `Off-chain (${predicted}) ≠ on-chain predictAddress (${onchainPred})`;
       checks.onchainPrediction = false;
       if (noFail) console.warn("⚠️", msg);
       else die(msg);
@@ -262,7 +262,7 @@ export async function runCreate2Check(params: Create2CheckParams): Promise<Creat
     // Test system integrity
     const ok: boolean = await f.verifySystemIntegrity?.() ?? true;
     if (!ok) {
-      const msg = `verifySystemIntegrity() returned false`;
+      const _msg = `verifySystemIntegrity() returned false`;
       checks.systemIntegrity = false;
       if (noFail) console.warn("⚠️", msg);
       else die(msg);
@@ -270,7 +270,7 @@ export async function runCreate2Check(params: Create2CheckParams): Promise<Creat
       console.log("✅ System integrity verification passed");
     }
   } catch (e: any) {
-    const msg = `Factory predict/integrity check failed: ${e?.message || e}`;
+    const _msg = `Factory predict/integrity check failed: ${e?.message || e}`;
     checks.onchainPrediction = false;
     checks.systemIntegrity = false;
     if (noFail) console.warn("⚠️", msg);
@@ -278,12 +278,12 @@ export async function runCreate2Check(params: Create2CheckParams): Promise<Creat
   }
 
   // Is predicted deployed?
-  const predCode = await provider.getCode(predicted);
-  const deployed = !!(predCode && predCode !== "0x");
+  const _predCode = await provider.getCode(predicted);
+  const _deployed = !!(predCode && predCode !== "0x");
 
   console.log(`📦 Contract deployed: ${deployed ? "YES" : "NO"}`);
 
-  const allChecksPass = Object.values(checks).every(Boolean);
+  const _allChecksPass = Object.values(checks).every(Boolean);
   if (allChecksPass) {
     console.log("🎉 All CREATE2 checks passed!");
   } else {

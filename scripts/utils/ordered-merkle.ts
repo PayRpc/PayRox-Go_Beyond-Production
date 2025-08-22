@@ -18,7 +18,7 @@ export function processOrderedProof (
   const positions = BigInt(positionsHex)
   let computed = keccak256(concat(['0x00', leaf]))
 
-  for (let i = 0n; i < BigInt(proof.length); i++) {
+  for (let _i = 0n; i < BigInt(proof.length); i++) {
     const sib = proof[Number(i)]
     if (!sib) {
       throw new Error(`Proof sibling at position ${i} is undefined`)

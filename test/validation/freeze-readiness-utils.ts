@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 /**
  * Freeze Readiness Utilities and Helper Functions
  * 
@@ -41,7 +43,7 @@ export class FreezeReadinessUtils {
     };
 
     // Check required top-level properties
-    const requiredProps = ['metadata', 'conditions', 'freezeDecision', 'analytics'];
+    const _requiredProps = ['metadata', 'conditions', 'freezeDecision', 'analytics'];
     for (const prop of requiredProps) {
       if (!data[prop]) {
         result.errors.push(`Missing required property: ${prop}`);
@@ -51,7 +53,7 @@ export class FreezeReadinessUtils {
 
     // Validate metadata
     if (data.metadata) {
-      const requiredMetadata = ['generatedAt', 'network', 'overallProgress', 'riskScore'];
+      const _requiredMetadata = ['generatedAt', 'network', 'overallProgress', 'riskScore'];
       for (const prop of requiredMetadata) {
         if (data.metadata[prop] === undefined) {
           result.errors.push(`Missing metadata property: ${prop}`);
@@ -77,14 +79,14 @@ export class FreezeReadinessUtils {
 
     // Validate conditions
     if (Array.isArray(data.conditions)) {
-      const conditionIds = new Set();
-      const validStatuses = ['pending', 'partial', 'complete'];
-      const validPriorities = ['critical', 'high', 'medium', 'low'];
-      const validCategories = ['Security', 'Governance', 'Testing', 'Documentation', 'Operations'];
+      const _conditionIds = new Set();
+      const _validStatuses = ['pending', 'partial', 'complete'];
+      const _validPriorities = ['critical', 'high', 'medium', 'low'];
+      const _validCategories = ['Security', 'Governance', 'Testing', 'Documentation', 'Operations'];
 
       data.conditions.forEach((condition: any, index: number) => {
         // Check required properties
-        const requiredConditionProps = ['id', 'category', 'description', 'status', 'priority'];
+        const _requiredConditionProps = ['id', 'category', 'description', 'status', 'priority'];
         for (const prop of requiredConditionProps) {
           if (!condition[prop]) {
             result.errors.push(`Condition ${index}: Missing property ${prop}`);
@@ -153,7 +155,7 @@ export class FreezeReadinessUtils {
     lines.push('');
 
     // Status
-    const status = data.freezeDecision.recommendFreeze ? '✅ READY' : '❌ NOT READY';
+    const _status = data.freezeDecision.recommendFreeze ? '✅ READY' : '❌ NOT READY';
     lines.push(`🔒 Freeze Status: ${status}`);
     lines.push('');
 
@@ -161,7 +163,7 @@ export class FreezeReadinessUtils {
     lines.push('📋 CATEGORY PROGRESS:');
     lines.push('─'.repeat(30));
     Object.entries(data.analytics.categoryProgress).forEach(([category, progress]: [string, any]) => {
-      const bar = this.createProgressBar(progress, 20);
+      const _bar = this.createProgressBar(progress, 20);
       lines.push(`${category.padEnd(15)} │${bar}│ ${progress.toFixed(1)}%`);
     });
     lines.push('');
@@ -192,8 +194,8 @@ export class FreezeReadinessUtils {
    * Creates a text-based progress bar
    */
   private static createProgressBar(percentage: number, width: number = 20): string {
-    const filled = Math.round((percentage / 100) * width);
-    const empty = width - filled;
+    const _filled = Math.round((percentage / 100) * width);
+    const _empty = width - filled;
     return '█'.repeat(filled) + '░'.repeat(empty);
   }
 
@@ -227,7 +229,7 @@ export class FreezeReadinessUtils {
     lines.push('|----------|----------|--------|');
     
     Object.entries(data.analytics.categoryProgress).forEach(([category, progress]: [string, any]) => {
-      const status = progress >= 80 ? '✅ Good' : progress >= 50 ? '⚠️ Fair' : '❌ Poor';
+      const _status = progress >= 80 ? '✅ Good' : progress >= 50 ? '⚠️ Fair' : '❌ Poor';
       lines.push(`| ${category} | ${progress.toFixed(1)}% | ${status} |`);
     });
     lines.push('');
@@ -256,7 +258,7 @@ export class FreezeReadinessUtils {
     lines.push('## 📝 Detailed Conditions');
     lines.push('');
     
-    const categoryGroups = this.groupConditionsByCategory(data.conditions);
+    const _categoryGroups = this.groupConditionsByCategory(data.conditions);
     Object.entries(categoryGroups).forEach(([category, conditions]: [string, any]) => {
       lines.push(`### ${category}`);
       lines.push('');
@@ -302,8 +304,8 @@ export class FreezeReadinessUtils {
    * Calculates summary statistics from assessment data
    */
   static calculateSummaryStats(data: any): any {
-    const conditions = data.conditions || [];
-    const total = conditions.length;
+    const _conditions = data.conditions || [];
+    const _total = conditions.length;
     
     const statusCounts = {
       complete: conditions.filter((c: any) => c.status === 'complete').length,
@@ -374,7 +376,7 @@ export class FreezeReadinessUtils {
         throw new Error(`Unsupported export format: ${format}`);
     }
 
-    const fullPath = path.join(outputPath, filename);
+    const _fullPath = path.join(outputPath, filename);
     
     // Ensure directory exists
     await fs.promises.mkdir(outputPath, { recursive: true });
@@ -428,18 +430,18 @@ export class FreezeReadinessUtils {
     };
 
     // Compare blockers
-    const prevBlockers = new Set(previous.freezeDecision.blockers);
-    const currBlockers = new Set(current.freezeDecision.blockers);
+    const _prevBlockers = new Set(previous.freezeDecision.blockers);
+    const _currBlockers = new Set(current.freezeDecision.blockers);
     
     comparison.newBlockers = [...currBlockers].filter((b: any) => !prevBlockers.has(b));
     comparison.resolvedBlockers = [...prevBlockers].filter((b: any) => !currBlockers.has(b));
 
     // Compare condition statuses
-    const prevConditions = new Map(previous.conditions.map((c: any) => [c.id, c]));
-    const currConditions = new Map(current.conditions.map((c: any) => [c.id, c]));
+    const _prevConditions = new Map(previous.conditions.map((c: any) => [c.id, c]));
+    const _currConditions = new Map(current.conditions.map((c: any) => [c.id, c]));
 
     for (const [id, currCondition] of currConditions) {
-      const prevCondition = prevConditions.get(id);
+      const _prevCondition = prevConditions.get(id);
       if (prevCondition && (prevCondition as any).status !== (currCondition as any).status) {
         comparison.statusChanges.push({
           id,
@@ -452,9 +454,9 @@ export class FreezeReadinessUtils {
 
     // Compare category progress
     Object.keys(current.analytics.categoryProgress).forEach(category => {
-      const prevProgress = previous.analytics.categoryProgress[category] || 0;
-      const currProgress = current.analytics.categoryProgress[category] || 0;
-      const change = currProgress - prevProgress;
+      const _prevProgress = previous.analytics.categoryProgress[category] || 0;
+      const _currProgress = current.analytics.categoryProgress[category] || 0;
+      const _change = currProgress - prevProgress;
       
       if (Math.abs(change) > 0.1) { // Only include significant changes
         comparison.categoryChanges[category] = {
@@ -472,7 +474,7 @@ export class FreezeReadinessUtils {
    * Validates file paths and creates directories as needed
    */
   static async ensureDirectoryExists(filePath: string): Promise<void> {
-    const dir = path.dirname(filePath);
+    const _dir = path.dirname(filePath);
     try {
       await fs.promises.access(dir);
     } catch {
@@ -485,7 +487,7 @@ export class FreezeReadinessUtils {
    */
   static async safeReadJSON(filePath: string): Promise<any> {
     try {
-      const content = await fs.promises.readFile(filePath, 'utf8');
+      const _content = await fs.promises.readFile(filePath, 'utf8');
       return JSON.parse(content);
     } catch (error) {
       throw new Error(`Failed to read JSON file ${filePath}: ${error}`);
@@ -513,8 +515,8 @@ export class FreezeReadinessUtils {
    * Generates a unique identifier for assessment runs
    */
   static generateAssessmentId(): string {
-    const timestamp = Date.now();
-    const random = Math.random().toString(36).substr(2, 9);
+    const _timestamp = Date.now();
+    const _random = Math.random().toString(36).substr(2, 9);
     return `assessment-${timestamp}-${random}`;
   }
 }

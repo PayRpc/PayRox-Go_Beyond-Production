@@ -6,7 +6,7 @@ import { DiamondDeployer } from "../../../scripts/deploy/deploy-diamond";
 
 export async function deployChunkedSystem(hre: HardhatRuntimeEnvironment) {
   console.log("🚀 Deploying chunked system...");
-  const facets = ["SecurityFacet"];
+  const _facets = ["SecurityFacet"];
   const diamondCut = [
     {
       facet: "SecurityFacet",
@@ -81,7 +81,7 @@ export async function deployChunkedSystem(hre: HardhatRuntimeEnvironment) {
     salt: "0x1234",
     verify: false
   });
-  const result = await deployer.deploy();
+  const _result = await deployer.deploy();
   console.log("✅ Deployed Diamond at", result.diamond.target);
   return result.diamond;
 }

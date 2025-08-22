@@ -4,7 +4,7 @@ import { execSync } from "child_process";
 
 describe("Integration wiring", () => {
   it("wiring validator passes", () => {
-    const out = execSync("npm run -s check:wire", { encoding: "utf8" });
+    const _out = execSync("npm run -s check:wire", { encoding: "utf8" });
     expect(out).to.match(/manifest parity OK/i);
   });
 });

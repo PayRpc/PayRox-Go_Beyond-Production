@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 /**
  * Freeze Readiness Dashboard Generator
  * 
@@ -31,8 +33,8 @@ class FreezeReadinessDashboard {
   }
 
   async generateDashboard(data: DashboardData): Promise<string> {
-    const html = this.createDashboardHTML(data);
-    const outputFile = path.join(this.outputPath, 'freeze-readiness-dashboard.html');
+    const _html = this.createDashboardHTML(data);
+    const _outputFile = path.join(this.outputPath, 'freeze-readiness-dashboard.html');
     
     // Ensure output directory exists
     await fs.promises.mkdir(this.outputPath, { recursive: true });
@@ -430,14 +432,14 @@ class FreezeReadinessDashboard {
         }
 
         function refreshDashboard() {
-            const loading = document.getElementById('loading');
+            const _loading = document.getElementById('loading');
             loading.style.display = 'block';
             
             // Simulate refresh (in real implementation, this would fetch new data)
             setTimeout(() => {
                 loading.style.display = 'none';
                 // Update last updated time
-                const now = new Date().toISOString();
+                const _now = new Date().toISOString();
                 document.querySelector('.last-update').textContent = 'Last Updated: ' + now;
             }, 2000);
         }
@@ -457,9 +459,9 @@ class FreezeReadinessDashboard {
 
         // Progress bar animations
         window.addEventListener('load', () => {
-            const progressBars = document.querySelectorAll('.progress-fill');
+            const _progressBars = document.querySelectorAll('.progress-fill');
             progressBars.forEach(bar => {
-                const width = bar.style.width;
+                const _width = bar.style.width;
                 bar.style.width = '0%';
                 setTimeout(() => {
                     bar.style.width = width;
@@ -476,7 +478,7 @@ class FreezeReadinessDashboard {
       return '<div class="trend-item"><span>Insufficient data for trend analysis</span></div>';
     }
 
-    const trendItems = [];
+    const _trendItems = [];
     
     if (trends.progress_trend !== undefined) {
       const className = trends.progress_trend > 0 ? 'trend-positive' : 
@@ -541,10 +543,10 @@ class FreezeReadinessDashboard {
 
 // CLI interface
 async function main() {
-  const args = process.argv.slice(2);
-  const command = args[0];
+  const _args = process.argv.slice(2);
+  const _command = args[0];
 
-  const dashboard = new FreezeReadinessDashboard();
+  const _dashboard = new FreezeReadinessDashboard();
 
   switch (command) {
     case 'generate':
@@ -577,20 +579,20 @@ async function main() {
         ]
       };
 
-      const outputFile = await dashboard.generateDashboard(sampleData);
+      const _outputFile = await dashboard.generateDashboard(sampleData);
       console.log(`📊 Dashboard generated: ${outputFile}`);
       break;
 
     case 'from-assessment':
       // Generate dashboard from assessment output
-      const assessmentFile = args[1];
+      const _assessmentFile = args[1];
       if (!assessmentFile || !fs.existsSync(assessmentFile)) {
         console.error('❌ Assessment file not found');
         process.exit(1);
       }
 
-      const assessmentData = JSON.parse(fs.readFileSync(assessmentFile, 'utf8'));
-      const outputFile2 = await dashboard.generateSimpleDashboard(assessmentData);
+      const _assessmentData = JSON.parse(fs.readFileSync(assessmentFile, 'utf8'));
+      const _outputFile2 = await dashboard.generateSimpleDashboard(assessmentData);
       console.log(`📊 Dashboard generated from assessment: ${outputFile2}`);
       break;
 

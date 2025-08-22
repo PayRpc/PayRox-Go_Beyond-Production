@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 // SPDX-License-Identifier: MIT
 /**
  * PayRox Quick Security Sweep

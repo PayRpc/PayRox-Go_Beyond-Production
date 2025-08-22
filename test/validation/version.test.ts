@@ -3,13 +3,13 @@ import { ethers } from "hardhat";
 
 describe("VersionFacet (validation)", () => {
   it("exposes version() and versionNumber()", async () => {
-    const Fac = await ethers.getContractFactory("VersionFacet");
-    const f = await Fac.deploy();
+    const _Fac = await ethers.getContractFactory("VersionFacet");
+    const _f = await Fac.deploy();
     await f.waitForDeployment();
 
     // Version method testing commented out due to interface limitations
-    // const v = await f.version();
-    // const n = await f.versionNumber();
+    // const _v = await f.version();
+    // const _n = await f.versionNumber();
 
     // expect(v).to.be.a("string").that.is.not.empty;
     // expect(n).to.be.a("bigint");

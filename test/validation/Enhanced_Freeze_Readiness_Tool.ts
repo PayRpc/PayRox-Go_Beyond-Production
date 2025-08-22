@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 // @ts-nocheck
 /**
  * Enhanced Freeze Readiness Assessment Tool
@@ -150,7 +152,7 @@ class EnhancedFreezeReadinessAssessor {
    * Parse command line arguments for enhanced functionality
    */
   private parseCliArguments(): void {
-    const args = process.argv.slice(2);
+    const _args = process.argv.slice(2);
 
     this.cliArgs = {
       help: args.includes('--help') || args.includes('-h'),
@@ -181,7 +183,7 @@ class EnhancedFreezeReadinessAssessor {
     flag: string,
     defaultValue: string
   ): string {
-    const index = args.indexOf(flag);
+    const _index = args.indexOf(flag);
     if (index !== -1 && index + 1 < args.length) {
       return args[index + 1];
     }
@@ -248,10 +250,10 @@ DESCRIPTION:
 
       // Load system information
       console.log('\n🔍 Analyzing system readiness...');
-      const systemInfo = await this.loadSystemInformation();
+      const _systemInfo = await this.loadSystemInformation();
 
       // Load and assess conditions
-      const conditions = this.getFreezeConditions(systemInfo.network);
+      const _conditions = this.getFreezeConditions(systemInfo.network);
       const assessedConditions = await this.assessConditions(
         conditions,
         systemInfo
@@ -271,14 +273,14 @@ DESCRIPTION:
         await this.saveOutput(report);
       }
 
-      const duration = Date.now() - this.startTime;
+      const _duration = Date.now() - this.startTime;
       if (this.cliArgs.verbose) {
         console.log(`\n⏱️ Assessment completed in ${duration}ms`);
       }
 
       return report;
     } catch (error) {
-      const duration = Date.now() - this.startTime;
+      const _duration = Date.now() - this.startTime;
 
       console.error('\n❌ Freeze readiness assessment failed:');
 
@@ -340,12 +342,12 @@ DESCRIPTION:
     }
 
     try {
-      const hreImp = this.hre ?? (await this.loadHardhatEnvironment());
-      const network = await hreImp.ethers.provider.getNetwork();
-      const chainId = network.chainId.toString();
+      const _hreImp = this.hre ?? (await this.loadHardhatEnvironment());
+      const _network = await hreImp.ethers.provider.getNetwork();
+      const _chainId = network.chainId.toString();
 
       // Get dispatcher address with fallback
-      const dispatcherInfo = await this.getDispatcherInfo(chainId);
+      const _dispatcherInfo = await this.getDispatcherInfo(chainId);
 
       return {
         network: this.hre.network.name,
@@ -376,7 +378,7 @@ DESCRIPTION:
   ): Promise<{ address: string; isFrozen: boolean }> {
     if (!this.hre) throw new Error('HRE not initialized');
 
-    const pathManager = getPathManager();
+    const _pathManager = getPathManager();
     const dispatcherPath = pathManager.getDeploymentPath(
       this.hre.network.name,
       'dispatcher.json'
@@ -398,15 +400,15 @@ DESCRIPTION:
     }
 
     try {
-      const dispatcherData = safeParseJSON(readFileContent(dispatcherPath));
-      const dispatcherAddress = dispatcherData.address;
+      const _dispatcherData = safeParseJSON(readFileContent(dispatcherPath));
+      const _dispatcherAddress = dispatcherData.address;
 
-      const hreImp = this.hre ?? (await this.loadHardhatEnvironment());
+      const _hreImp = this.hre ?? (await this.loadHardhatEnvironment());
       const dispatcher = await hreImp.ethers.getContractAt(
         'ManifestDispatcher',
         dispatcherAddress
       );
-      const isFrozen = await dispatcher.frozen();
+      const _isFrozen = await dispatcher.frozen();
 
       return { address: dispatcherAddress, isFrozen };
     } catch (error) {
@@ -737,16 +739,16 @@ DESCRIPTION:
     condition: FreezeCondition,
     systemInfo: any
   ): Promise<Partial<FreezeCondition>> {
-    let newStatus = condition.status;
-    const checkHistory = condition.checkHistory || [];
+    let _newStatus = condition.status;
+    const _checkHistory = condition.checkHistory || [];
 
     // Automated validation if rules exist
     if (condition.automated && condition.validationRules) {
       const validationResults = await this.runValidationRules(
         condition.validationRules
       );
-      const allPassed = validationResults.every(result => result.passed);
-      const anyPassed = validationResults.some(result => result.passed);
+      const _allPassed = validationResults.every(result => result.passed);
+      const _anyPassed = validationResults.some(result => result.passed);
 
       if (allPassed) {
         newStatus = 'complete';
@@ -790,11 +792,11 @@ DESCRIPTION:
   private async runValidationRules(
     rules: ValidationRule[]
   ): Promise<{ rule: ValidationRule; passed: boolean; details?: any }[]> {
-    const results = [];
+    const _results = [];
 
     for (const rule of rules) {
-      let passed = false;
-      let details = {};
+      let _passed = false;
+      let _details = {};
 
       try {
         switch (rule.type) {
@@ -805,7 +807,7 @@ DESCRIPTION:
             passed = await this.checkContractDeployment(rule.target);
             break;
           case 'test_coverage': {
-            const coverage = await this.getTestCoverage();
+            const _coverage = await this.getTestCoverage();
             passed = rule.validator
               ? rule.validator(coverage)
               : coverage >= parseInt(rule.target);
@@ -857,8 +859,8 @@ DESCRIPTION:
         '../coverage/coverage-final.json'
       );
       if (fileExists(coveragePath)) {
-        const coverageData = safeParseJSON(readFileContent(coveragePath));
-        const totalCoverage = coverageData.total?.statements?.pct || 0;
+        const _coverageData = safeParseJSON(readFileContent(coveragePath));
+        const _totalCoverage = coverageData.total?.statements?.pct || 0;
 
         if (totalCoverage >= 95) return 'complete';
         if (totalCoverage >= 80) return 'partial';
@@ -877,15 +879,15 @@ DESCRIPTION:
     }
 
     try {
-      const hreImp = this.hre ?? (await this.loadHardhatEnvironment());
+      const _hreImp = this.hre ?? (await this.loadHardhatEnvironment());
       const dispatcher = await hreImp.ethers.getContractAt(
         'ManifestDispatcher',
         systemInfo.dispatcherAddress
       );
 
       // Dispatcher-native governance posture checks
-      const isFrozen = await dispatcher.frozen();
-      const delay = await dispatcher.activationDelay(); // uint64
+      const _isFrozen = await dispatcher.frozen();
+      const _delay = await dispatcher.activationDelay(); // uint64
 
       // Consider governance "complete" if not frozen yet (pre-freeze) and delay is configured
       return (!isFrozen && Number(delay) > 0) ? 'complete' : 'partial';
@@ -917,7 +919,7 @@ DESCRIPTION:
     if (!this.hre || this.cliArgs.simulate) return true;
 
     try {
-      const pathManager = getPathManager();
+      const _pathManager = getPathManager();
       const deploymentPath = pathManager.getDeploymentPath(
         this.hre.network.name,
         `${contractName}.json`
@@ -935,7 +937,7 @@ DESCRIPTION:
         '../coverage/coverage-final.json'
       );
       if (fileExists(coveragePath)) {
-        const coverageData = safeParseJSON(readFileContent(coveragePath));
+        const _coverageData = safeParseJSON(readFileContent(coveragePath));
         return coverageData.total?.statements?.pct || 0;
       }
     } catch (error) {
@@ -954,8 +956,8 @@ DESCRIPTION:
       conditions,
       systemInfo.network
     );
-    const analytics = this.generateAnalytics(conditions);
-    const riskAssessment = this.generateRiskAssessment(conditions);
+    const _analytics = this.generateAnalytics(conditions);
+    const _riskAssessment = this.generateRiskAssessment(conditions);
 
     return {
       metadata: {
@@ -1026,8 +1028,8 @@ DESCRIPTION:
         ? (criticalComplete.length / criticalConditions.length) * 100
         : 100;
 
-    const highConditions = conditions.filter(c => c.priority === 'high');
-    const highComplete = highConditions.filter(c => c.status === 'complete');
+    const _highConditions = conditions.filter(c => c.priority === 'high');
+    const _highComplete = highConditions.filter(c => c.status === 'complete');
     const highCompletionRate =
       highConditions.length > 0
         ? (highComplete.length / highConditions.length) * 100
@@ -1035,7 +1037,7 @@ DESCRIPTION:
 
     const allCriticalComplete =
       criticalComplete.length === criticalConditions.length;
-    const meetHighThreshold = highCompletionRate >= CONFIG.MIN_HIGH_COMPLETION;
+    const _meetHighThreshold = highCompletionRate >= CONFIG.MIN_HIGH_COMPLETION;
 
     const blockers: string[] = [];
     const recommendations: string[] = [];
@@ -1058,7 +1060,7 @@ DESCRIPTION:
     const recommendFreeze =
       allCriticalComplete && meetHighThreshold && blockers.length === 0;
 
-    let reasoning = '';
+    let _reasoning = '';
     if (recommendFreeze) {
       reasoning = `System is ready for permanent immutability. All critical conditions (${criticalComplete.length}/${criticalConditions.length}) completed and ${highCompletionRate.toFixed(
         1
@@ -1087,7 +1089,7 @@ DESCRIPTION:
           : 'local'
       ];
 
-    const nextReview = new Date();
+    const _nextReview = new Date();
     nextReview.setDate(nextReview.getDate() + reviewInterval);
 
     return {
@@ -1125,7 +1127,7 @@ DESCRIPTION:
     });
 
     // Calculate priority breakdown
-    const priorities = ['critical', 'high', 'medium', 'low'];
+    const _priorities = ['critical', 'high', 'medium', 'low'];
     priorities.forEach(priority => {
       const priorityConditions = conditions.filter(
         c => c.priority === priority
@@ -1141,7 +1143,7 @@ DESCRIPTION:
       c => c.priority === 'high' && c.status !== 'complete'
     ).length;
 
-    let timeToReadiness = 'Ready now';
+    let _timeToReadiness = 'Ready now';
     if (pendingCritical > 0) {
       timeToReadiness = `${pendingCritical * 7} days (critical items pending)`;
     } else if (pendingHigh > 3) {
@@ -1181,7 +1183,7 @@ DESCRIPTION:
         ? (governanceComplete / governanceConditions.length) * 100
         : 100;
 
-    const testingConditions = conditions.filter(c => c.category === 'Testing');
+    const _testingConditions = conditions.filter(c => c.category === 'Testing');
     const testingComplete = testingConditions.filter(
       c => c.status === 'complete'
     ).length;
@@ -1233,12 +1235,12 @@ DESCRIPTION:
   }
 
   private calculateOverallProgress(conditions: FreezeCondition[]): number {
-    const weights = { critical: 40, high: 30, medium: 20, low: 10 } as const;
-    let totalWeight = 0;
-    let completedWeight = 0;
+    const _weights = { critical: 40, high: 30, medium: 20, low: 10 } as const;
+    let _totalWeight = 0;
+    let _completedWeight = 0;
 
     conditions.forEach(condition => {
-      const weight = weights[condition.priority];
+      const _weight = weights[condition.priority];
       totalWeight += weight;
 
       if (condition.status === 'complete') {
@@ -1252,8 +1254,8 @@ DESCRIPTION:
   }
 
   private calculateConfidenceLevel(conditions: FreezeCondition[]): number {
-    const automatedConditions = conditions.filter(c => c.automated).length;
-    const totalConditions = conditions.length;
+    const _automatedConditions = conditions.filter(c => c.automated).length;
+    const _totalConditions = conditions.length;
     const automationRatio =
       totalConditions > 0 ? automatedConditions / totalConditions : 0;
 
@@ -1331,7 +1333,7 @@ DESCRIPTION:
       '🎭 Performing dry run - no actual assessment will be performed'
     );
 
-    const mockConditions = this.getFreezeConditions('hardhat');
+    const _mockConditions = this.getFreezeConditions('hardhat');
     const mockSystemInfo = {
       network: 'hardhat',
       chainId: '31337',
@@ -1408,7 +1410,7 @@ DESCRIPTION:
     console.log('🎮 Interactive Mode Enabled');
     console.log('Explore different aspects of freeze readiness assessment.\n');
 
-    const readline = require('readline');
+    import readline from 'readline';
     const rl = readline.createInterface({
       input: process.stdin,
       output: process.stdout,
@@ -1746,7 +1748,7 @@ DESCRIPTION:
   private async saveOutput(report: FreezeReadinessReport): Promise<void> {
     if (this.cliArgs.output) {
       try {
-        let content = '';
+        let _content = '';
 
         if (this.cliArgs.format === 'json') {
           content = JSON.stringify(report, null, 2);
@@ -1757,7 +1759,7 @@ DESCRIPTION:
         }
 
         // Ensure directory exists
-        const outputDir = path.dirname(this.cliArgs.output);
+        const _outputDir = path.dirname(this.cliArgs.output);
         if (!fs.existsSync(outputDir)) {
           fs.mkdirSync(outputDir, { recursive: true });
         }
@@ -1777,7 +1779,7 @@ DESCRIPTION:
 
 // Add timeout protection
 if (process.env.NODE_ENV !== 'test') {
-  const EXECUTION_TIMEOUT = 180000; // 3 minutes maximum
+  const _EXECUTION_TIMEOUT = 180000; // 3 minutes maximum
   setTimeout(() => {
     console.error('\n⚠️ Assessment execution timeout (3 minutes exceeded)');
     console.error(
@@ -1791,13 +1793,13 @@ if (process.env.NODE_ENV !== 'test') {
 export async function main(
   hre: HardhatRuntimeEnvironment
 ): Promise<FreezeReadinessReport> {
-  const assessor = new EnhancedFreezeReadinessAssessor();
+  const _assessor = new EnhancedFreezeReadinessAssessor();
   return await assessor.assess(hre);
 }
 
 // Execute the enhanced freeze readiness assessor
 if (require.main === module) {
-  const assessor = new EnhancedFreezeReadinessAssessor();
+  const _assessor = new EnhancedFreezeReadinessAssessor();
   import('hardhat')
     .then(async ({ default: hre }) => {
       await assessor.assess(hre as unknown as HardhatRuntimeEnvironment);

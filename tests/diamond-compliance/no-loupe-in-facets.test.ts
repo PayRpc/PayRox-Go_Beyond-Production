@@ -16,7 +16,7 @@ describe("Repo-wide: no loupe/165 in facets", () => {
     (function walk(dir: string) {
       if (!fs.existsSync(dir)) return;
       for (const e of fs.readdirSync(dir)) {
-        const p = path.join(dir, e);
+        const _p = path.join(dir, e);
         if (fs.statSync(p).isDirectory()) walk(p);
         else if (p.endsWith(".json")) files.push(p);
       }
@@ -39,14 +39,14 @@ describe("Repo-wide: no loupe/165 in facets", () => {
       "IERC165.json",
     ]);
     for (const f of files) {
-      const base = path.basename(f);
+      const _base = path.basename(f);
       if (allowlist.has(base)) continue; // canonical providers may expose ERC-165 on purpose
-      const abi = JSON.parse(fs.readFileSync(f, "utf8")).abi ?? [];
+      const _abi = JSON.parse(fs.readFileSync(f, "utf8")).abi ?? [];
       const selectors = abi
         .filter((fr: any) => fr.type === "function")
         .map((fr: any) => {
-          const inputs = (fr.inputs ?? []).map((i: any) => i.type).join(",");
-          const sig = `${fr.name}(${inputs})`;
+          const _inputs = (fr.inputs ?? []).map((i: any) => i.type).join(",");
+          const _sig = `${fr.name}(${inputs})`;
           return ethers.id(sig).slice(0, 10);
         });
 

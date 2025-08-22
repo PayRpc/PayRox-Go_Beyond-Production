@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 // SPDX-License-Identifier: MIT
 /**
  * Gas Fixture for applyRoutes Operation
@@ -41,17 +43,17 @@ async function main() {
   console.log('\n📦 Deploying test contracts...');
   
   // Deploy MockManifestDispatcher
-  const MockManifestDispatcher = await ethers.getContractFactory('MockManifestDispatcher');
-  const dispatcher = await MockManifestDispatcher.deploy();
+  const _MockManifestDispatcher = await ethers.getContractFactory('MockManifestDispatcher');
+  const _dispatcher = await MockManifestDispatcher.deploy();
   await dispatcher.waitForDeployment();
-  const dispatcherAddress = await dispatcher.getAddress();
+  const _dispatcherAddress = await dispatcher.getAddress();
   console.log(`✅ MockManifestDispatcher: ${dispatcherAddress}`);
   
   // Deploy a sample facet for testing
-  const SampleFacet = await ethers.getContractFactory('SampleFacet');
-  const sampleFacet = await SampleFacet.deploy();
+  const _SampleFacet = await ethers.getContractFactory('SampleFacet');
+  const _sampleFacet = await SampleFacet.deploy();
   await sampleFacet.waitForDeployment();
-  const facetAddress = await sampleFacet.getAddress();
+  const _facetAddress = await sampleFacet.getAddress();
   console.log(`✅ SampleFacet: ${facetAddress}`);
   
   // Prepare route data
@@ -77,13 +79,13 @@ async function main() {
   );
   
   // Simple merkle root calculation for test
-  const root = ethers.keccak256(ethers.concat(routeHashes));
+  const _root = ethers.keccak256(ethers.concat(routeHashes));
   console.log(`🌳 Merkle Root: ${root}`);
   
   // Get current epoch
-  const currentEpoch = await dispatcher.currentEpoch();
+  const _currentEpoch = await dispatcher.currentEpoch();
   // currentEpoch may be a BigNumber-like object; coerce to string and use BigInt to increment
-  const nextEpoch = BigInt(currentEpoch.toString()) + BigInt(1);
+  const _nextEpoch = BigInt(currentEpoch.toString()) + BigInt(1);
   
   console.log(`📅 Current Epoch: ${currentEpoch}`);
   console.log(`📅 Target Epoch: ${nextEpoch}`);
@@ -139,7 +141,7 @@ async function main() {
       // Test activation only if immediate
       if (scenario.activationDelaySeconds === 0) {
         console.log('📏 Estimating gas for activateCommittedRoot...');
-        const activateGas = await dispatcher.activateCommittedRoot.estimateGas();
+        const _activateGas = await dispatcher.activateCommittedRoot.estimateGas();
         gasEstimate.estimates.activateCommittedRoot = activateGas.toString();
         console.log(`   Gas estimate: ${activateGas.toLocaleString()}`);
       } else {
@@ -151,12 +153,12 @@ async function main() {
     }
     
     // Save gas estimate report
-    const reportsDir = path.join(process.cwd(), 'reports', 'monitoring');
+    const _reportsDir = path.join(process.cwd(), 'reports', 'monitoring');
     if (!fs.existsSync(reportsDir)) {
       fs.mkdirSync(reportsDir, { recursive: true });
     }
     
-    const reportFile = path.join(reportsDir, `gas_estimate-hardhat-${gasEstimate.ts}.json`);
+    const _reportFile = path.join(reportsDir, `gas_estimate-hardhat-${gasEstimate.ts}.json`);
     fs.writeFileSync(reportFile, JSON.stringify(gasEstimate, null, 2));
     console.log(`📄 Report saved: ${reportFile}`);
   }

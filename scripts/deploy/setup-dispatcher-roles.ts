@@ -20,20 +20,20 @@ async function main () {
 
   // Grant roles to dispatcher (commented out due to interface limitations)
   console.log('Granting OPERATOR_ROLE to dispatcher...')
-  // const operatorRole = await factory.OPERATOR_ROLE();
-  // let tx = await factory.grantRole(operatorRole, DISPATCHER_ADDRESS);
+  // const _operatorRole = await factory.OPERATOR_ROLE();
+  // let _tx = await factory.grantRole(operatorRole, DISPATCHER_ADDRESS);
   // await tx.wait();
   console.log('✓ OPERATOR_ROLE setup skipped - interface not available')
 
   console.log('Granting FEE_ROLE to dispatcher...')
-  // const feeRole = await factory.FEE_ROLE();
+  // const _feeRole = await factory.FEE_ROLE();
   // tx = await factory.grantRole(feeRole, DISPATCHER_ADDRESS);
   // await tx.wait();
   console.log('✓ FEE_ROLE setup skipped - interface not available')
 
   // Verify roles (commented out due to interface limitations)
-  // const hasOperatorRole = await factory.hasRole(operatorRole, DISPATCHER_ADDRESS);
-  // const hasFeeRole = await factory.hasRole(feeRole, DISPATCHER_ADDRESS);
+  // const _hasOperatorRole = await factory.hasRole(operatorRole, DISPATCHER_ADDRESS);
+  // const _hasFeeRole = await factory.hasRole(feeRole, DISPATCHER_ADDRESS);
 
   console.log('Role verification:')
   console.log('- Role setup skipped due to interface limitations')

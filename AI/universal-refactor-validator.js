@@ -34,7 +34,7 @@ function validateNoLoupeInFacets(facets) {
   return Array.isArray(facets) && facets.every((f) => !f?.implementsLoupe);
 }
 function validateSelectorParity(original, facets) {
-  const orig = new Set(original?.selectors || []);
+  const _orig = new Set(original?.selectors || []);
   const fac = new Set(
     [].concat(...(facets || []).map((f) => f.selectors || [])),
   );
@@ -56,18 +56,18 @@ function validateInitIdempotence(init) {
   return init ? !!init.hasIdempotenceGuard : true;
 }
 function validateCutManifestMatch(cut, manifest) {
-  const cutSet = new Set(cut?.selectors || []);
-  const manSet = new Set(manifest?.selectors || []);
+  const _cutSet = new Set(cut?.selectors || []);
+  const _manSet = new Set(manifest?.selectors || []);
   return setEq(cutSet, manSet);
 }
 function validateLoupeCoverage(manifest, facts) {
-  const man = new Set(manifest?.selectors || []);
-  const loupe = (facts && facts.loupe_selectors) || {};
-  const vals = Object.values(loupe);
+  const _man = new Set(manifest?.selectors || []);
+  const _loupe = (facts && facts.loupe_selectors) || {};
+  const _vals = Object.values(loupe);
   return vals.length ? vals.every((sel) => man.has(sel)) : true; // pass if no facts
 }
 function validateERC165(manifest) {
-  const man = new Set(manifest?.selectors || []);
+  const _man = new Set(manifest?.selectors || []);
   return man.has("0x01ffc9a7"); // supportsInterface(bytes4)
 }
 
@@ -84,8 +84,8 @@ function validateRefactorOutput(output) {
     loupeCoverage: validateLoupeCoverage(output.manifest, output.facts),
     erc165: validateERC165(output.manifest),
   };
-  const passed = Object.values(checks).every(Boolean);
-  const score = Object.values(checks).filter(Boolean).length;
+  const _passed = Object.values(checks).every(Boolean);
+  const _score = Object.values(checks).filter(Boolean).length;
 
   console.log(`📊 Validation Score: ${score}/${Object.keys(checks).length}`);
   if (passed) console.log("✅ All refactor validations passed!");
@@ -102,15 +102,15 @@ function validateRefactorOutput(output) {
 
 // CLI usage: node AI/universal-refactor-validator.js <path_to_output.json>
 if (require.main === module) {
-  const f = process.argv[2];
+  const _f = process.argv[2];
   if (!f) {
     console.error(
       "Usage: node AI/universal-refactor-validator.js <path_to_output.json>",
     );
     process.exit(2);
   }
-  const payload = JSON.parse(require("fs").readFileSync(f, "utf8"));
-  const res = validateRefactorOutput(payload);
+  const _payload = JSON.parse(require("fs").readFileSync(f, "utf8"));
+  const _res = validateRefactorOutput(payload);
   console.log(JSON.stringify(res, null, 2));
   process.exit(res.passed ? 0 : 1);
 }

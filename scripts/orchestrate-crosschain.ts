@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 /**
  * Cross-Chain Deployment Orchestration Script
  * SPDX-License-Identifier: MIT

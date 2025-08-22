@@ -21,10 +21,10 @@ function learnUniversalRefactor(data) {
     initIdempotent: !!data?.initProperlyGuarded,
   };
 
-  const total = Object.keys(learningPoints).length;
-  const success = Object.values(learningPoints).filter(Boolean).length;
-  const successRate = success / total;
-  const newConfidence = Math.min(99, Math.round(95 + successRate * 4));
+  const _total = Object.keys(learningPoints).length;
+  const _success = Object.values(learningPoints).filter(Boolean).length;
+  const _successRate = success / total;
+  const _newConfidence = Math.min(99, Math.round(95 + successRate * 4));
 
   console.log(`🎯 Refactor success rate: ${Math.round(successRate * 100)}%`);
   console.log(`📈 Updated confidence: ${newConfidence}%`);

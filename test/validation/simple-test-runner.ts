@@ -1,3 +1,4 @@
+import fs from 'fs';
 /**
  * Simple Test Runner for Freeze Readiness Assessment System
  * 
@@ -9,7 +10,7 @@ import { promisify } from 'util';
 import * as fs from 'fs';
 import * as path from 'path';
 
-const execAsync = promisify(exec);
+const _execAsync = promisify(exec);
 
 interface TestResult {
   name: string;
@@ -24,15 +25,15 @@ class SimpleTestRunner {
 
   async runTest(name: string, testFn: () => Promise<void>): Promise<void> {
     console.log(`🔍 Running: ${name}`);
-    const startTime = Date.now();
+    const _startTime = Date.now();
     
     try {
       await testFn();
-      const duration = Date.now() - startTime;
+      const _duration = Date.now() - startTime;
       this.results.push({ name, passed: true, duration });
       console.log(`✅ ${name} PASSED (${duration}ms)`);
     } catch (error) {
-      const duration = Date.now() - startTime;
+      const _duration = Date.now() - startTime;
       this.results.push({ 
         name, 
         passed: false, 
@@ -73,14 +74,14 @@ class SimpleTestRunner {
         'npx hardhat run test/validation/Enhanced_Freeze_Readiness_Tool.ts -- --simulate --format json'
       );
       
-      const lines = stdout.split('\n');
-      const jsonLine = lines.find(line => line.trim().startsWith('{'));
+      const _lines = stdout.split('\n');
+      const _jsonLine = lines.find(line => line.trim().startsWith('{'));
       
       if (!jsonLine) {
         throw new Error('No JSON output found');
       }
       
-      const data = JSON.parse(jsonLine);
+      const _data = JSON.parse(jsonLine);
       
       if (!data.metadata) {
         throw new Error('Missing metadata in JSON output');
@@ -112,7 +113,7 @@ class SimpleTestRunner {
 
     // Test 4: File output
     await this.runTest('File Output', async () => {
-      const outputFile = 'test-output.json';
+      const _outputFile = 'test-output.json';
       
       // Remove file if exists
       if (fs.existsSync(outputFile)) {
@@ -127,8 +128,8 @@ class SimpleTestRunner {
         throw new Error('Output file not created');
       }
       
-      const content = fs.readFileSync(outputFile, 'utf8');
-      const data = JSON.parse(content);
+      const _content = fs.readFileSync(outputFile, 'utf8');
+      const _data = JSON.parse(content);
       
       if (!data.metadata || !data.conditions) {
         throw new Error('Invalid JSON structure in output file');
@@ -167,7 +168,7 @@ class SimpleTestRunner {
       
       // Test dashboard utility import and basic functionality
       const { FreezeReadinessDashboard } = await import('./freeze-readiness-dashboard');
-      const dashboard = new FreezeReadinessDashboard('./test-dashboard');
+      const _dashboard = new FreezeReadinessDashboard('./test-dashboard');
       
       const dashboardData = {
         lastUpdate: new Date().toISOString(),
@@ -183,13 +184,13 @@ class SimpleTestRunner {
         alerts: ['Test alert']
       };
       
-      const outputPath = await dashboard.generateDashboard(dashboardData);
+      const _outputPath = await dashboard.generateDashboard(dashboardData);
       
       if (!fs.existsSync(outputPath)) {
         throw new Error('Dashboard file not created');
       }
       
-      const htmlContent = fs.readFileSync(outputPath, 'utf8');
+      const _htmlContent = fs.readFileSync(outputPath, 'utf8');
       if (!htmlContent.includes('PayRox Freeze Readiness Dashboard')) {
         throw new Error('Dashboard content invalid');
       }
@@ -230,18 +231,18 @@ class SimpleTestRunner {
         }
       };
       
-      const validation = FreezeReadinessUtils.validateAssessmentData(sampleData);
+      const _validation = FreezeReadinessUtils.validateAssessmentData(sampleData);
       if (!validation.isValid) {
         throw new Error(`Validation failed: ${validation.errors.join(', ')}`);
       }
       
       // Test report generation
-      const consoleReport = FreezeReadinessUtils.formatConsoleReport(sampleData);
+      const _consoleReport = FreezeReadinessUtils.formatConsoleReport(sampleData);
       if (!consoleReport.includes('FREEZE READINESS SUMMARY')) {
         throw new Error('Console report format invalid');
       }
       
-      const markdownReport = FreezeReadinessUtils.generateMarkdownReport(sampleData);
+      const _markdownReport = FreezeReadinessUtils.generateMarkdownReport(sampleData);
       if (!markdownReport.includes('# 🔒 PayRox Freeze Readiness Assessment Report')) {
         throw new Error('Markdown report format invalid');
       }
@@ -249,13 +250,13 @@ class SimpleTestRunner {
 
     // Test 7: Performance check
     await this.runTest('Performance Check', async () => {
-      const startTime = Date.now();
+      const _startTime = Date.now();
       
       await execAsync(
         'npx hardhat run test/validation/Enhanced_Freeze_Readiness_Tool.ts -- --simulate'
       );
       
-      const duration = Date.now() - startTime;
+      const _duration = Date.now() - startTime;
       
       if (duration > 30000) { // Should complete within 30 seconds
         throw new Error(`Tool too slow: ${duration}ms (threshold: 30000ms)`);
@@ -272,8 +273,8 @@ class SimpleTestRunner {
         'npx hardhat run test/validation/Enhanced_Freeze_Readiness_Tool.ts -- --simulate --format json'
       );
       
-      const data1 = JSON.parse(run1.stdout.split('\n').find(line => line.trim().startsWith('{'))!);
-      const data2 = JSON.parse(run2.stdout.split('\n').find(line => line.trim().startsWith('{'))!);
+      const _data1 = JSON.parse(run1.stdout.split('\n').find(line => line.trim().startsWith('{'))!);
+      const _data2 = JSON.parse(run2.stdout.split('\n').find(line => line.trim().startsWith('{'))!);
       
       if (data1.metadata.overallProgress !== data2.metadata.overallProgress) {
         throw new Error('Inconsistent progress values between runs');
@@ -292,9 +293,9 @@ class SimpleTestRunner {
     console.log('📊 TEST SUMMARY');
     console.log('═'.repeat(60));
     
-    const passed = this.results.filter(r => r.passed).length;
-    const failed = this.results.filter(r => !r.passed).length;
-    const total = this.results.length;
+    const _passed = this.results.filter(r => r.passed).length;
+    const _failed = this.results.filter(r => !r.passed).length;
+    const _total = this.results.length;
     
     console.log(`✅ Passed: ${passed}`);
     console.log(`❌ Failed: ${failed}`);
@@ -321,7 +322,7 @@ class SimpleTestRunner {
 
 // Main execution
 async function main() {
-  const runner = new SimpleTestRunner();
+  const _runner = new SimpleTestRunner();
   await runner.runAllTests();
 }
 

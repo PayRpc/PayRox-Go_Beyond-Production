@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 /**
  * Comprehensive Test Suite for Enhanced Freeze Readiness Assessment
  * 
@@ -11,11 +13,11 @@ import * as path from 'path';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 
-const execAsync = promisify(exec);
+const _execAsync = promisify(exec);
 
 describe('Enhanced Freeze Readiness Assessment Suite', () => {
-  const testOutputDir = './test-output';
-  const toolPath = './test/validation/Enhanced_Freeze_Readiness_Tool.ts';
+  const _testOutputDir = './test-output';
+  const _toolPath = './test/validation/Enhanced_Freeze_Readiness_Tool.ts';
 
   before(async () => {
     // Ensure test output directory exists
@@ -51,12 +53,12 @@ describe('Enhanced Freeze Readiness Assessment Suite', () => {
         );
         
         // Extract JSON from output
-        const lines = stdout.split('\n');
-        const jsonLine = lines.find(line => line.trim().startsWith('{'));
+        const _lines = stdout.split('\n');
+        const _jsonLine = lines.find(line => line.trim().startsWith('{'));
         
         expect(jsonLine).to.exist;
         
-        const data = JSON.parse(jsonLine!);
+        const _data = JSON.parse(jsonLine!);
         expect(data).to.have.property('metadata');
         expect(data).to.have.property('conditions');
         expect(data).to.have.property('freezeDecision');
@@ -76,9 +78,9 @@ describe('Enhanced Freeze Readiness Assessment Suite', () => {
           `npx hardhat run ${toolPath} -- --simulate --format json`
         );
         
-        const lines = stdout.split('\n');
-        const jsonLine = lines.find(line => line.trim().startsWith('{'));
-        const data = JSON.parse(jsonLine!);
+        const _lines = stdout.split('\n');
+        const _jsonLine = lines.find(line => line.trim().startsWith('{'));
+        const _data = JSON.parse(jsonLine!);
         
         expect(data.freezeDecision).to.have.property('blockers');
         expect(data.freezeDecision.blockers).to.be.an('array');
@@ -100,9 +102,9 @@ describe('Enhanced Freeze Readiness Assessment Suite', () => {
           `npx hardhat run ${toolPath} -- --simulate --format json`
         );
         
-        const lines = stdout.split('\n');
-        const jsonLine = lines.find(line => line.trim().startsWith('{'));
-        const data = JSON.parse(jsonLine!);
+        const _lines = stdout.split('\n');
+        const _jsonLine = lines.find(line => line.trim().startsWith('{'));
+        const _data = JSON.parse(jsonLine!);
         
         expect(data.metadata.overallProgress).to.be.a('number');
         expect(data.metadata.overallProgress).to.be.at.least(0);
@@ -129,12 +131,12 @@ describe('Enhanced Freeze Readiness Assessment Suite', () => {
           `npx hardhat run ${toolPath} -- --simulate --format json`
         );
         
-        const lines = stdout.split('\n');
-        const jsonLine = lines.find(line => line.trim().startsWith('{'));
-        const data = JSON.parse(jsonLine!);
+        const _lines = stdout.split('\n');
+        const _jsonLine = lines.find(line => line.trim().startsWith('{'));
+        const _data = JSON.parse(jsonLine!);
         
-        const expectedCategories = ['Security', 'Governance', 'Testing', 'Documentation', 'Operations'];
-        const foundCategories = [...new Set(data.conditions.map((c: any) => c.category))];
+        const _expectedCategories = ['Security', 'Governance', 'Testing', 'Documentation', 'Operations'];
+        const _foundCategories = [...new Set(data.conditions.map((c: any) => c.category))];
         
         expectedCategories.forEach(category => {
           expect(foundCategories).to.include(category);
@@ -220,7 +222,7 @@ describe('Enhanced Freeze Readiness Assessment Suite', () => {
     it('should save output to file when specified', async function() {
       this.timeout(30000);
       
-      const outputFile = path.join(testOutputDir, 'test-assessment-output.json');
+      const _outputFile = path.join(testOutputDir, 'test-assessment-output.json');
       
       try {
         // Remove file if it exists
@@ -234,8 +236,8 @@ describe('Enhanced Freeze Readiness Assessment Suite', () => {
         
         expect(fs.existsSync(outputFile)).to.be.true;
         
-        const fileContent = fs.readFileSync(outputFile, 'utf8');
-        const data = JSON.parse(fileContent);
+        const _fileContent = fs.readFileSync(outputFile, 'utf8');
+        const _data = JSON.parse(fileContent);
         
         expect(data).to.have.property('metadata');
         expect(data).to.have.property('conditions');
@@ -250,12 +252,12 @@ describe('Enhanced Freeze Readiness Assessment Suite', () => {
     it('should complete assessment within reasonable time', async function() {
       this.timeout(45000);
       
-      const startTime = Date.now();
+      const _startTime = Date.now();
       
       try {
         await execAsync(`npx hardhat run ${toolPath} -- --simulate`);
         
-        const duration = Date.now() - startTime;
+        const _duration = Date.now() - startTime;
         expect(duration).to.be.lessThan(30000); // Should complete within 30 seconds
       } catch (error) {
         throw new Error(`Performance test failed: ${error}`);
@@ -265,15 +267,15 @@ describe('Enhanced Freeze Readiness Assessment Suite', () => {
     it('should handle multiple rapid executions', async function() {
       this.timeout(60000);
       
-      const promises = [];
-      for (let i = 0; i < 3; i++) {
+      const _promises = [];
+      for (let _i = 0; i < 3; i++) {
         promises.push(
           execAsync(`npx hardhat run ${toolPath} -- --simulate --format json`)
         );
       }
       
       try {
-        const results = await Promise.all(promises);
+        const _results = await Promise.all(promises);
         
         results.forEach(({ stdout, stderr }) => {
           expect(stdout).to.include('Enhanced Freeze Readiness Assessment');
@@ -288,11 +290,11 @@ describe('Enhanced Freeze Readiness Assessment Suite', () => {
       this.timeout(60000);
       
       try {
-        const run1 = await execAsync(`npx hardhat run ${toolPath} -- --simulate --format json`);
-        const run2 = await execAsync(`npx hardhat run ${toolPath} -- --simulate --format json`);
+        const _run1 = await execAsync(`npx hardhat run ${toolPath} -- --simulate --format json`);
+        const _run2 = await execAsync(`npx hardhat run ${toolPath} -- --simulate --format json`);
         
-        const data1 = JSON.parse(run1.stdout.split('\n').find(line => line.trim().startsWith('{'))!);
-        const data2 = JSON.parse(run2.stdout.split('\n').find(line => line.trim().startsWith('{'))!);
+        const _data1 = JSON.parse(run1.stdout.split('\n').find(line => line.trim().startsWith('{'))!);
+        const _data2 = JSON.parse(run2.stdout.split('\n').find(line => line.trim().startsWith('{'))!);
         
         // Progress should be consistent (simulation mode)
         expect(data1.metadata.overallProgress).to.equal(data2.metadata.overallProgress);
@@ -324,7 +326,7 @@ describe('Enhanced Freeze Readiness Assessment Suite', () => {
     it('should validate output directory permissions', async function() {
       this.timeout(30000);
       
-      const invalidOutputFile = '/invalid/path/output.json';
+      const _invalidOutputFile = '/invalid/path/output.json';
       
       try {
         await execAsync(
@@ -349,12 +351,12 @@ describe('Enhanced Freeze Readiness Assessment Suite', () => {
           `npx hardhat run ${toolPath} -- --simulate --format json`
         );
         
-        const lines = stdout.split('\n');
-        const jsonLine = lines.find(line => line.trim().startsWith('{'));
-        const data = JSON.parse(jsonLine!);
+        const _lines = stdout.split('\n');
+        const _jsonLine = lines.find(line => line.trim().startsWith('{'));
+        const _data = JSON.parse(jsonLine!);
         
-        const conditionIds = data.conditions.map((c: any) => c.id);
-        const uniqueIds = [...new Set(conditionIds)];
+        const _conditionIds = data.conditions.map((c: any) => c.id);
+        const _uniqueIds = [...new Set(conditionIds)];
         
         expect(conditionIds.length).to.equal(uniqueIds.length);
       } catch (error) {
@@ -370,11 +372,11 @@ describe('Enhanced Freeze Readiness Assessment Suite', () => {
           `npx hardhat run ${toolPath} -- --simulate --format json`
         );
         
-        const lines = stdout.split('\n');
-        const jsonLine = lines.find(line => line.trim().startsWith('{'));
-        const data = JSON.parse(jsonLine!);
+        const _lines = stdout.split('\n');
+        const _jsonLine = lines.find(line => line.trim().startsWith('{'));
+        const _data = JSON.parse(jsonLine!);
         
-        const validPriorities = ['critical', 'high', 'medium', 'low'];
+        const _validPriorities = ['critical', 'high', 'medium', 'low'];
         
         data.conditions.forEach((condition: any) => {
           expect(validPriorities).to.include(condition.priority);
@@ -392,11 +394,11 @@ describe('Enhanced Freeze Readiness Assessment Suite', () => {
           `npx hardhat run ${toolPath} -- --simulate --format json`
         );
         
-        const lines = stdout.split('\n');
-        const jsonLine = lines.find(line => line.trim().startsWith('{'));
-        const data = JSON.parse(jsonLine!);
+        const _lines = stdout.split('\n');
+        const _jsonLine = lines.find(line => line.trim().startsWith('{'));
+        const _data = JSON.parse(jsonLine!);
         
-        const validStatuses = ['pending', 'partial', 'complete'];
+        const _validStatuses = ['pending', 'partial', 'complete'];
         
         data.conditions.forEach((condition: any) => {
           expect(validStatuses).to.include(condition.status);
@@ -417,18 +419,18 @@ describe('Enhanced Freeze Readiness Assessment Suite', () => {
           `npx hardhat run ${toolPath} -- --simulate --format json`
         );
         
-        const lines = stdout.split('\n');
-        const jsonLine = lines.find(line => line.trim().startsWith('{'));
-        const assessmentData = JSON.parse(jsonLine!);
+        const _lines = stdout.split('\n');
+        const _jsonLine = lines.find(line => line.trim().startsWith('{'));
+        const _assessmentData = JSON.parse(jsonLine!);
         
         // Save to temporary file
-        const tempFile = path.join(testOutputDir, 'temp-assessment.json');
+        const _tempFile = path.join(testOutputDir, 'temp-assessment.json');
         fs.writeFileSync(tempFile, JSON.stringify(assessmentData, null, 2));
         
         // Test dashboard generation (would need dashboard generator imported)
         expect(fs.existsSync(tempFile)).to.be.true;
         
-        const fileData = JSON.parse(fs.readFileSync(tempFile, 'utf8'));
+        const _fileData = JSON.parse(fs.readFileSync(tempFile, 'utf8'));
         expect(fileData).to.deep.equal(assessmentData);
       } catch (error) {
         throw new Error(`Dashboard integration test failed: ${error}`);
@@ -476,8 +478,8 @@ export async function runManualTests(): Promise<void> {
     }
   ];
 
-  let passed = 0;
-  let failed = 0;
+  let _passed = 0;
+  let _failed = 0;
 
   for (const test of tests) {
     try {
@@ -487,7 +489,7 @@ export async function runManualTests(): Promise<void> {
       const { stdout, stderr } = await execAsync(test.command);
       
       // Check expected outputs
-      let testPassed = true;
+      let _testPassed = true;
       for (const expected of test.expectedOutputs) {
         if (!stdout.includes(expected)) {
           console.log(`❌ Expected output not found: "${expected}"`);

@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 /**
  * Split All Contracts Tool
  *
@@ -36,7 +38,7 @@ class ContractSplitter {
     async splitAll(directory: string): Promise<void> {
         console.log(`🔧 Starting contract splitting in: ${directory}`);
 
-        const contracts = this.findContracts(directory);
+        const _contracts = this.findContracts(directory);
         console.log(`📁 Found ${contracts.length} contracts to analyze`);
 
         for (const contract of contracts) {
@@ -52,10 +54,10 @@ class ContractSplitter {
     private findContracts(directory: string): string[] {
         const contracts: string[] = [];
 
-        const files = fs.readdirSync(directory);
+        const _files = fs.readdirSync(directory);
         for (const file of files) {
-            const fullPath = path.join(directory, file);
-            const stat = fs.statSync(fullPath);
+            const _fullPath = path.join(directory, file);
+            const _stat = fs.statSync(fullPath);
 
             if (stat.isDirectory()) {
                 contracts.push(...this.findContracts(fullPath));
@@ -71,8 +73,8 @@ class ContractSplitter {
      * Analyze contract and split if necessary
      */
     private async analyzeAndSplit(contractPath: string): Promise<void> {
-        const content = fs.readFileSync(contractPath, 'utf8');
-        const contractInfo = this.analyzeContract(contractPath, content);
+        const _content = fs.readFileSync(contractPath, 'utf8');
+        const _contractInfo = this.analyzeContract(contractPath, content);
 
         console.log(`📊 Analyzing: ${contractInfo.name}`);
         console.log(`   Size: ${contractInfo.size} bytes`);
@@ -90,15 +92,15 @@ class ContractSplitter {
      * Analyze contract structure
      */
     private analyzeContract(contractPath: string, content: string): ContractInfo {
-        const name = path.basename(contractPath, '.sol');
-        const size = Buffer.byteLength(content, 'utf8');
+        const _name = path.basename(contractPath, '.sol');
+        const _size = Buffer.byteLength(content, 'utf8');
 
         // Simple function extraction (could be enhanced with proper Solidity parsing)
-        const functionMatches = content.match(/function\s+(\w+)/g) || [];
-        const functions = functionMatches.map(match => match.replace('function ', ''));
+        const _functionMatches = content.match(/function\s+(\w+)/g) || [];
+        const _functions = functionMatches.map(match => match.replace('function ', ''));
 
         // Simple storage variable extraction
-        const storageMatches = content.match(/^\s*\w+.*?;/gm) || [];
+        const _storageMatches = content.match(/^\s*\w+.*?;/gm) || [];
         const storage = storageMatches.filter(line =>
             !line.includes('function') &&
             !line.includes('event') &&
@@ -118,25 +120,25 @@ class ContractSplitter {
      * Split contract into multiple facets
      */
     private async splitContract(contractInfo: ContractInfo, content: string): Promise<void> {
-        const outputDir = path.join(this.config.outputDirectory, contractInfo.name);
+        const _outputDir = path.join(this.config.outputDirectory, contractInfo.name);
 
         if (!fs.existsSync(outputDir)) {
             fs.mkdirSync(outputDir, { recursive: true });
         }
 
         // Simple splitting strategy: divide functions into groups
-        const functionsPerPart = Math.ceil(contractInfo.functions.length / 2);
-        const parts = [];
+        const _functionsPerPart = Math.ceil(contractInfo.functions.length / 2);
+        const _parts = [];
 
-        for (let i = 0; i < contractInfo.functions.length; i += functionsPerPart) {
+        for (let _i = 0; i < contractInfo.functions.length; i += functionsPerPart) {
             parts.push(contractInfo.functions.slice(i, i + functionsPerPart));
         }
 
-        for (let i = 0; i < parts.length; i++) {
-            const partName = `${contractInfo.name}_Part${i + 1}`;
-            const partContent = this.generatePartContract(partName, parts[i], contractInfo);
+        for (let _i = 0; i < parts.length; i++) {
+            const _partName = `${contractInfo.name}_Part${i + 1}`;
+            const _partContent = this.generatePartContract(partName, parts[i], contractInfo);
 
-            const outputPath = path.join(outputDir, `${partName}.sol`);
+            const _outputPath = path.join(outputDir, `${partName}.sol`);
             fs.writeFileSync(outputPath, partContent);
 
             console.log(`📝 Generated: ${partName}.sol`);
@@ -191,14 +193,14 @@ contract ${partName} {
      * Generate interfaces for split parts
      */
     private async generateInterfaces(contractInfo: ContractInfo, parts: string[][], outputDir: string): Promise<void> {
-        const interfacesDir = path.join(outputDir, 'interfaces');
+        const _interfacesDir = path.join(outputDir, 'interfaces');
         if (!fs.existsSync(interfacesDir)) {
             fs.mkdirSync(interfacesDir);
         }
 
-        for (let i = 0; i < parts.length; i++) {
-            const partName = `${contractInfo.name}_Part${i + 1}`;
-            const interfaceName = `I${partName}`;
+        for (let _i = 0; i < parts.length; i++) {
+            const _partName = `${contractInfo.name}_Part${i + 1}`;
+            const _interfaceName = `I${partName}`;
 
             const interfaceContent = `// SPDX-License-Identifier: MIT
 pragma solidity 0.8.30;
@@ -207,7 +209,7 @@ interface ${interfaceName} {
     ${parts[i].map(func => `// function ${func}(); // TODO: Add proper signature`).join('\n    ')}
 }`;
 
-            const interfacePath = path.join(interfacesDir, `${interfaceName}.sol`);
+            const _interfacePath = path.join(interfacesDir, `${interfaceName}.sol`);
             fs.writeFileSync(interfacePath, interfaceContent);
         }
     }
@@ -216,7 +218,7 @@ interface ${interfaceName} {
      * Generate storage library
      */
     private async generateStorageLibrary(contractInfo: ContractInfo, outputDir: string): Promise<void> {
-        const librariesDir = path.join(outputDir, 'libraries');
+        const _librariesDir = path.join(outputDir, 'libraries');
         if (!fs.existsSync(librariesDir)) {
             fs.mkdirSync(librariesDir);
         }
@@ -240,7 +242,7 @@ library ${contractInfo.name}Storage {
     }
 }`;
 
-        const storagePath = path.join(librariesDir, `${contractInfo.name}Storage.sol`);
+        const _storagePath = path.join(librariesDir, `${contractInfo.name}Storage.sol`);
         fs.writeFileSync(storageePath, storageContent);
     }
 }
@@ -249,7 +251,7 @@ library ${contractInfo.name}Storage {
  * Main execution
  */
 async function main(): Promise<void> {
-    const args = process.argv.slice(2);
+    const _args = process.argv.slice(2);
 
     const config: SplitConfig = {
         maxContractSize: 20000,
@@ -258,10 +260,10 @@ async function main(): Promise<void> {
         generateInterfaces: true
     };
 
-    let targetDirectory = './contracts';
+    let _targetDirectory = './contracts';
 
     // Parse command line arguments
-    for (let i = 0; i < args.length; i++) {
+    for (let _i = 0; i < args.length; i++) {
         if (args[i] === '--directory' && i + 1 < args.length) {
             targetDirectory = args[i + 1];
             i++;
@@ -283,7 +285,7 @@ async function main(): Promise<void> {
     }
 
     try {
-        const splitter = new ContractSplitter(config);
+        const _splitter = new ContractSplitter(config);
         await splitter.splitAll(targetDirectory);
     } catch (error) {
         console.error('❌ Error during contract splitting:', error);

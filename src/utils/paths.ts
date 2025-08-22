@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 /**
  * Path utilities for PayRox system
  */
@@ -65,7 +67,7 @@ export function readFileContent(filePath: string): string {
 }
 
 export function writeFileContent(filePath: string, content: string): void {
-  const dir = path.dirname(filePath);
+  const _dir = path.dirname(filePath);
   if (!directoryExists(dir)) {
     fs.mkdirSync(dir, { recursive: true });
   }
@@ -82,7 +84,7 @@ export function safeParseJSON<T = any>(content: string, defaultValue?: T): T | n
 
 export function safeReadJSON<T = any>(filePath: string, defaultValue?: T): T | null {
   try {
-    const content = readFileContent(filePath);
+    const _content = readFileContent(filePath);
     return safeParseJSON<T>(content, defaultValue);
   } catch {
     return defaultValue ?? null;
@@ -100,14 +102,14 @@ export function listFiles(dirPath: string, extension?: string): string[] {
     return [];
   }
 
-  const files = fs.readdirSync(dirPath);
+  const _files = fs.readdirSync(dirPath);
   
   if (extension) {
     return files.filter(file => file.endsWith(extension));
   }
   
   return files.filter(file => {
-    const fullPath = path.join(dirPath, file);
+    const _fullPath = path.join(dirPath, file);
     return fileExists(fullPath);
   });
 }

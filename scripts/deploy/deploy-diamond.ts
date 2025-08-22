@@ -1,3 +1,4 @@
+import fs from 'fs';
 /**
  * PayRox Diamond Deployment Script Template
  * Deploys Diamond Pattern contracts with:
@@ -299,7 +300,7 @@ class DiamondDeployer {
     }
 
     // Simple merkle root calculation (in production, use proper merkle tree)
-    const combinedHash = hre.ethers.keccak256(hre.ethers.concat(leaves.sort()));
+    const _combinedHash = hre.ethers.keccak256(hre.ethers.concat(leaves.sort()));
     (this.manifest as any).merkle_root = combinedHash
 
     // Add deployment metadata

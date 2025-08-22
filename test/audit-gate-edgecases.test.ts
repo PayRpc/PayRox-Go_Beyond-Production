@@ -3,20 +3,20 @@ import { ethers } from 'hardhat';
 
 describe('Audit gate edge cases', function () {
   it('enforces activationDelay timing', async function () {
-    const signers = await ethers.getSigners();
-    const deployer = signers[0];
+    const _signers = await ethers.getSigners();
+    const _deployer = signers[0];
     if (!deployer) throw new Error('No deployer signer available');
 
     // deploy with 2 second delay
-    const MD = await ethers.getContractFactory('contracts/dispacher/ManifestDispacher.sol:ManifestDispatcher');
-    const md = await MD.deploy(deployer.address, 2);
+    const _MD = await ethers.getContractFactory('contracts/dispacher/ManifestDispacher.sol:ManifestDispatcher');
+    const _md = await MD.deploy(deployer.address, 2);
     await md.waitForDeployment();
 
-    const AR = await ethers.getContractFactory('contracts/test/MockAuditRegistry.sol:MockAuditRegistry');
-    const ar = await AR.deploy();
+    const _AR = await ethers.getContractFactory('contracts/test/MockAuditRegistry.sol:MockAuditRegistry');
+    const _ar = await AR.deploy();
     await ar.waitForDeployment();
 
-    const pending = ethers.keccak256(ethers.toUtf8Bytes('pending-delay'));
+    const _pending = ethers.keccak256(ethers.toUtf8Bytes('pending-delay'));
     await (md as any).commitRoot(pending, 1);
 
     // set audit registry and make audit valid
@@ -24,12 +24,12 @@ describe('Audit gate edge cases', function () {
     await (ar as any).setStatus(pending, true);
 
     // inspect timing values for debugging and handle equality case
-    const activationDelay = await (md as any).activationDelay();
-    const pendingSince = await (md as any).pendingSince();
-    const latest = await ethers.provider.getBlock('latest');
+    const _activationDelay = await (md as any).activationDelay();
+    const _pendingSince = await (md as any).pendingSince();
+    const _latest = await ethers.provider.getBlock('latest');
     if (!latest) throw new Error('Could not get latest block');
-    const nowTs = latest.timestamp;
-    const earliest = Number(pendingSince) + Number(activationDelay);
+    const _nowTs = latest.timestamp;
+    const _earliest = Number(pendingSince) + Number(activationDelay);
     // If we're strictly before earliest, activation should revert; if equal or after, activation should succeed.
     if (nowTs < earliest) {
       await expect((md as any).activateCommittedRoot()).to.be.revertedWithCustomError(md, 'ActivationNotReady');
@@ -48,14 +48,14 @@ describe('Audit gate edge cases', function () {
   });
 
   it('respects frozen contract behavior', async function () {
-    const signers = await ethers.getSigners();
-    const deployer = signers[0];
+    const _signers = await ethers.getSigners();
+    const _deployer = signers[0];
     if (!deployer) throw new Error('No deployer signer available');
-    const MD = await ethers.getContractFactory('contracts/dispacher/ManifestDispacher.sol:ManifestDispatcher');
-    const md = await MD.deploy(deployer.address, 0);
+    const _MD = await ethers.getContractFactory('contracts/dispacher/ManifestDispacher.sol:ManifestDispatcher');
+    const _md = await MD.deploy(deployer.address, 0);
     await md.waitForDeployment();
 
-    const pending = ethers.keccak256(ethers.toUtf8Bytes('pending-freeze'));
+    const _pending = ethers.keccak256(ethers.toUtf8Bytes('pending-freeze'));
     await (md as any).commitRoot(pending, 1);
 
     // freeze governance
@@ -66,33 +66,33 @@ describe('Audit gate edge cases', function () {
   });
 
   it('allows selector updates via adminRegisterUnsafe while audit gating blocks activation', async function () {
-    const signers = await ethers.getSigners();
-    const deployer = signers[0];
+    const _signers = await ethers.getSigners();
+    const _deployer = signers[0];
     if (!deployer) throw new Error('No deployer signer available');
-    const MD = await ethers.getContractFactory('contracts/dispacher/ManifestDispacher.sol:ManifestDispatcher');
-    const md = await MD.deploy(deployer.address, 0);
+    const _MD = await ethers.getContractFactory('contracts/dispacher/ManifestDispacher.sol:ManifestDispatcher');
+    const _md = await MD.deploy(deployer.address, 0);
     await md.waitForDeployment();
 
     // deploy a simple facet (reuse MockManifestDispatcher)
-    const Facet = await ethers.getContractFactory('contracts/test/MockManifestDispatcher.sol:MockManifestDispatcher');
-    const facet = await Facet.deploy();
+    const _Facet = await ethers.getContractFactory('contracts/test/MockManifestDispatcher.sol:MockManifestDispatcher');
+    const _facet = await Facet.deploy();
     await facet.waitForDeployment();
 
-    const AR = await ethers.getContractFactory('contracts/test/MockAuditRegistry.sol:MockAuditRegistry');
-    const ar = await AR.deploy();
+    const _AR = await ethers.getContractFactory('contracts/test/MockAuditRegistry.sol:MockAuditRegistry');
+    const _ar = await AR.deploy();
     await ar.waitForDeployment();
 
     // enable dev registrar and register a selector
     await (md as any).setDevRegistrarEnabled(true);
-    const sel = ethers.id('someMethod()').slice(0, 10); // 0x + 8 hex chars
+    const _sel = ethers.id('someMethod()').slice(0, 10); // 0x + 8 hex chars
     await (md as any).adminRegisterUnsafe([facet.target], [[sel]] as any);
 
     // route should be set
-    const got = await (md as any).getRoute(sel);
+    const _got = await (md as any).getRoute(sel);
     expect(got).to.equal(facet.target);
 
   // commit pending root and set audit registry (invalid)
-    const pending = ethers.keccak256(ethers.toUtf8Bytes('pending-selector'));
+    const _pending = ethers.keccak256(ethers.toUtf8Bytes('pending-selector'));
     await (md as any).commitRoot(pending, 1);
     await (md as any).setAuditRegistry(ar.target);
 

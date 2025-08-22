@@ -48,7 +48,7 @@ class FreezeReadinessCLI {
     console.log('6. ❓ Help & Documentation');
     console.log('7. 🚪 Exit\n');
 
-    const choice = await this.askQuestion('Enter your choice (1-7): ');
+    const _choice = await this.askQuestion('Enter your choice (1-7): ');
     
     switch (choice.trim()) {
       case '1':
@@ -82,7 +82,7 @@ class FreezeReadinessCLI {
   private async runQuickAssessment(): Promise<void> {
     console.log('\n🎯 Running Quick Assessment (Simulation Mode)...\n');
     
-    const network = await this.askQuestion('Network (hardhat/localhost/mainnet): ') || 'hardhat';
+    const _network = await this.askQuestion('Network (hardhat/localhost/mainnet): ') || 'hardhat';
     
     try {
       await this.executeAssessment({
@@ -101,11 +101,11 @@ class FreezeReadinessCLI {
   private async runFullAssessment(): Promise<void> {
     console.log('\n🔍 Running Full Assessment (Live Mode)...\n');
     
-    const network = await this.askQuestion('Network (hardhat/localhost/mainnet): ') || 'hardhat';
-    const format = await this.askQuestion('Output format (console/json/markdown/html): ') || 'console';
+    const _network = await this.askQuestion('Network (hardhat/localhost/mainnet): ') || 'hardhat';
+    const _format = await this.askQuestion('Output format (console/json/markdown/html): ') || 'console';
     
     console.log('⚠️  WARNING: This will assess actual deployment status!');
-    const confirm = await this.askQuestion('Continue? (y/N): ');
+    const _confirm = await this.askQuestion('Continue? (y/N): ');
     
     if (confirm.toLowerCase() === 'y') {
       try {
@@ -128,7 +128,7 @@ class FreezeReadinessCLI {
     console.log('\n🎮 Interactive Assessment Mode\n');
     
     // Collect preferences
-    const preferences = await this.collectPreferences();
+    const _preferences = await this.collectPreferences();
     
     try {
       await this.executeAssessment({
@@ -146,9 +146,9 @@ class FreezeReadinessCLI {
   private async generateReport(): Promise<void> {
     console.log('\n📊 Report Generation\n');
     
-    const format = await this.askQuestion('Report format (json/markdown/html): ') || 'markdown';
-    const outputFile = await this.askQuestion('Output file name (optional): ');
-    const network = await this.askQuestion('Network (hardhat/localhost/mainnet): ') || 'hardhat';
+    const _format = await this.askQuestion('Report format (json/markdown/html): ') || 'markdown';
+    const _outputFile = await this.askQuestion('Output file name (optional): ');
+    const _network = await this.askQuestion('Network (hardhat/localhost/mainnet): ') || 'hardhat';
     
     try {
       const options: any = {
@@ -178,13 +178,13 @@ class FreezeReadinessCLI {
   private async startMonitoring(): Promise<void> {
     console.log('\n📈 Continuous Monitoring Mode\n');
     
-    const interval = await this.askQuestion('Check interval in minutes (default: 60): ') || '60';
-    const network = await this.askQuestion('Network to monitor: ') || 'hardhat';
+    const _interval = await this.askQuestion('Check interval in minutes (default: 60): ') || '60';
+    const _network = await this.askQuestion('Network to monitor: ') || 'hardhat';
     
     console.log(`🔄 Starting continuous monitoring every ${interval} minutes...`);
     console.log('Press Ctrl+C to stop\n');
     
-    const intervalMs = parseInt(interval) * 60 * 1000;
+    const _intervalMs = parseInt(interval) * 60 * 1000;
     
     const monitor = setInterval(async () => {
       console.log(`\n⏰ ${new Date().toISOString()} - Running assessment...`);
@@ -254,10 +254,10 @@ class FreezeReadinessCLI {
     preferences.network = await this.askQuestion('Network: ') || 'hardhat';
     preferences.format = await this.askQuestion('Output format (console/json/markdown/html): ') || 'console';
     
-    const useSimulation = await this.askQuestion('Use simulation mode? (Y/n): ');
+    const _useSimulation = await this.askQuestion('Use simulation mode? (Y/n): ');
     preferences.simulate = useSimulation.toLowerCase() !== 'n';
     
-    const verbose = await this.askQuestion('Enable verbose output? (Y/n): ');
+    const _verbose = await this.askQuestion('Enable verbose output? (Y/n): ');
     preferences.verbose = verbose.toLowerCase() !== 'n';
     
     return preferences;
@@ -275,7 +275,7 @@ class FreezeReadinessCLI {
       if (options.output) args.push(`--output ${options.output}`);
       if (options.network && options.network !== 'hardhat') args.push(`--network ${options.network}`);
       
-      const command = `npx hardhat run test/validation/Enhanced_Freeze_Readiness_Tool.ts${args.length ? ' -- ' + args.join(' ') : ''}`;
+      const _command = `npx hardhat run test/validation/Enhanced_Freeze_Readiness_Tool.ts${args.length ? ' -- ' + args.join(' ') : ''}`;
       
       console.log(`🚀 Executing: ${command}\n`);
       
@@ -306,7 +306,7 @@ class FreezeReadinessCLI {
 
 // Main execution
 async function main() {
-  const cli = new FreezeReadinessCLI();
+  const _cli = new FreezeReadinessCLI();
   await cli.start();
 }
 

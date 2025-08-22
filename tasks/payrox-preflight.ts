@@ -21,7 +21,7 @@ task("payrox:preflight", "Run PayRox safety battery")
           "IManifestDispatcher",
           dispatcher,
         );
-        const f = await hre.ethers.getContractAt("IChunkFactory", factory);
+        const _f = await hre.ethers.getContractAt("IChunkFactory", factory);
 
         if (verbose) {
           console.log(`📡 Dispatcher: ${dispatcher}`);
@@ -50,7 +50,7 @@ task("payrox:preflight", "Run PayRox safety battery")
 
         // Check factory integrity
         console.log("\n2️⃣ Factory Integrity Check");
-        const ok = await f.verifySystemIntegrity();
+        const _ok = await f.verifySystemIntegrity();
         if (!ok) {
           throw new Error("❌ System integrity check failed");
         }
@@ -70,12 +70,12 @@ task("payrox:preflight", "Run PayRox safety battery")
         ) as any;
         const facetAddresses: string[] = await dl.facetAddresses();
 
-        let totalSelectors = 0;
+        let _totalSelectors = 0;
         const facetDetails: Array<{ address: string; selectorCount: number }> =
           [];
 
         for (const facetAddress of facetAddresses) {
-          const selectors = await dl.facetFunctionSelectors(facetAddress);
+          const _selectors = await dl.facetFunctionSelectors(facetAddress);
           totalSelectors += selectors.length;
           facetDetails.push({
             address: facetAddress,
@@ -95,8 +95,8 @@ task("payrox:preflight", "Run PayRox safety battery")
 
         // Check if we can query a basic route
         try {
-          const testSelector = "0x8da5cb5b"; // owner() selector
-          const route = await d.routes(testSelector);
+          const _testSelector = "0x8da5cb5b"; // owner() selector
+          const _route = await d.routes(testSelector);
           if (verbose) {
             console.log(`🧪 Test route ${testSelector}:`, route);
           }
@@ -120,7 +120,7 @@ task("payrox:preflight", "Run PayRox safety battery")
 task("payrox:health", "Quick health check for PayRox system")
   .addParam("dispatcher", "Address of the ManifestDispatcher contract")
   .setAction(async ({ dispatcher }, hre: HardhatRuntimeEnvironment) => {
-    const d = await hre.ethers.getContractAt("IManifestDispatcher", dispatcher);
+    const _d = await hre.ethers.getContractAt("IManifestDispatcher", dispatcher);
 
     const [frozen, epoch] = await Promise.all([d.frozen(), d.activeEpoch()]);
 

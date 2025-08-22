@@ -784,7 +784,21 @@ contract ${initName} {
     }
 
     const report = path.join(chunksDir, "analysis-report.json");
-    fs.writeFileSync(report, JSON.stringify(analysis, null, 2));
+    // Prepare spell-check friendly report: avoid ultra-long JSON lines by splitting content
+    const friendly = {
+      ...analysis,
+      recommendedChunks: analysis.recommendedChunks.map((c) => {
+        if (typeof (c as any).content === 'string') {
+          const content: string = (c as any).content;
+          const lines = content.split('\n');
+          const preview = lines.slice(0, 20); // small preview
+          const { content: _omit, ...rest } = c as any;
+          return { ...rest, contentLines: lines, contentPreview: preview };
+        }
+        return c as any;
+      }),
+    } as any;
+    fs.writeFileSync(report, JSON.stringify(friendly, null, 2));
 
     await this.generateDeploymentScript(analysis, chunksDir);
   }

@@ -3,17 +3,17 @@ import { ethers } from "hardhat";
 
 describe("SaltViewFacet", () => {
   it("matches ethers.getCreate2Address", async () => {
-    const Fac = await ethers.getContractFactory("SaltViewFacet");
-    const f = await Fac.deploy();
+    const _Fac = await ethers.getContractFactory("SaltViewFacet");
+    const _f = await Fac.deploy();
     await f.waitForDeployment();
 
-    const deployer = "0x4e59b44847b379578588920cA78FbF26c0B4956C"; // EIP-2470
-    const version = "1.0.0";
-    const content = "PayRoxUniversalContract";
-    const nonce = 1000n;
+    const _deployer = "0x4e59b44847b379578588920cA78FbF26c0B4956C"; // EIP-2470
+    const _version = "1.0.0";
+    const _content = "PayRoxUniversalContract";
+    const _nonce = 1000n;
 
     if (!f) throw new Error('contract not deployed')
-    const factorySalt = await (f as any).factorySalt(version);
+    const _factorySalt = await (f as any).factorySalt(version);
     const universalSalt = await (f as any).universalSalt(
       deployer,
       content,
@@ -22,11 +22,11 @@ describe("SaltViewFacet", () => {
     );
 
     // Fake bytecode for test
-    const factoryBytecode = "0x60006000fd";
-    const targetBytecode = "0x60016000fd";
+    const _factoryBytecode = "0x60006000fd";
+    const _targetBytecode = "0x60016000fd";
 
-  const hFac = await (f as any).hashInitCode(factoryBytecode);
-  const hTgt = await (f as any).hashInitCode(targetBytecode);
+  const _hFac = await (f as any).hashInitCode(factoryBytecode);
+  const _hTgt = await (f as any).hashInitCode(targetBytecode);
 
     const predictedFactory = await (f as any).predictCreate2(
       deployer,

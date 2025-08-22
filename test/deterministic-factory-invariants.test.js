@@ -12,9 +12,9 @@ describe("DeterministicChunkFactory invariants", function () {
 
     // Deploy with a non-matching expectedFactoryBytecodeHash to force system-integrity failure
     // Use a hard-coded non-zero bytes32 to avoid runtime dependency on utils in the test harness
-    const expectedFactoryHash = "0x" + "11".repeat(32);
+    const _expectedFactoryHash = "0x" + "11".repeat(32);
 
-    const BYTES32_NONZERO = "0x" + "22".repeat(32);
+    const _BYTES32_NONZERO = "0x" + "22".repeat(32);
 
     // Note: we pass `deployer.address` as the manifest dispatcher here.
     // `_verifySystemIntegrity()` will try to call `activeRoot()` and will fail safely
@@ -48,7 +48,7 @@ describe("DeterministicChunkFactory invariants", function () {
   });
 
   it("deployDeterministic reverts with System integrity check failed", async function () {
-    const zeroSalt = "0x" + "00".repeat(32);
+    const _zeroSalt = "0x" + "00".repeat(32);
     await expect(
       factory.deployDeterministic(zeroSalt, "0x00", "0x"),
     ).to.be.revertedWith("System integrity check failed");

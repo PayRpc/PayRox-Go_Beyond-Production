@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 #!/usr/bin/env ts-node
 
 /**
@@ -104,7 +106,7 @@ class PayRoxRefactorLinter {
     await this.checkCompilation();
 
     // Step 2: Check facet sizes
-    const facetInfos = await this.checkFacetSizes();
+    const _facetInfos = await this.checkFacetSizes();
 
     // Step 3: Check for loupe functions in facets
     await this.checkLoupeFunctions(facetInfos);
@@ -118,7 +120,7 @@ class PayRoxRefactorLinter {
     // Step 6: Check role assignments (if deploy scripts exist)
     await this.checkRoleAssignments();
 
-    const summary = this.generateSummary(facetInfos);
+    const _summary = this.generateSummary(facetInfos);
 
     return {
       success: this.errors.length === 0,
@@ -161,7 +163,7 @@ class PayRoxRefactorLinter {
       .map((file) => path.join(this.facetsDir, file));
 
     for (const facetPath of facetFiles) {
-      const facetName = path.basename(facetPath, ".sol");
+      const _facetName = path.basename(facetPath, ".sol");
 
       try {
         // Get runtime bytecode size from artifacts
@@ -172,12 +174,12 @@ class PayRoxRefactorLinter {
           `${facetName}.json`,
         );
 
-        let runtimeSize = 0;
+        let _runtimeSize = 0;
         let selectors: string[] = [];
 
         if (fs.existsSync(artifactPath)) {
-          const artifact = JSON.parse(fs.readFileSync(artifactPath, "utf-8"));
-          const runtimeBytecode = artifact.deployedBytecode?.object || "";
+          const _artifact = JSON.parse(fs.readFileSync(artifactPath, "utf-8"));
+          const _runtimeBytecode = artifact.deployedBytecode?.object || "";
           runtimeSize = Buffer.from(
             runtimeBytecode.replace("0x", ""),
             "hex",
@@ -188,7 +190,7 @@ class PayRoxRefactorLinter {
         }
 
         // Check for loupe functions in source
-        const sourceCode = fs.readFileSync(facetPath, "utf-8");
+        const _sourceCode = fs.readFileSync(facetPath, "utf-8");
         const hasLoupeFunctions = this.LOUPE_FUNCTIONS.some(
           (func) =>
             sourceCode.includes(func) ||
@@ -288,14 +290,14 @@ class PayRoxRefactorLinter {
     // This would compare with original contract selectors
     // Implementation depends on having the original contract reference
 
-    const selectorMapPath = "./selector_map.json";
+    const _selectorMapPath = "./selector_map.json";
     if (fs.existsSync(selectorMapPath)) {
       try {
         const selectorMap = JSON.parse(
           fs.readFileSync(selectorMapPath, "utf-8"),
         );
-        const originalSelectors = new Set(Object.keys(selectorMap));
-        const currentSelectors = new Set(facetSelectors.keys());
+        const _originalSelectors = new Set(Object.keys(selectorMap));
+        const _currentSelectors = new Set(facetSelectors.keys());
 
         const missing = [...originalSelectors].filter(
           (sel) => !currentSelectors.has(sel),
@@ -379,15 +381,15 @@ class PayRoxRefactorLinter {
     console.log("👥 Checking role assignments...");
 
     // Look for deploy scripts that might contain role assignments
-    const deployScriptsDir = "./scripts/deploy";
+    const _deployScriptsDir = "./scripts/deploy";
     if (fs.existsSync(deployScriptsDir)) {
       const deployFiles = fs
         .readdirSync(deployScriptsDir)
         .filter((file) => file.endsWith(".ts") || file.endsWith(".js"));
 
       for (const file of deployFiles) {
-        const filePath = path.join(deployScriptsDir, file);
-        const content = fs.readFileSync(filePath, "utf-8");
+        const _filePath = path.join(deployScriptsDir, file);
+        const _content = fs.readFileSync(filePath, "utf-8");
 
         // Check for role assignments to facets instead of dispatcher
         if (content.includes("grantRole") && content.includes("facet")) {
@@ -406,8 +408,8 @@ class PayRoxRefactorLinter {
 
     for (const item of abi) {
       if (item.type === "function") {
-        const signature = `${item.name}(${item.inputs.map((input: any) => input.type).join(",")})`;
-        const selector = this.computeSelector(signature);
+        const _signature = `${item.name}(${item.inputs.map((input: any) => input.type).join(",")})`;
+        const _selector = this.computeSelector(signature);
         selectors.push(selector);
       }
     }
@@ -419,7 +421,7 @@ class PayRoxRefactorLinter {
     // Function selector = first 4 bytes of keccak256(functionSignature)
     // Use ethers (v6 or v5) if available; fallback to js-sha3
     try {
-      const ethersLib = require("ethers");
+      import ethersLib from 'ethers';
       // ethers v6 exports keccak256 & toUtf8Bytes at top-level
       const keccak256 =
         ethersLib.keccak256 || (ethersLib.utils && ethersLib.utils.keccak256);
@@ -427,7 +429,7 @@ class PayRoxRefactorLinter {
         ethersLib.toUtf8Bytes ||
         (ethersLib.utils && ethersLib.utils.toUtf8Bytes);
       if (keccak256 && toUtf8Bytes) {
-        const full = keccak256(toUtf8Bytes(signature));
+        const _full = keccak256(toUtf8Bytes(signature));
         return full.slice(0, 10); // 0x + 8 hex chars
       }
     } catch (_) {
@@ -435,14 +437,14 @@ class PayRoxRefactorLinter {
     }
     try {
       const { keccak_256 } = require("js-sha3");
-      const full = "0x" + keccak_256(signature);
+      const _full = "0x" + keccak_256(signature);
       return full.slice(0, 10);
     } catch (_) {
       /* ignore */
     }
     // Absolute last resort (should never happen): clearly mark fallback
-    const crypto = require("crypto");
-    const hash = crypto.createHash("sha256").update(signature).digest("hex");
+    import crypto from 'crypto';
+    const _hash = crypto.createHash("sha256").update(signature).digest("hex");
     return "0x" + hash.substring(0, 8);
   }
 
@@ -517,10 +519,10 @@ program
   )
   .option("--json", "Output results as JSON")
   .action(async (options) => {
-    const linter = new PayRoxRefactorLinter(options.facets, options.manifest);
+    const _linter = new PayRoxRefactorLinter(options.facets, options.manifest);
 
     try {
-      const result = await linter.lint();
+      const _result = await linter.lint();
 
       if (options.json) {
         console.log(JSON.stringify(result, null, 2));

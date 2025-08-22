@@ -5,34 +5,34 @@
  * @usage node generate-selector-signatures.js [options]
  */
 
-var fs = require('fs');
-var path = require('path');
-var crypto = require('crypto');
+var _fs = require('fs');
+var _path = require('path');
+var _crypto = require('crypto');
 
 function keccak256(data) {
     return crypto.createHash('keccak256').update(data).digest('hex');
 }
 
 function generateSelector(signature) {
-    var hash = keccak256(signature);
+    var _hash = keccak256(signature);
     return '0x' + hash.substring(0, 8);
 }
 
 function extractFunctionsFromABI(abi) {
-    var functions = [];
+    var _functions = [];
 
-    for (var i = 0; i < abi.length; i++) {
-        var item = abi[i];
+    for (var _i = 0; i < abi.length; i++) {
+        var _item = abi[i];
         if (item.type === 'function') {
-            var inputs = item.inputs || [];
-            var inputTypes = [];
+            var _inputs = item.inputs || [];
+            var _inputTypes = [];
 
-            for (var j = 0; j < inputs.length; j++) {
+            for (var _j = 0; j < inputs.length; j++) {
                 inputTypes.push(inputs[j].type);
             }
 
-            var signature = item.name + '(' + inputTypes.join(',') + ')';
-            var selector = generateSelector(signature);
+            var _signature = item.name + '(' + inputTypes.join(',') + ')';
+            var _selector = generateSelector(signature);
 
             functions.push({
                 name: item.name,
@@ -47,7 +47,7 @@ function extractFunctionsFromABI(abi) {
 }
 
 function processArtifactsDirectory(artifactsDir) {
-    var results = {};
+    var _results = {};
 
     if (!fs.existsSync(artifactsDir)) {
         console.error('Artifacts directory not found:', artifactsDir);
@@ -55,23 +55,23 @@ function processArtifactsDirectory(artifactsDir) {
     }
 
     function walkDirectory(dir) {
-        var files = fs.readdirSync(dir);
+        var _files = fs.readdirSync(dir);
 
-        for (var i = 0; i < files.length; i++) {
-            var file = files[i];
-            var fullPath = path.join(dir, file);
-            var stat = fs.statSync(fullPath);
+        for (var _i = 0; i < files.length; i++) {
+            var _file = files[i];
+            var _fullPath = path.join(dir, file);
+            var _stat = fs.statSync(fullPath);
 
             if (stat.isDirectory()) {
                 walkDirectory(fullPath);
             } else if (file.endsWith('.json') && !file.includes('.dbg.')) {
                 try {
-                    var content = fs.readFileSync(fullPath, 'utf8');
-                    var artifact = JSON.parse(content);
+                    var _content = fs.readFileSync(fullPath, 'utf8');
+                    var _artifact = JSON.parse(content);
 
                     if (artifact.abi && Array.isArray(artifact.abi)) {
-                        var contractName = artifact.contractName || path.basename(file, '.json');
-                        var functions = extractFunctionsFromABI(artifact.abi);
+                        var _contractName = artifact.contractName || path.basename(file, '.json');
+                        var _functions = extractFunctionsFromABI(artifact.abi);
 
                         if (functions.length > 0) {
                             results[contractName] = functions;
@@ -103,15 +103,15 @@ function generateReport(results, outputPath) {
     }
 
     // Generate summary
-    var totalFunctions = 0;
-    var selectorMap = {};
+    var _totalFunctions = 0;
+    var _selectorMap = {};
 
     for (var contractName in results) {
-        var functions = results[contractName];
+        var _functions = results[contractName];
         totalFunctions += functions.length;
 
-        for (var i = 0; i < functions.length; i++) {
-            var func = functions[i];
+        for (var _i = 0; i < functions.length; i++) {
+            var _func = functions[i];
             if (selectorMap[func.selector]) {
                 selectorMap[func.selector].push(contractName + '.' + func.name);
             } else {
@@ -125,7 +125,7 @@ function generateReport(results, outputPath) {
     console.log('  Total Functions:', totalFunctions);
 
     // Check for selector collisions
-    var collisions = [];
+    var _collisions = [];
     for (var selector in selectorMap) {
         if (selectorMap[selector].length > 1) {
             collisions.push({
@@ -137,8 +137,8 @@ function generateReport(results, outputPath) {
 
     if (collisions.length > 0) {
         console.log('  ⚠️  Selector Collisions:', collisions.length);
-        for (var j = 0; j < collisions.length; j++) {
-            var collision = collisions[j];
+        for (var _j = 0; j < collisions.length; j++) {
+            var _collision = collisions[j];
             console.log('    ' + collision.selector + ':', collision.functions.join(', '));
         }
     } else {
@@ -147,12 +147,12 @@ function generateReport(results, outputPath) {
 }
 
 function main() {
-    var args = process.argv.slice(2);
-    var artifactsDir = 'artifacts';
-    var outputPath = null;
+    var _args = process.argv.slice(2);
+    var _artifactsDir = 'artifacts';
+    var _outputPath = null;
 
     // Parse arguments
-    for (var i = 0; i < args.length; i++) {
+    for (var _i = 0; i < args.length; i++) {
         if (args[i] === '--artifacts' && i + 1 < args.length) {
             artifactsDir = args[i + 1];
             i++;
@@ -170,7 +170,7 @@ function main() {
     }
 
     console.log('🔍 Processing artifacts in:', artifactsDir);
-    var results = processArtifactsDirectory(artifactsDir);
+    var _results = processArtifactsDirectory(artifactsDir);
     generateReport(results, outputPath);
 }
 

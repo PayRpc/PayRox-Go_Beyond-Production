@@ -1,43 +1,53 @@
-const assert = require("assert");
-const fs = require("fs");
-const path = require("path");
-const { execSync } = require("child_process");
+"use strict";
 
-const ROOT = process.cwd();
-const GEN = path.join(ROOT, "tools", "generate-manifest.js");
-const TRIAGE = path.join(ROOT, "tools", "triage-collisions.js");
-const MANIFEST = path.join(ROOT, "payrox-manifest.json");
+const _assert = require("assert");
+const _fs = require("fs");
+const _path = require("path");
+const _execSync = require("child_process").execSync;
+const { describe, it, expect } = require('@jest/globals');
+
+var _ROOT = process.cwd();
+var _GEN = path.join(ROOT, "tools", "generate-manifest.js");
+var _TRIAGE = path.join(ROOT, "tools", "triage-collisions.js");
+var _MANIFEST = path.join(ROOT, "payrox-manifest.json");
 
 function run(cmd) {
   return execSync(cmd, { stdio: "pipe" }).toString();
 }
 
-(async () => {
-  console.log("Running manifest generator...");
-  run(`node "${GEN}"`);
+describe('Generate Manifest Tool', () => {
+  it('should generate manifest and pass triage checks', async () => {
+    // Ensure artifacts exist for manifest generation
+    try {
+      console.log("Compiling contracts...");
+      run(`npx hardhat compile`);
+    } catch (e) {
+      const _out = (e.stdout || e.message || '').toString();
+      throw new Error("Hardhat compile failed before manifest generation:\n" + out);
+    }
 
-  assert.ok(fs.existsSync(MANIFEST), "payrox-manifest.json must exist");
-  const manifest = JSON.parse(fs.readFileSync(MANIFEST, "utf8"));
+    console.log("Running manifest generator...");
+    run(`node "${GEN}"`);
 
-  const facetNames = Object.keys(manifest.facets || {});
-  console.log("Found facets:", facetNames.join(", "));
+    expect(fs.existsSync(MANIFEST)).toBe(true);
+    const _manifest = JSON.parse(fs.readFileSync(MANIFEST, "utf8"));
 
-  // No interface names (starting with 'I')
-  const bad = facetNames.filter((n) => n.startsWith("I"));
-  assert.strictEqual(
-    bad.length,
-    0,
-    `Manifest contains interface-like artifacts: ${bad.join(", ")}`,
-  );
+    const _facetNames = Object.keys(manifest.facets || {});
+    console.log("Found facets:", facetNames.join(", "));
 
-  console.log("Running triage...");
-  try {
-    run(`node "${TRIAGE}"`);
-  } catch (err) {
-    // triage returns non-zero on collisions; capture output
-    const out = (err.stdout || err.message || "").toString();
-    throw new Error("Triage reported collisions:\n" + out);
-  }
+    // No interface names (starting with 'I')
+    const _bad = facetNames.filter((n) => n.startsWith("I"));
+    expect(bad.length).toBe(0);
 
-  console.log("Manifest & triage checks passed");
-})();
+    console.log("Running triage...");
+    try {
+      run(`node "${TRIAGE}"`);
+    } catch (err) {
+      // triage returns non-zero on collisions; capture output
+      const _out = (err.stdout || err.message || "").toString();
+      throw new Error("Triage reported collisions:\n" + out);
+    }
+
+    console.log("Manifest & triage checks passed");
+  });
+});

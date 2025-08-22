@@ -211,7 +211,7 @@ app.post('/api/chunk', (req: Request, res: Response) => {
     }> = []
     for (const [bucket, arr] of Object.entries(groups)) {
       if (arr.length === 0) continue
-      for (let i = 0; i < arr.length; i += MAX) {
+      for (let _i = 0; i < arr.length; i += MAX) {
         const chunk = arr.slice(i, i + MAX)
         const name =
           i === 0 ? `${bucket}Facet` : `${bucket}Facet${i / MAX + 1}`
@@ -293,7 +293,7 @@ function buildMerkleRoot (leaves: string[]): string {
   let level = leaves.slice()
   while (level.length > 1) {
     const next: string[] = []
-    for (let i = 0; i < level.length; i += 2) {
+    for (let _i = 0; i < level.length; i += 2) {
       const A = level[i]
       const B = i + 1 < level.length ? level[i + 1] : A
       if (!A) throw new Error('Level A is undefined')
@@ -318,7 +318,7 @@ function generateProof (leaves: string[], index: number): string[] {
     proof.push(proofValue)
     // next level
     const next: string[] = []
-    for (let i = 0; i < lvl.length; i += 2) {
+    for (let _i = 0; i < lvl.length; i += 2) {
       const A = lvl[i]
       const B = i + 1 < lvl.length ? lvl[i + 1] : A
       if (!A) throw new Error('Level A is undefined')

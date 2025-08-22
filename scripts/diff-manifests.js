@@ -5,11 +5,11 @@
  * @usage node diff-manifests.js <manifest1> <manifest2>
  */
 
-var fs = require('fs');
+var _fs = require('fs');
 
 function loadManifest(filePath) {
     try {
-        var content = fs.readFileSync(filePath, 'utf8');
+        var _content = fs.readFileSync(filePath, 'utf8');
         return JSON.parse(content);
     } catch (error) {
         console.error('Error loading manifest ' + filePath + ':', error.message);
@@ -18,29 +18,29 @@ function loadManifest(filePath) {
 }
 
 function compareManifests(manifest1, manifest2) {
-    var diffs = [];
+    var _diffs = [];
 
     // Compare facets
-    var facets1 = manifest1.facets || {};
-    var facets2 = manifest2.facets || {};
+    var _facets1 = manifest1.facets || {};
+    var _facets2 = manifest2.facets || {};
 
-    var allFacetKeys1 = Object.keys(facets1);
-    var allFacetKeys2 = Object.keys(facets2);
-    var allFacets = {};
+    var _allFacetKeys1 = Object.keys(facets1);
+    var _allFacetKeys2 = Object.keys(facets2);
+    var _allFacets = {};
 
-    for (var i = 0; i < allFacetKeys1.length; i++) {
+    for (var _i = 0; i < allFacetKeys1.length; i++) {
         allFacets[allFacetKeys1[i]] = true;
     }
-    for (var j = 0; j < allFacetKeys2.length; j++) {
+    for (var _j = 0; j < allFacetKeys2.length; j++) {
         allFacets[allFacetKeys2[j]] = true;
     }
 
-    var facetNames = Object.keys(allFacets);
+    var _facetNames = Object.keys(allFacets);
 
-    for (var k = 0; k < facetNames.length; k++) {
-        var facetName = facetNames[k];
-        var facet1 = facets1[facetName];
-        var facet2 = facets2[facetName];
+    for (var _k = 0; k < facetNames.length; k++) {
+        var _facetName = facetNames[k];
+        var _facet1 = facets1[facetName];
+        var _facet2 = facets2[facetName];
 
         if (!facet1) {
             diffs.push('+ Facet added: ' + facetName);
@@ -66,15 +66,15 @@ function compareManifests(manifest1, manifest2) {
 }
 
 function main() {
-    var args = process.argv.slice(2);
+    var _args = process.argv.slice(2);
 
     if (args.length !== 2) {
         console.error('Usage: node diff-manifests.js <manifest1> <manifest2>');
         process.exit(1);
     }
 
-    var file1 = args[0];
-    var file2 = args[1];
+    var _file1 = args[0];
+    var _file2 = args[1];
 
     if (!fs.existsSync(file1)) {
         console.error('File not found: ' + file1);
@@ -86,10 +86,10 @@ function main() {
         process.exit(1);
     }
 
-    var manifest1 = loadManifest(file1);
-    var manifest2 = loadManifest(file2);
+    var _manifest1 = loadManifest(file1);
+    var _manifest2 = loadManifest(file2);
 
-    var diffs = compareManifests(manifest1, manifest2);
+    var _diffs = compareManifests(manifest1, manifest2);
 
     if (diffs.length === 0) {
         console.log('✅ Manifests are identical');

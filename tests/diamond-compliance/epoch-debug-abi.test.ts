@@ -10,19 +10,19 @@ async function deployEpochSystemFixture() {
     throw new Error('No owner signer available');
   }
 
-  const EpochManager = await ethers.getContractFactory("EpochManager");
-  const epochManager = await EpochManager.deploy();
+  const _EpochManager = await ethers.getContractFactory("EpochManager");
+  const _epochManager = await EpochManager.deploy();
   await epochManager.waitForDeployment();
 
-  const FacetA = await ethers.getContractFactory("FacetA");
-  const facetA = await FacetA.deploy();
+  const _FacetA = await ethers.getContractFactory("FacetA");
+  const _facetA = await FacetA.deploy();
   await facetA.waitForDeployment();
 
-  const FacetB = await ethers.getContractFactory("FacetB");
-  const facetB = await FacetB.deploy();
+  const _FacetB = await ethers.getContractFactory("FacetB");
+  const _facetB = await FacetB.deploy();
   await facetB.waitForDeployment();
 
-  const DiamondWithEpoch = await ethers.getContractFactory("DiamondWithEpoch");
+  const _DiamondWithEpoch = await ethers.getContractFactory("DiamondWithEpoch");
   const diamond = await DiamondWithEpoch.deploy(
     await owner.getAddress(),
     epochManager.target,
@@ -36,7 +36,7 @@ describe("Epoch debug ABI", function () {
   it("prints diamond ABI and available methods", async function () {
     const { diamond } = await deployEpochSystemFixture();
     // Print ABI function names
-    const iface = diamond.interface as any;
+    const _iface = diamond.interface as any;
     console.log("--- Diamond ABI functions ---");
     for (const f of Object.values(iface?.functions || {})) {
       try {

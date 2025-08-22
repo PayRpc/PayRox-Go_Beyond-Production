@@ -22,24 +22,24 @@ describe("SaltPolicyLib - TypeScript Parity", function () {
   let saltPolicyLibContract: any;
 
   // Test constants (matching Foundry tests)
-  const DEPLOYER = "0x000000000000000000000000000000000000AbCd";
-  const CHAIN_ID = 11155111n; // Sepolia
-  const CONTENT_HASH = keccak256(toUtf8Bytes("content"));
-  const CROSS_NONCE = 42n;
-  const VERSION_HASH = keccak256(toUtf8Bytes("1.2.3"));
-  const VERSION_STRING = "1.2.3";
-  const CONTENT_STRING = "content";
+  const _DEPLOYER = "0x000000000000000000000000000000000000AbCd";
+  const _CHAIN_ID = 11155111n; // Sepolia
+  const _CONTENT_HASH = keccak256(toUtf8Bytes("content"));
+  const _CROSS_NONCE = 42n;
+  const _VERSION_HASH = keccak256(toUtf8Bytes("1.2.3"));
+  const _VERSION_STRING = "1.2.3";
+  const _CONTENT_STRING = "content";
 
   // Domain constants
-  const DOMAIN = "PayRoxCrossChain:v1";
-  const FACTORY_DOMAIN = "PayRoxFactory:v1";
+  const _DOMAIN = "PayRoxCrossChain:v1";
+  const _FACTORY_DOMAIN = "PayRoxFactory:v1";
 
   // Sample init code (tiny runtime that stores 1 and returns it)
-  const INIT_CODE = "0x600160005260206000F3";
+  const _INIT_CODE = "0x600160005260206000F3";
 
   before(async function () {
     // Deploy a test contract that uses SaltPolicyLib
-    const TestContract = await ethers.getContractFactory("TestContract");
+    const _TestContract = await ethers.getContractFactory("TestContract");
     
     // Create a simple test contract that exposes SaltPolicyLib functions
     const testContractCode = `
@@ -167,7 +167,7 @@ contract TestSaltPolicyLib {
   describe("Factory Salt Variants", function () {
     it("should match TypeScript factorySalt parity", async function () {
       // Call Solidity function
-      const soliditySalt = await saltPolicyLib.factorySalt(VERSION_STRING);
+      const _soliditySalt = await saltPolicyLib.factorySalt(VERSION_STRING);
 
       // Type list: ["string","string"]
       const typescriptSalt = solidityPackedKeccak256(
@@ -180,7 +180,7 @@ contract TestSaltPolicyLib {
 
     it("should match TypeScript factorySaltHashed parity", async function () {
       // Call Solidity function
-      const soliditySalt = await saltPolicyLib.factorySaltHashed(VERSION_HASH);
+      const _soliditySalt = await saltPolicyLib.factorySaltHashed(VERSION_HASH);
 
       // Type list: ["string","bytes32"]
       const typescriptSalt = solidityPackedKeccak256(
@@ -194,16 +194,16 @@ contract TestSaltPolicyLib {
 
   describe("CREATE2 Address Computation", function () {
     it("should match ethers getCreate2Address", async function () {
-      const deployerAddr = "0xDePl0yDePl0yDePl0yDePl0yDePl0yDePl0yDePl0y";
-      const salt = keccak256(toUtf8Bytes("salt"));
-      const initHash = keccak256(INIT_CODE);
+      const _deployerAddr = "0xDePl0yDePl0yDePl0yDePl0yDePl0yDePl0yDePl0y";
+      const _salt = keccak256(toUtf8Bytes("salt"));
+      const _initHash = keccak256(INIT_CODE);
 
       // Call Solidity functions
-      const solidityAddr1 = await saltPolicyLib.create2Address(deployerAddr, salt, initHash);
-      const solidityAddr2 = await saltPolicyLib.create2AddressFromInitCode(deployerAddr, salt, INIT_CODE);
+      const _solidityAddr1 = await saltPolicyLib.create2Address(deployerAddr, salt, initHash);
+      const _solidityAddr2 = await saltPolicyLib.create2AddressFromInitCode(deployerAddr, salt, INIT_CODE);
 
       // Compute with ethers
-      const ethersAddr = getCreate2Address(deployerAddr, salt, initHash);
+      const _ethersAddr = getCreate2Address(deployerAddr, salt, initHash);
 
       expect(solidityAddr1).to.equal(ethersAddr, "create2Address parity failed");
       expect(solidityAddr2).to.equal(ethersAddr, "create2AddressFromInitCode parity failed");
@@ -211,7 +211,7 @@ contract TestSaltPolicyLib {
 
     it("should demonstrate full CREATE2 workflow", async function () {
       // Use realistic parameters
-      const factoryAddr = "0x4e59b44847b379578588920cA78FbF26c0B4956C"; // EIP-2470
+      const _factoryAddr = "0x4e59b44847b379578588920cA78FbF26c0B4956C"; // EIP-2470
       
       // Generate salt using library
       const salt = await saltPolicyLib.universalSaltHashedChain(
@@ -223,11 +223,11 @@ contract TestSaltPolicyLib {
       );
 
       // Compute address off-chain
-      const initHash = keccak256(INIT_CODE);
-      const ethersAddr = getCreate2Address(factoryAddr, salt, initHash);
+      const _initHash = keccak256(INIT_CODE);
+      const _ethersAddr = getCreate2Address(factoryAddr, salt, initHash);
 
       // Compute address on-chain
-      const solidityAddr = await saltPolicyLib.create2Address(factoryAddr, salt, initHash);
+      const _solidityAddr = await saltPolicyLib.create2Address(factoryAddr, salt, initHash);
 
       expect(solidityAddr).to.equal(ethersAddr, "Full CREATE2 workflow parity failed");
 
@@ -263,18 +263,18 @@ contract TestSaltPolicyLib {
     });
 
     it("should produce same addresses for same salt but different for different salts", async function () {
-      const factoryAddr = "0x4e59b44847b379578588920cA78FbF26c0B4956C";
-      const initHash = keccak256(INIT_CODE);
+      const _factoryAddr = "0x4e59b44847b379578588920cA78FbF26c0B4956C";
+      const _initHash = keccak256(INIT_CODE);
 
       // Same salt should produce same address
-      const salt1 = await saltPolicyLib.universalSaltHashed(DEPLOYER, CONTENT_HASH, CROSS_NONCE, VERSION_HASH);
-      const addr1a = await saltPolicyLib.create2Address(factoryAddr, salt1, initHash);
-      const addr1b = await saltPolicyLib.create2Address(factoryAddr, salt1, initHash);
+      const _salt1 = await saltPolicyLib.universalSaltHashed(DEPLOYER, CONTENT_HASH, CROSS_NONCE, VERSION_HASH);
+      const _addr1a = await saltPolicyLib.create2Address(factoryAddr, salt1, initHash);
+      const _addr1b = await saltPolicyLib.create2Address(factoryAddr, salt1, initHash);
       expect(addr1a).to.equal(addr1b, "Same salt should produce same address");
 
       // Different salt should produce different address
-      const salt2 = await saltPolicyLib.universalSaltHashed(DEPLOYER, keccak256(toUtf8Bytes("different")), CROSS_NONCE, VERSION_HASH);
-      const addr2 = await saltPolicyLib.create2Address(factoryAddr, salt2, initHash);
+      const _salt2 = await saltPolicyLib.universalSaltHashed(DEPLOYER, keccak256(toUtf8Bytes("different")), CROSS_NONCE, VERSION_HASH);
+      const _addr2 = await saltPolicyLib.create2Address(factoryAddr, salt2, initHash);
       expect(addr1a).to.not.equal(addr2, "Different salt should produce different address");
     });
   });

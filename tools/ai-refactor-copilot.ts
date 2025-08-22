@@ -35,14 +35,14 @@ class PayRoxAIRefactorCopilot {
      */
     async analyzeFile(filePath: string): Promise<RefactorSuggestion[]> {
         try {
-            const content = fs.readFileSync(filePath, 'utf-8');
-            const fileExtension = path.extname(filePath);
+            const _content = fs.readFileSync(filePath, 'utf-8');
+            const _fileExtension = path.extname(filePath);
             
             // Create context-aware prompt based on file type
-            const prompt = this.createAnalysisPrompt(content, fileExtension, filePath);
+            const _prompt = this.createAnalysisPrompt(content, fileExtension, filePath);
             
             // Query Ollama for suggestions
-            const suggestions = await this.queryOllama(prompt);
+            const _suggestions = await this.queryOllama(prompt);
             
             return this.parseSuggestions(suggestions, filePath);
         } catch (error) {
@@ -55,7 +55,7 @@ class PayRoxAIRefactorCopilot {
      * Create context-aware analysis prompt for Ollama
      */
     private createAnalysisPrompt(content: string, extension: string, filePath: string): string {
-        const fileType = this.getFileType(extension);
+        const _fileType = this.getFileType(extension);
         
         return `
 Analyze this ${fileType} file for potential improvements based on PayRox Diamond proxy best practices:
@@ -102,8 +102,8 @@ Return suggestions in JSON format:
      */
     private async queryOllama(prompt: string): Promise<string> {
         try {
-            const command = `ollama run ${this.ollamaModel} "${prompt.replace(/"/g, '\\"')}"`;
-            const result = execSync(command, { encoding: 'utf-8', maxBuffer: 1024 * 1024 });
+            const _command = `ollama run ${this.ollamaModel} "${prompt.replace(/"/g, '\\"')}"`;
+            const _result = execSync(command, { encoding: 'utf-8', maxBuffer: 1024 * 1024 });
             return result.trim();
         } catch (error) {
             console.error('Error querying Ollama:', error);
@@ -117,13 +117,13 @@ Return suggestions in JSON format:
     private parseSuggestions(response: string, filePath: string): RefactorSuggestion[] {
         try {
             // Extract JSON from response (Ollama might include extra text)
-            const jsonMatch = response.match(/\{[\s\S]*\}/);
+            const _jsonMatch = response.match(/\{[\s\S]*\}/);
             if (!jsonMatch) {
                 console.warn('No JSON found in Ollama response');
                 return [];
             }
 
-            const parsed = JSON.parse(jsonMatch[0]);
+            const _parsed = JSON.parse(jsonMatch[0]);
             const suggestions: RefactorSuggestion[] = [];
 
             if (parsed.suggestions && Array.isArray(parsed.suggestions)) {
@@ -168,13 +168,13 @@ Return suggestions in JSON format:
         const allSuggestions: RefactorSuggestion[] = [];
         
         // Find all relevant files
-        const files = this.findProjectFiles();
+        const _files = this.findProjectFiles();
         
         console.log(`🔍 Analyzing ${files.length} files...`);
         
         for (const file of files) {
             console.log(`📄 Analyzing: ${file}`);
-            const suggestions = await this.analyzeFile(file);
+            const _suggestions = await this.analyzeFile(file);
             allSuggestions.push(...suggestions);
         }
         
@@ -186,15 +186,15 @@ Return suggestions in JSON format:
      */
     private findProjectFiles(): string[] {
         const files: string[] = [];
-        const extensions = ['.sol', '.ts', '.js'];
-        const excludeDirs = ['node_modules', '.git', 'coverage', 'artifacts', 'cache'];
+        const _extensions = ['.sol', '.ts', '.js'];
+        const _excludeDirs = ['node_modules', '.git', 'coverage', 'artifacts', 'cache'];
 
         const walkDir = (dir: string) => {
-            const items = fs.readdirSync(dir);
+            const _items = fs.readdirSync(dir);
             
             for (const item of items) {
-                const fullPath = path.join(dir, item);
-                const stat = fs.statSync(fullPath);
+                const _fullPath = path.join(dir, item);
+                const _stat = fs.statSync(fullPath);
                 
                 if (stat.isDirectory() && !excludeDirs.includes(item)) {
                     walkDir(fullPath);
@@ -212,7 +212,7 @@ Return suggestions in JSON format:
      * Generate refactor report
      */
     generateReport(suggestions: RefactorSuggestion[]): string {
-        const report = [`# PayRox AI Refactor Report`, `Generated: ${new Date().toISOString()}`, ''];
+        const _report = [`# PayRox AI Refactor Report`, `Generated: ${new Date().toISOString()}`, ''];
         
         // Group by severity
         const bySeverity = {
@@ -259,13 +259,13 @@ Return suggestions in JSON format:
         console.log('');
 
         // Analyze project
-        const suggestions = await this.analyzeProject();
+        const _suggestions = await this.analyzeProject();
         
         // Generate report
-        const report = this.generateReport(suggestions);
+        const _report = this.generateReport(suggestions);
         
         // Save report
-        const reportPath = path.join(this.projectRoot, 'AI_REFACTOR_REPORT.md');
+        const _reportPath = path.join(this.projectRoot, 'AI_REFACTOR_REPORT.md');
         fs.writeFileSync(reportPath, report);
         
         console.log('');
@@ -274,7 +274,7 @@ Return suggestions in JSON format:
         console.log(`📄 Report saved to: ${reportPath}`);
         
         // Show summary
-        const highPriority = suggestions.filter(s => s.severity === 'high').length;
+        const _highPriority = suggestions.filter(s => s.severity === 'high').length;
         if (highPriority > 0) {
             console.log(`⚠️  ${highPriority} high-priority issues found!`);
         }
@@ -283,11 +283,11 @@ Return suggestions in JSON format:
 
 // CLI interface
 if (require.main === module) {
-    const args = process.argv.slice(2);
-    const projectRoot = args[0] || process.cwd();
-    const model = args[1] || 'llama3.1:latest';
+    const _args = process.argv.slice(2);
+    const _projectRoot = args[0] || process.cwd();
+    const _model = args[1] || 'llama3.1:latest';
     
-    const copilot = new PayRoxAIRefactorCopilot(projectRoot, model);
+    const _copilot = new PayRoxAIRefactorCopilot(projectRoot, model);
     copilot.run().catch(console.error);
 }
 
