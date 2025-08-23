@@ -146,8 +146,12 @@ library ManifestDispatcherLib {
 
     // ───────────────────── Selector fingerprint ─────────────────────
     /**
-     * @notice Deterministic selector fingerprint for a facet: keccak256(facet.codehash || sorted(selectors)).
+     * @notice Deterministic selector fingerprint for a facet
+     * @dev Semantics: keccak256(abi.encode(facetAddress, EXTCODEHASH(facet), sortedSelectors))
      * @dev Uses in-memory insertion sort (small n) for gas simplicity.
+     * @param facetSelectors Storage mapping of facet -> selectors[]
+     * @param facet Address of the facet
+     * @return Deterministic hash for verification and CI parity checks
      */
     function selectorHash(
         mapping(address => bytes4[]) storage facetSelectors,
@@ -156,7 +160,7 @@ library ManifestDispatcherLib {
         bytes4[] memory sels = facetSelectors[facet];
         uint256 n = sels.length;
 
-        // insertion sort by uint32(selector)
+        // insertion sort by uint32(selector) for deterministic ordering
         for (uint256 i = 1; i < n; i++) {
             bytes4 key = sels[i];
             uint256 j = i;
@@ -167,7 +171,8 @@ library ManifestDispatcherLib {
             sels[j] = key;
         }
 
-        return keccak256(abi.encodePacked(facet.codehash, sels));
+        // Deterministic hash: keccak256(abi.encode(facetAddress, codehash, sortedSelectors))
+        return keccak256(abi.encode(facet, facet.codehash, sels));
     }
 }
 

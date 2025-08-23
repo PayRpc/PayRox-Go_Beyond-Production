@@ -1,66 +1,72 @@
-# Complete Loupe System Implementation Guide
+# Complete Loupe System Implementation Guide (Hardened)
 
-## ✅ Implementation Status: COMPLETE
+## ✅ Implementation Status: COMPLETE + HARDENED
 
 ### What's Been Implemented
 
-#### 1. **Dual Loupe Surface Coverage**
+#### 1. **Single Source of Truth Architecture**
+
+- ✅ **LoupeFacet** - Now delegates to dispatcher via staticcall (prevents state divergence)
+- ✅ **ManifestDispatcher** - Primary implementation with deterministic ordering
+- ✅ **Deterministic Results** - All loupe functions return canonically sorted data
+- ✅ **ERC-165 Support** - Both surfaces expose interface IDs via supportsInterface()
+
+#### 2. **Dual Loupe Surface Coverage (Hardened)**
+
 - ✅ **IDiamondLoupe** (EIP-2535 standard) - ManifestDispatcher implements directly
 - ✅ **IDiamondLoupeEx** (PayRox extended) - ManifestDispatcher implements directly
-- ✅ **LoupeFacet** - Standalone facet for cases requiring separate deployment
+- ✅ **Deterministic Ordering** - facetAddresses() and facetFunctionSelectors() sort results
+- ✅ **Interface Reflection** - supportsInterface() proves both surfaces are available
 
-#### 2. **Library Classification (Kept as Libraries)**
-- ✅ **OrderedMerkle** - Internal utility, no selectors exposed
-- ✅ **CustomerStorage** - Diamond storage helper, no routing needed
-- ✅ **ManifestDispatcherLib** - Internal helpers, no public interface
-- ✅ **RefactorSafetyLib** - Internal validation, no routing required
+#### 3. **Bulletproof Semantics**
 
-#### 3. **Dispatcher Index System**
-- ✅ **On-chain index maintained** during `applyPlan()`:
-  - `mapping(bytes4 => address) selectorToFacet`
-  - `address[] facetAddresses`
-  - `mapping(address => bytes4[]) facetSelectors`
-  - `mapping(address => uint8) facetSecurityLevel`
-  - `mapping(address => bytes32) facetVersionTag`
-  - `mapping(address => address) facetDeployer` (provenance)
-  - `mapping(address => uint64) facetDeployedAt` (provenance)
+- ✅ **facetHash(address)** - Returns EXTCODEHASH, reverts if code.length == 0
+- ✅ **selectorHash(address)** - keccak256(abi.encode(facetAddress, codehash, sortedSelectors))
+- ✅ **Provenance Tracking** - facetProvenance() set by orchestrator during apply
+- ✅ **Version Tags** - keccak256(semverString) with off-chain string storage
+- ✅ **Security Levels** - 0=unsafe, 1-3=production grades with filtering
 
-#### 4. **CI Gate System**
-- ✅ **Loupe Parity Gate** (`scripts/ci/validate-loupe-parity.js`)
-  - Compares `facetAddresses()` and `facets()` output to `selectors.json`
-  - Validates selector count and mapping accuracy
-  - Fails CI on any drift between loupe and manifest truth
+#### 4. **CI Gate System (Enhanced)**
+
+- ✅ **Parity Gate** (`scripts/ci/validate-loupe-parity-new.js`)
+  - Multi-format selectors.json support (array, object, nested)
+  - Address book resolution (deployed-addresses.json + deployment-plan.json)
+  - Deterministic hex normalization and sorting
+  - Interface-only selector filtering (--ignore-unrouted)
+  - Environment variable support (%DISPATCHER_ADDR%, %RPC_URL%)
 
 - ✅ **LoupeEx Extended Gate** (`scripts/ci/validate-loupe-ex.js`)
-  - Validates `facetHash()` matches `codehashes-observed.json`
-  - Checks `facetProvenance()` deployer matches orchestrator
-  - Validates `selectorHash()` consistency
+  - Validates facetHash() matches codehashes-observed.json
+  - Checks facetProvenance() deployer matches orchestrator
+  - Validates selectorHash() consistency with deterministic algorithm
   - Confirms security levels and version tags
 
 - ✅ **EIP-170 Compliance Gate**
   - Enforces 24KB limit per facet with 1KB safety margin
   - Auto-fails deployment if any facet exceeds limit
 
-- ✅ **Comprehensive Gate Runner** (`scripts/ci/loupe-gates.js`)
-  - Orchestrates all validations
-  - Provides detailed pass/fail reporting
-  - CI-friendly exit codes
+- ✅ **Interface Support Validation**
+  - Verifies supportsInterface() returns true for both IDiamondLoupe and IDiamondLoupeEx
+  - Tests ERC-165 compliance
 
-### Available NPM Scripts
+### Available NPM Scripts (Enhanced)
 
 ```bash
-# Individual validations
-npm run loupe:parity          # Standard loupe vs selectors.json
-npm run loupe:validate:ex     # Extended loupe features
-npm run loupe:gates           # Complete validation suite
+# Individual validations (hardened)
+npm run loupe:parity:local     # Deterministic parity check (local RPC, ignore unrouted)
+npm run loupe:validate:ex      # Extended loupe features
+npm run loupe:gates            # Complete validation suite
+
+# Environment variable support (for CI/CD)
+set DISPATCHER_ADDR=0x123... && set RPC_URL=http://localhost:8545 && npm run loupe:parity
 
 # CI integration
-npm run ci:loupe              # Run all loupe gates
-npm run ci:production         # Full production validation (includes loupe)
+npm run ci:loupe               # Run all loupe gates
+npm run ci:production-gates    # Full production validation (includes loupe)
 
 # Facet management
-npm run new:facet Customer    # Generate customer facet
-npm run facets:gate           # Size + selector parity checks
+npm run new:facet Customer     # Generate customer facet
+npm run facets:gate            # Size + selector parity checks
 ```
 
 ### Customer Facet Integration (Updated)
@@ -91,13 +97,15 @@ npm run ci:production  # Full gate suite before release
 
 ### Extended Loupe Features Available
 
-#### Standard EIP-2535 Compliance:
+#### Standard EIP-2535 Compliance
+
 - `facets()` - Complete facet + selector enumeration
 - `facetFunctionSelectors(address)` - Selectors for specific facet
 - `facetAddresses()` - All facet addresses
 - `facetAddress(bytes4)` - Facet handling specific selector
 
-#### PayRox Extended (LoupeEx):
+#### PayRox Extended (LoupeEx)
+
 - `facetHash(address)` - Runtime bytecode hash (EXTCODEHASH)
 - `selectorHash(address)` - Deterministic hash of facet + sorted selectors
 - `facetProvenance(address)` - (deployer, timestamp)

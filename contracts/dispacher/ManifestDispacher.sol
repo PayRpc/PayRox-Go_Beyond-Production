@@ -440,11 +440,47 @@ contract ManifestDispatcher is
     // EIP-2535 Loupe (standard)
     // ───────────────────────────────────────────────────────────────────────────
     function facetAddresses() external view override(IDiamondLoupe) returns (address[] memory) {
-        return _facetAddresses;
+        // Return sorted copy for deterministic ordering
+        address[] memory sorted = new address[](_facetAddresses.length);
+        for (uint256 i = 0; i < _facetAddresses.length; i++) {
+            sorted[i] = _facetAddresses[i];
+        }
+
+        // Simple bubble sort (gas-efficient for small arrays)
+        for (uint256 i = 0; i < sorted.length; i++) {
+            for (uint256 j = i + 1; j < sorted.length; j++) {
+                if (uint160(sorted[i]) > uint160(sorted[j])) {
+                    address temp = sorted[i];
+                    sorted[i] = sorted[j];
+                    sorted[j] = temp;
+                }
+            }
+        }
+
+        return sorted;
     }
 
     function facetFunctionSelectors(address facet) external view override(IDiamondLoupe) returns (bytes4[] memory) {
-        return facetSelectors[facet];
+        bytes4[] storage selectors = facetSelectors[facet];
+        bytes4[] memory sorted = new bytes4[](selectors.length);
+
+        // Copy to memory array
+        for (uint256 i = 0; i < selectors.length; i++) {
+            sorted[i] = selectors[i];
+        }
+
+        // Sort by uint32 value for deterministic ordering
+        for (uint256 i = 0; i < sorted.length; i++) {
+            for (uint256 j = i + 1; j < sorted.length; j++) {
+                if (uint32(sorted[i]) > uint32(sorted[j])) {
+                    bytes4 temp = sorted[i];
+                    sorted[i] = sorted[j];
+                    sorted[j] = temp;
+                }
+            }
+        }
+
+        return sorted;
     }
 
     function facetAddress(bytes4 selector) external view override(IDiamondLoupe) returns (address) {
@@ -452,11 +488,17 @@ contract ManifestDispatcher is
     }
 
     function facets() external view override(IDiamondLoupe) returns (IDiamondLoupe.Facet[] memory out) {
-        uint256 n = _facetAddresses.length;
+        // Get sorted facet addresses
+        address[] memory sortedAddresses = this.facetAddresses();
+        uint256 n = sortedAddresses.length;
         out = new IDiamondLoupe.Facet[](n);
+
         for (uint256 i = 0; i < n; i++) {
-            address fa = _facetAddresses[i];
-            out[i] = IDiamondLoupe.Facet({ facetAddress: fa, functionSelectors: facetSelectors[fa] });
+            address fa = sortedAddresses[i];
+            out[i] = IDiamondLoupe.Facet({
+                facetAddress: fa,
+                functionSelectors: this.facetFunctionSelectors(fa)
+            });
         }
     }
 
@@ -587,6 +629,11 @@ contract ManifestDispatcher is
         override(IDiamondLoupeEx)
         returns (bytes32)
     {
+        // EXTCODEHASH for deployed contracts, revert if no code
+        uint256 codeSize;
+        assembly { codeSize := extcodesize(facet) }
+        require(codeSize > 0, "ManifestDispatcher: facet has no code");
+
         return facet.codehash;
     }
 
@@ -767,5 +814,20 @@ contract ManifestDispatcher is
         if (_facetDeployer[facet] == address(0)) revert FacetUnknown(facet);
         _facetVersionTag[facet] = tag;
         emit FacetVersionTagSet(facet, tag);
+    }
+
+    // ───────────────────────────────────────────────────────────────────────────
+    // ERC-165 Support
+    // ───────────────────────────────────────────────────────────────────────────
+
+    /**
+     * @notice Check interface support for both standard and extended loupe
+     * @param interfaceId The interface identifier to check
+     * @return true if interface is supported
+     */
+    function supportsInterface(bytes4 interfaceId) external pure returns (bool) {
+        return interfaceId == type(IDiamondLoupe).interfaceId ||
+               interfaceId == type(IDiamondLoupeEx).interfaceId ||
+               interfaceId == 0x01ffc9a7; // ERC-165
     }
 }

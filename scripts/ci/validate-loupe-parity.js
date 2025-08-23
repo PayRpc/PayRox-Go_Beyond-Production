@@ -1,53 +1,78 @@
-#!/usr/bin/env node
-const fs = require('fs');
-const path = require('path');
+// scripts/ci/validate-loupe-parity.js
+// Usage:
+//  node scripts/ci/validate-loupe-parity.js \
+//    --dispatcher 0xDISPATCHER --rpc http://127.0.0.1:8545 \
+//    --selectors ./split-output/selectors.json \
+//    [--addresses ./split-output/deployed-addresses.json] \
+//    [--plan ./split-output/deployment-plan.json] \
+//    [--ignore-unrouted] [--strict-names]
+//
+// Exits non-zero on drift. Normalizes ordering & hex casing.
 
-/**
- * Loupe Parity Validation
- * Ensures loupe interface returns match selectors.json truth
- */
+const fs = require("fs");
+const { ethers } = require("ethers");
 
-async function validateLoupeParity() {
-  console.log('🔍 Validating Loupe Parity...');
+// ---------- CLI ----------
+const args = process.argv.slice(2);
+const getArg = (k, d) => {
+  const i = args.indexOf(k);
+  return i >= 0 && i + 1 < args.length ? args[i + 1] : d;
+};
+const has = (k) => args.includes(k);
 
+const DISPATCHER = getArg("--dispatcher");
+const RPC = getArg("--rpc", "http://127.0.0.1:8545");
+const SELECTORS_PATH = getArg("--selectors", "./split-output/selectors.json");
+const ADDRESSES_PATH = getArg("--addresses", "./split-output/deployed-addresses.json");
+const PLAN_PATH = getArg("--plan", "./split-output/deployment-plan.json");
+const IGNORE_UNROUTED = has("--ignore-unrouted");
+const STRICT_NAMES = has("--strict-names");
+
+if (!DISPATCHER) {
+  console.error("❌ --dispatcher is required");
+  process.exit(2);
+}
+
+// ---------- Helpers ----------
+const normHex = (h) => {
+  if (!h) return h;
+  let x = h.toLowerCase();
+  if (!x.startsWith("0x")) x = "0x" + x;
+  if ((x.length - 2) % 2) x = "0x0" + x.slice(2);
+  return x;
+};
+const normAddr = (a) => (a ? ethers.getAddress(a) : a); // checksum normalize
+const sortHexAsc = (arr) =>
+  arr.map(normHex).sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
+const uniq = (arr) => Array.from(new Set(arr));
+
+const readJSON = (p) => {
   try {
-    // Read selectors.json (ground truth)
-    const selectorsPath = path.join('split-output', 'selectors.json');
-    if (!fs.existsSync(selectorsPath)) {
-      throw new Error('selectors.json not found in split-output/');
+    return JSON.parse(fs.readFileSync(p, "utf8"));
+  } catch {
+    return undefined;
+  }
+};
+
+// ---------- Load expected (selectors.json + address book) ----------
+function buildAddressBook() {
+  const book = {};
+  // deployed-addresses.json: { "FacetName": "0x..." } or array of {name,address}
+  const deployed = readJSON(ADDRESSES_PATH);
+  if (deployed) {
+    if (Array.isArray(deployed)) {
+      for (const x of deployed) if (x?.name && x?.address) book[x.name] = normAddr(x.address);
+    } else {
+      for (const [k, v] of Object.entries(deployed)) if (v) book[k] = normAddr(v);
     }
-
-    const selectorsData = JSON.parse(fs.readFileSync(selectorsPath, 'utf8'));
-
-    // Read deployment addresses
-    const deployedPath = path.join('split-output', 'deployed-addresses.json');
-    if (!fs.existsSync(deployedPath)) {
-      throw new Error('deployed-addresses.json not found');
-    }
-
-    const deployedData = JSON.parse(fs.readFileSync(deployedPath, 'utf8'));
-    const dispatcherAddr = deployedData.ManifestDispatcher || deployedData.dispatcher;
-
-    if (!dispatcherAddr) {
-      throw new Error('No dispatcher address found in deployed-addresses.json');
-    }
-
-    console.log(`📍 Dispatcher: ${dispatcherAddr}`);
-
-    // Initialize hardhat for contract calls
-    const hre = require('hardhat');
-    const { ethers } = hre;
-
-    // Get dispatcher contract
-    const dispatcherArtifact = await hre.artifacts.readArtifact('ManifestDispatcher');
-    const dispatcher = new ethers.Contract(dispatcherAddr, dispatcherArtifact.abi, ethers.provider);
-
-    // Query loupe data
-    console.log('📋 Querying facetAddresses()...');
-    const loupeAddresses = await dispatcher.facetAddresses();
-
-    console.log('📋 Querying facets()...');
-    const loupeFacets = await dispatcher.facets();
+  }
+  // deployment-plan.json: { facets: [{ name, facet }, ...] }
+  const plan = readJSON(PLAN_PATH);
+  if (plan?.facets && Array.isArray(plan.facets)) {
+    for (const f of plan.facets) if (f?.name && f?.facet) book[f.name] = normAddr(f.facet);
+  }
+  return book;
+}
 
     // Build expected data from selectors.json
     const expectedFacets = new Map();

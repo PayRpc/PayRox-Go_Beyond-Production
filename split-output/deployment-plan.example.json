@@ -20,10 +20,13 @@
       "codehash": "0x0000000000000000000000000000000000000000000000000000000000000000",
       "versionTag": "0x76312e302e30000000000000000000000000000000000000000000000000000000",
       "securityLevel": 2,
+      "salt": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+      "saltPolicy": "keccak256(chainId||name||version)",
       "metadata": {
         "category": "business-logic",
         "dependencies": ["AccessControlFacet", "PauseFacet"],
-        "isUpgradeable": true
+        "isUpgradeable": true,
+        "auditStatus": "approved"
       }
     },
     {
@@ -39,10 +42,13 @@
       "codehash": "0x0000000000000000000000000000000000000000000000000000000000000000",
       "versionTag": "0x76312e302e30000000000000000000000000000000000000000000000000000000",
       "securityLevel": 3,
+      "salt": "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
+      "saltPolicy": "keccak256(chainId||name||version)",
       "metadata": {
         "category": "infrastructure",
         "dependencies": [],
-        "isUpgradeable": false
+        "isUpgradeable": false,
+        "auditStatus": "verified"
       }
     },
     {
