@@ -161,6 +161,72 @@ const shouldFail = (results) => {
 
 - **`mythril-src.latest.json`**: Security scan results (JSON format)
 - **`mythril-src.sarif`**: SARIF format for GitHub Security tab integration
+- **`mythril-addr.latest.json`**: Address-based security scan results
+- **`mythril-addr.sarif`**: Address-based SARIF format for integration
+
+## Artifact Verification
+
+The system includes comprehensive artifact checking with the `tools/show-artifacts.ps1` script:
+
+```powershell
+# Quick check of all artifacts
+.\tools\show-artifacts.ps1
+
+# Custom output directory
+.\tools\show-artifacts.ps1 -OutDir "./custom-output"
+```
+
+### Artifact Categories
+
+**Core Deployment Files** (Required):
+
+- `manifest.root.json` - Complete facet manifest
+- `proofs.json` - Merkle proofs for verification
+- `deployment-plan.json` - Deployment execution plan
+- `selectors.json` - Function selector mappings
+
+**Validation Files**:
+
+- `SHA256SUMS` - Checksums for all generated artifacts
+- `codehashes-predictive-*.json` - Predicted code hashes before deployment
+- `codehashes-observed-*.json` - Observed code hashes after deployment
+- `deployment-results.json` - Deployment execution results
+- `orchestration-plan.json` - Service orchestration plan
+
+**Security Files** (require Docker/Mythril):
+
+- `mythril-src.latest.json` - Source code security scan results
+- `mythril-addr.latest.json` - Address-based security scan results
+- `mythril-src.sarif` - SARIF format for GitHub integration
+- `mythril-addr.sarif` - Address-based SARIF format
+
+**Governance Files** (optional):
+
+- `commit-result.json` - Governance commit operation results
+- `apply-result.json` - Governance apply operation results
+- `manifest.sig.json` - Signed manifest for verification
+
+## Release Pipeline Output
+
+```text
+🚀 PayRox Production Release Pipeline
+====================================
+Network: mainnet
+Mode: LIVE
+
+📦 Step 1: Building Predictive Artifacts...
+
+### Validation Artifacts
+
+- **`SHA256SUMS`**: Checksums for all generated artifacts
+- **`codehashes-predictive-*.json`**: Predicted code hashes before deployment
+- **`codehashes-observed-*.json`**: Observed code hashes after deployment
+
+### Governance Artifacts (Optional)
+
+- **`commit-result.json`**: Governance commit operation results
+- **`apply-result.json`**: Governance apply operation results
+- **`manifest.sig.json`**: Signed manifest for verification
 
 ## NPM Scripts
 

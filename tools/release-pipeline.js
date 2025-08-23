@@ -253,6 +253,20 @@ class ReleaseGate {
         throw new Error('Predictive pipeline failed');
       }
 
+      // Generate SHA256SUMS for all artifacts
+      console.log('\n🔐 Generating artifact checksums...');
+      const shaResult = await this.runCommand('node', [
+        'scripts/ci/compute-shasums.js', 'split-output'
+      ], { cwd: process.cwd() });
+
+      if (shaResult.code === 0) {
+        // Save checksums to file
+        require('fs').writeFileSync('split-output/SHA256SUMS', shaResult.stdout);
+        console.log('✅ SHA256SUMS generated successfully');
+      } else {
+        console.warn('⚠️  Could not generate SHA256SUMS');
+      }
+
       // Validate required artifacts
       this.checkFile('split-output/manifest.root.json', 'Manifest Root');
       this.checkFile('split-output/proofs.json', 'Merkle Proofs');
