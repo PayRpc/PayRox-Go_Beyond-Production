@@ -99,27 +99,27 @@ describe('PayRox Splitter Integration', () => {
       const storageFiles = artifacts.filter(a => a.type === 'storage');
       const manifestFiles = artifacts.filter(a => a.type === 'manifest');
 
-      expect(facetFiles.length).toBe(plan.facets.length);
-      expect(interfaceFiles.length).toBe(plan.facets.length);
-      expect(storageFiles.length).toBe(plan.facets.length);
-      expect(manifestFiles.length).toBeGreaterThanOrEqual(1);
+      expect(facetFiles.length).to.equal(plan.facets.length);
+      expect(interfaceFiles.length).to.equal(plan.facets.length);
+      expect(storageFiles.length).to.equal(plan.facets.length);
+      expect(manifestFiles.length).to.be.at.least(1);
 
       // Check file structure
       facetFiles.forEach(facet => {
-        expect(facet.path).toMatch(/^facets\/.*\.sol$/);
-        expect(facet.content).toContain('contract ');
-        expect(facet.content).toContain('getFacetInfo()');
+        expect(facet.path).to.match(/^facets\/.*\.sol$/);
+        expect(facet.content).to.contain('contract ');
+        expect(facet.content).to.contain('getFacetInfo()');
       });
 
       interfaceFiles.forEach(iface => {
-        expect(iface.path).toMatch(/^interfaces\/I.*\.sol$/);
-        expect(iface.content).toContain('interface ');
+        expect(iface.path).to.match(/^interfaces\/I.*\.sol$/);
+        expect(iface.content).to.contain('interface ');
       });
 
       storageFiles.forEach(storage => {
-        expect(storage.path).toMatch(/^libraries\/.*Storage\.sol$/);
-        expect(storage.content).toContain('library ');
-        expect(storage.content).toContain('STORAGE_SLOT');
+        expect(storage.path).to.match(/^libraries\/.*Storage\.sol$/);
+        expect(storage.content).to.contain('library ');
+        expect(storage.content).to.contain('STORAGE_SLOT');
       });
     });
 
@@ -130,13 +130,13 @@ describe('PayRox Splitter Integration', () => {
 
       artifacts.filter(a => a.path.endsWith('.sol')).forEach(artifact => {
         // Basic syntax checks
-        expect(artifact.content).toContain('pragma solidity');
-        expect(artifact.content).toContain('SPDX-License-Identifier');
+        expect(artifact.content).to.contain('pragma solidity');
+        expect(artifact.content).to.contain('SPDX-License-Identifier');
 
         // Should have balanced braces
         const openBraces = (artifact.content.match(/\{/g) || []).length;
         const closeBraces = (artifact.content.match(/\}/g) || []).length;
-        expect(openBraces).toBe(closeBraces);
+        expect(openBraces).to.equal(closeBraces);
       });
     });
 
@@ -146,14 +146,14 @@ describe('PayRox Splitter Integration', () => {
       const artifacts = await engine.generateArtifacts(plan);
 
       const manifestArtifact = artifacts.find(a => a.path === 'manifest.json');
-      expect(manifestArtifact).toBeDefined();
+      expect(manifestArtifact).to.exist;
 
       const manifest = JSON.parse(manifestArtifact!.content);
-      expect(manifest.version).toBeDefined();
-      expect(manifest.strategy).toBe('core-view-logic');
-      expect(manifest.facets).toHaveLength(plan.facets.length);
-      expect(manifest.totalSelectors).toBe(plan.totalSelectors);
-      expect(manifest.buildHash).toBeDefined();
+      expect(manifest.version).to.exist;
+      expect(manifest.strategy).to.equal('core-view-logic');
+      expect(manifest.facets).to.have.length(plan.facets.length);
+      expect(manifest.totalSelectors).to.equal(plan.totalSelectors);
+      expect(manifest.buildHash).to.exist;
     });
   });
 
@@ -170,11 +170,11 @@ describe('PayRox Splitter Integration', () => {
 
       const gates = await engine.validateGates(analysis, mockCompilation);
 
-      expect(gates.selector).toBeDefined();
-      expect(gates.selector.missingFromFacets).toBeDefined();
-      expect(gates.selector.extrasNotInMonolith).toBeDefined();
-      expect(gates.selector.collisions).toBeDefined();
-      expect(typeof gates.selector.passed).toBe('boolean');
+      expect(gates.selector).to.exist;
+      expect(gates.selector.missingFromFacets).to.exist;
+      expect(gates.selector.extrasNotInMonolith).to.exist;
+      expect(gates.selector.collisions).to.exist;
+      expect(gates.selector.passed).to.be.a('boolean');
     });
 
     it('should validate EIP-170 gate', async () => {
@@ -193,10 +193,10 @@ describe('PayRox Splitter Integration', () => {
 
       const gates = await engine.validateGates(analysis, mockCompilation);
 
-      expect(gates.eip170.passed).toBe(false);
-      expect(gates.eip170.violations).toHaveLength(1);
-      expect(gates.eip170.violations[0]).toContain('HugeFacet');
-      expect(gates.eip170.violations[0]).toContain('30000');
+      expect(gates.eip170.passed).to.equal(false);
+      expect(gates.eip170.violations).to.have.length(1);
+      expect(gates.eip170.violations[0]).to.contain('HugeFacet');
+      expect(gates.eip170.violations[0]).to.contain('30000');
     });
   });
 
@@ -214,18 +214,18 @@ describe('PayRox Splitter Integration', () => {
 
       const merkle = await engine.buildMerkleTree(mockCompilation, plan);
 
-      expect(merkle.root).toMatch(/^0x[0-9a-f]{64}$/);
-      expect(merkle.leaves.length).toBe(plan.totalSelectors);
-      expect(merkle.proofs.size).toBe(plan.totalSelectors);
-      expect(merkle.positions.size).toBe(plan.totalSelectors);
-      expect(merkle.packedSize).toBeGreaterThan(0);
+      expect(merkle.root).to.match(/^0x[0-9a-f]{64}$/);
+      expect(merkle.leaves.length).to.equal(plan.totalSelectors);
+      expect(merkle.proofs.size).to.equal(plan.totalSelectors);
+      expect(merkle.positions.size).to.equal(plan.totalSelectors);
+      expect(merkle.packedSize).to.be.greaterThan(0);
 
       // Leaves should be sorted by selector
       for (let i = 1; i < merkle.leaves.length; i++) {
         const current = merkle.leaves[i];
         const previous = merkle.leaves[i-1];
         if (current && previous) {
-          expect(current.selector >= previous.selector).toBe(true);
+          expect(current.selector >= previous.selector).to.equal(true);
         }
       }
     });
@@ -245,7 +245,7 @@ describe('PayRox Splitter Integration', () => {
       const leafHashes = merkle.leaves.map(l => l.leaf);
       const uniqueHashes = new Set(leafHashes);
 
-      expect(uniqueHashes.size).toBe(leafHashes.length);
+      expect(uniqueHashes.size).to.equal(leafHashes.length);
     });
   });
 
@@ -263,13 +263,13 @@ describe('PayRox Splitter Integration', () => {
       const merkle = await engine.buildMerkleTree(mockCompilation, plan);
       const dispatcherPlan = await engine.createDispatcherPlan(merkle, plan, 86400); // 24h delay
 
-      expect(dispatcherPlan.selectors).toHaveLength(plan.totalSelectors);
-      expect(dispatcherPlan.facets).toHaveLength(plan.facets.length);
-      expect(dispatcherPlan.codehashes).toHaveLength(plan.facets.length);
-      expect(dispatcherPlan.delay).toBe(86400);
-      expect(dispatcherPlan.eta).toBeGreaterThan(Math.floor(Date.now() / 1000));
-      expect(dispatcherPlan.merkleRoot).toBe(merkle.root);
-      expect(dispatcherPlan.buildHash).toBeDefined();
+      expect(dispatcherPlan.selectors).to.have.length(plan.totalSelectors);
+      expect(dispatcherPlan.facets).to.have.length(plan.facets.length);
+      expect(dispatcherPlan.codehashes).to.have.length(plan.facets.length);
+      expect(dispatcherPlan.delay).to.equal(86400);
+      expect(dispatcherPlan.eta).to.be.greaterThan(Math.floor(Date.now() / 1000));
+      expect(dispatcherPlan.merkleRoot).to.equal(merkle.root);
+      expect(dispatcherPlan.buildHash).to.exist;
     });
   });
 
@@ -277,16 +277,16 @@ describe('PayRox Splitter Integration', () => {
     it('should complete end-to-end splitting workflow', async () => {
       // Step 1: Upload and analyze
       const analysis = await engine.upload(Buffer.from('test contract'), 'PayRoxMonolith.sol');
-      expect(analysis.functions.length).toBeGreaterThan(0);
+      expect(analysis.functions.length).to.be.greaterThan(0);
 
       // Step 2: Generate split plan
       const plan = await engine.generateSplitPlan(analysis, 'core-view-logic', 18);
-      expect(plan.facets.length).toBeGreaterThan(0);
-      expect(plan.collisions).toHaveLength(0);
+      expect(plan.facets.length).to.be.greaterThan(0);
+      expect(plan.collisions).to.have.length(0);
 
       // Step 3: Generate artifacts
       const artifacts = await engine.generateArtifacts(plan);
-      expect(artifacts.length).toBeGreaterThan(plan.facets.length);
+      expect(artifacts.length).to.be.greaterThan(plan.facets.length);
 
       // Step 4: Mock compilation success
       const mockCompilation = {
@@ -299,16 +299,16 @@ describe('PayRox Splitter Integration', () => {
 
       // Step 5: Validate gates
       const gates = await engine.validateGates(analysis, mockCompilation);
-      expect(gates.selector.passed).toBe(true);
-      expect(gates.eip170.passed).toBe(true);
+      expect(gates.selector.passed).to.equal(true);
+      expect(gates.eip170.passed).to.equal(true);
 
       // Step 6: Build merkle tree
       const merkle = await engine.buildMerkleTree(mockCompilation, plan);
-      expect(merkle.root).toBeDefined();
+      expect(merkle.root).to.exist;
 
       // Step 7: Create dispatcher plan
       const dispatcherPlan = await engine.createDispatcherPlan(merkle, plan, 86400);
-      expect(dispatcherPlan.eta).toBeGreaterThan(0);
+      expect(dispatcherPlan.eta).to.be.greaterThan(0);
 
       console.log('✅ Full workflow completed successfully');
       console.log(`   Generated ${plan.facets.length} facets with ${plan.totalSelectors} selectors`);

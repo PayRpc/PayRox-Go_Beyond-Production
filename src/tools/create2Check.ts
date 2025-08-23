@@ -1,6 +1,5 @@
 // src/tools/create2Check.ts
 import fs from "fs";
-import path from "path";
 import {
   keccak256,
   getAddress,
@@ -171,7 +170,7 @@ export async function runCreate2Check(params: Create2CheckParams): Promise<Creat
   const _expectedFHash = normBytes32(expectedFactoryCodehash, "expectedFactoryCodehash") || undefined;
   const _expectedDHash = normBytes32(expectedDispatcherCodehash, "expectedDispatcherCodehash") || undefined;
 
-  const { initCode, initCodeHash } = await buildInitCode(hre, rest as Inputs);
+  const { initCodeHash } = await buildInitCode(hre, rest as Inputs);
   const _predicted = computeCreate2(_factoryAddr, _salt32, initCodeHash);
 
   console.log(`📍 Predicted address: ${_predicted}`);

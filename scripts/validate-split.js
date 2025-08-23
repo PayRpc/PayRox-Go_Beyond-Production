@@ -68,7 +68,7 @@ if (partsList.length > 0 && partsList.length !== partsCount) {
   partsCount = partsList.length
 }
 
-for (let _idx = 0; idx < partsList.length; idx++) {
+for (let idx = 0; idx < partsList.length; idx++) {
   const part = partsList[idx]
   const solName = part.file || `part_${idx}.sol`
   const jsonName = part.json || solName.replace(/\.sol$/, '.json')

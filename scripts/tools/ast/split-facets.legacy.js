@@ -61,7 +61,7 @@ if (fragments.length === 0) {
 // Build slices by line numbers
 const lines = text.split(/\r?\n/)
 const out = []
-for (let _i = 0; i < fragments.length; i++) {
+for (let i = 0; i < fragments.length; i++) {
   const f = fragments[i]
   const startIdx = Math.max(0, f.start - 1)
   const endIdx = Math.min(lines.length, f.end)

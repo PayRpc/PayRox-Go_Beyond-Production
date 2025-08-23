@@ -19,7 +19,7 @@ const diff = require('diff')
 function args () {
   const a = process.argv.slice(2)
   const out = { file: null, contract: null }
-  for (let _i = 0; i < a.length; i++) {
+  for (let i = 0; i < a.length; i++) {
     if (a[i] === '--file') out.file = a[++i]
     else if (a[i] === '--contract') out.contract = a[++i]
   }
@@ -47,7 +47,7 @@ function write (p, content) {
 function headerOf (source) {
   // Keep SPDX & pragma if present; otherwise return empty header
   const spdx = source.match(/^\s*\/\/\s*SPDX-License-Identifier:[^\r\n]*/m)
-  const _pragma = source.match(/^\s*pragma\s+solidity\s+[^;]+;/m)
+  const pragma = source.match(/^\s*pragma\s+solidity\s+[^;]+;/m)
   let hdr = ''
   if (spdx) hdr += spdx[0] + '\n'
   if (pragma) hdr += pragma[0] + '\n\n'
@@ -355,7 +355,7 @@ function computeEditsForContract (
       // Insert `ContractStorage.Layout storage l = ContractStorage.layout();` after opening brace
       const bodyStart = fn.body.range?.[0] // index of '{'
       if (typeof bodyStart === 'number') {
-        const _insertText = `{\n        ${libName}.Layout storage l = ${libName}.layout();\n`
+        const insertText = `{\n        ${libName}.Layout storage l = ${libName}.layout();\n`
         edits.push({ start: bodyStart, end: bodyStart + 1, text: insertText })
         patches.push(`insert l=layout() in ${fn.name || '<fallback>'}`)
       }

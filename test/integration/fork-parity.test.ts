@@ -1,6 +1,7 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
-import { Contract, ContractFactory } from "ethers";
+import { Contract } from "ethers";
+import { describe, it, before } from "mocha";
 
 interface CallResult {
   success: boolean;
@@ -63,7 +64,7 @@ describe("Fork Parity Test Suite", function () {
   });
 
   async function deployTestInstances() {
-    const [deployer] = await ethers.getSigners();
+    await ethers.getSigners();
 
     // Deploy ManifestDispatcher
     const DispatcherFactory = await ethers.getContractFactory("contracts/manifest/ManifestDispatcher.sol:ManifestDispatcher");
@@ -144,7 +145,7 @@ Success rate: ${successRate.toFixed(2)}%
       case "0x8da5cb5b": // owner()
         return selector + "0".repeat(56);
 
-      case "0x5c975abb": // deployDeterministic
+      case "0x5c975abb": { // deployDeterministic
         const salt = ethers.keccak256(ethers.toUtf8Bytes(`salt-${seed}`));
         const bytecode = "0x608060405234801561001057600080fd5b50603f80602d6000396000f3fe6080604052600080fdfea26469706673582212" + rand.slice(2);
         const constructorArgs = "0x";
@@ -152,25 +153,30 @@ Success rate: ${successRate.toFixed(2)}%
           ["bytes32", "bytes", "bytes"],
           [salt, bytecode, constructorArgs]
         );
+      }
 
-      case "0x1f931c1c": // stage(bytes)
+      case "0x1f931c1c": { // stage(bytes)
         const stageData = ethers.toUtf8Bytes(`test-data-${seed}`);
         return ethers.AbiCoder.defaultAbiCoder().encode(["bytes"], [stageData]);
+      }
 
-      case "0x452a9320": // predict(bytes)
+      case "0x452a9320": { // predict(bytes)
         const predictData = ethers.toUtf8Bytes(`predict-data-${seed}`);
         return ethers.AbiCoder.defaultAbiCoder().encode(["bytes"], [predictData]);
+      }
 
       case "0xd045a0dc": // freeze()
         return selector + "0".repeat(56);
 
-      case "0x8456cb59": // setPaused(bool)
+      case "0x8456cb59": { // setPaused(bool)
         const paused = (seed % 2) === 0;
         return ethers.AbiCoder.defaultAbiCoder().encode(["bool"], [paused]);
+      }
 
-      case "0x7a0ed627": // userTiers(address)
+      case "0x7a0ed627": { // userTiers(address)
         const userAddr = ethers.getAddress(`0x${"0".repeat(39)}${(seed % 1000 + 1000).toString(16)}`);
         return ethers.AbiCoder.defaultAbiCoder().encode(["address"], [userAddr]);
+      }
 
       default:
         return selector + "0".repeat(56);
@@ -225,7 +231,7 @@ Success rate: ${successRate.toFixed(2)}%
       if (receipt) {
         gasUsed = receipt.gasUsed;
         success = receipt.status === 1;
-        events = receipt.logs || [];
+        events = [...(receipt.logs || [])];
       }
 
       // For view calls, use staticCall to get return data
