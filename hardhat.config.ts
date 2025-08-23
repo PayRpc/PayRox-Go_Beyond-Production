@@ -9,6 +9,7 @@ import './tasks/crosschain'
 import './tasks/payrox-codehash-diff'
 import './tasks/payrox-manifest-sign'
 import './tasks/payrox'
+import './tasks/security.myth'
 
 const config: HardhatUserConfig = {
   solidity: {

@@ -1,5 +1,5 @@
 {
-  "planId": "0xc07db57b2a0216e886779068fad0acc0dffe78188d4a4dba0ba7b4b748991d4f",
+  "planId": "0x3f4fd12e258cf1b72052688d6947efa600c010f34c9542531c855eefdcbf23fe",
   "selectors": [
     "0x01ffc9a7",
     "0x0bfde0da",
@@ -220,10 +220,10 @@
     "0x4d4dda8ffc977b0244c94501ad49ec79f135e3eff5445052d48da9b212cf5bda"
   ],
   "root": "0xbd779046c73155b05eb048e217d73a838a6a80d9591c455643427393444d816b",
-  "eta": 1755997891,
+  "eta": 1756008888,
   "chainId": 1,
   "epoch": 1,
   "mode": "observed",
-  "timestamp": "2025-08-23T01:11:31.646Z",
-  "etaReadable": "2025-08-24T01:11:31.000Z"
+  "timestamp": "2025-08-23T04:14:48.213Z",
+  "etaReadable": "2025-08-24T04:14:48.000Z"
 }

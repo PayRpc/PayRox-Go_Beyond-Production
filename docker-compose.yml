@@ -1,29 +1,68 @@
-version: '3.8'
+version: "3.8"
 
 networks:
   payrox-network:
     driver: bridge
 
+volumes:
+  redis-data:
+    driver: local
+
 services:
+  # Redis for caching and session management
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    networks:
+      - payrox-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Main PayRox API service
   payrox-api:
-    # Your existing API service definition should go here (keep unchanged)
     image: payrox-api:latest
     build:
       context: .
       dockerfile: Dockerfile
+      target: ""
+    restart: unless-stopped
     ports:
       - "8000:8000"
+    environment:
+      - PORT=8000
+      - WORKERS=2
+      - REDIS_URL=redis://redis:6379/0
+      - PAYROX_MANIFEST_URL=http://payrox-manifest:3001
+      - PYTHONPATH=/app
+    depends_on:
+      redis:
+        condition: service_healthy
     networks:
       - payrox-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
 
+  # PayRox Manifest Server
   payrox-manifest:
     build:
       context: .
       dockerfile: Dockerfile
-    command: npm run serve:manifest
+    command: ["manifest"]
+    restart: unless-stopped
     environment:
       - PORT=3001
       - WS_PORT=3002
+      - NODE_ENV=production
     ports:
       - "3001:3001"
       - "3002:3002"
@@ -31,3 +70,9 @@ services:
       - payrox-api
     networks:
       - payrox-network
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/docker-entrypoint.sh", "health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s

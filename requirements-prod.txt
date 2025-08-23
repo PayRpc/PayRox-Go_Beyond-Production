@@ -1,0 +1,17 @@
+# Production-only dependencies
+# Production WSGI server (alternative to uvicorn)
+gunicorn>=21.2.0,<22.0.0
+
+# Production logging and monitoring
+structlog>=23.2.0,<24.0.0
+sentry-sdk[fastapi]>=1.38.0,<2.0.0
+
+# Production security
+cryptography>=41.0.0,<42.0.0
+
+# Production performance
+redis>=5.0.0,<6.0.0
+aioredis>=2.0.0,<3.0.0
+
+# Production health checks
+psutil>=5.9.0,<6.0.0

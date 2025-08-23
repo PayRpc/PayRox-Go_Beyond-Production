@@ -147,10 +147,13 @@ jobs:
       - name: Comment PR with validation results
         if: github.event_name == 'pull_request'
         uses: actions/github-script@v7
+        env:
+          REPORT: ${{ steps.validation.outputs.report }}
+          MANIFEST_HASH: ${{ steps.manifest.outputs.hash }}
         with:
           script: |
-            const report = JSON.parse(`${{ steps.validation.outputs.report }}`);
-            const manifestHash = '${{ steps.manifest.outputs.hash }}';
+            const report = JSON.parse(process.env.REPORT || '{}');
+            const manifestHash = process.env.MANIFEST_HASH || 'unknown';
 
             const comment = `## 🔍 Contract Splitting Validation Results
 
@@ -159,22 +162,22 @@ jobs:
             **Timestamp:** ${report.timestamp}
 
             ### Validation Steps
-            ${report.steps.contractSplitting ? '✅' : '❌'} Contract Splitting
-            ${report.steps.manifestValidation ? '✅' : '❌'} Manifest Validation
-            ${report.steps.factoryOperations ? '✅' : '⏭️'} Factory Operations
-            ${report.steps.orchestration ? '✅' : '⏭️'} Orchestration
-            ${report.steps.deploymentValidation ? '✅' : '⏭️'} Deployment Validation
+            ${report?.steps?.contractSplitting ? '✅' : '❌'} Contract Splitting
+            ${report?.steps?.manifestValidation ? '✅' : '❌'} Manifest Validation
+            ${report?.steps?.factoryOperations ? '✅' : '⏭️'} Factory Operations
+            ${report?.steps?.orchestration ? '✅' : '⏭️'} Orchestration
+            ${report?.steps?.deploymentValidation ? '✅' : '⏭️'} Deployment Validation
 
             ### Artifacts
-            - **Manifest:** ${report.artifacts.manifest}
-            - **Merkle Tree:** ${report.artifacts.merkleTree}
-            - **Facet Artifacts:** ${report.artifacts.facetArtifacts}
+            - **Manifest:** ${report?.artifacts?.manifest}
+            - **Merkle Tree:** ${report?.artifacts?.merkleTree}
+            - **Facet Artifacts:** ${report?.artifacts?.facetArtifacts}
 
-            ${report.steps.contractSplitting && report.steps.manifestValidation ? '🎉 **Ready for deployment!**' : '⚠️ **Fix validation issues before deployment**'}
+            ${report?.steps?.contractSplitting && report?.steps?.manifestValidation ? '🎉 **Ready for deployment!**' : '⚠️ **Fix validation issues before deployment**'}
             `;
 
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
+            await github.rest.issues.createComment({
+              issue_number: context.payload.pull_request?.number || context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
               body: comment
@@ -260,10 +263,6 @@ jobs:
     if: github.event.inputs.deploy_mode == 'staging' && github.ref == 'refs/heads/develop'
     timeout-minutes: 45
 
-    environment:
-      name: staging
-      url: ${{ steps.deploy.outputs.dispatcher-url }}
-
     env:
       NETWORK: ${{ github.event.inputs.network || 'sepolia' }}
 
@@ -295,14 +294,14 @@ jobs:
       - name: Deploy to staging
         id: deploy
         run: |
-          echo "🚀 Deploying to staging environment..."
+          echo "Deploying to staging environment..."
 
           # Run staging deployment pipeline
           export DRY_RUN=false
           chmod +x scripts/ci-validation-pipeline.sh
 
           if ./scripts/ci-validation-pipeline.sh; then
-            echo "✅ Staging deployment successful"
+            echo "Staging deployment successful"
 
             # Extract deployment info
             if [ -f "./split-output/manifest.json" ]; then
@@ -311,13 +310,13 @@ jobs:
               echo "dispatcher-url=https://sepolia.etherscan.io/address/$ORCHESTRATOR_ADDRESS" >> $GITHUB_OUTPUT
             fi
           else
-            echo "❌ Staging deployment failed"
+            echo "Staging deployment failed"
             exit 1
           fi
 
       - name: Verify deployment
         run: |
-          echo "🔍 Verifying staging deployment..."
+          echo "Verifying staging deployment..."
 
           # Run post-deployment validation
           if [ -n "$ORCHESTRATOR_ADDRESS" ]; then
@@ -331,7 +330,7 @@ jobs:
       - name: Create deployment summary
         run: |
           cat >> $GITHUB_STEP_SUMMARY << EOF
-          ## 🚀 Staging Deployment Summary
+          ##  Staging Deployment Summary
 
           **Network:** $NETWORK
           **Manifest Hash:** ${{ steps.deploy.outputs.manifest-hash }}
@@ -347,7 +346,7 @@ jobs:
           - ✅ Orchestration successful
           - ✅ Route verification passed
 
-          **Deployment URL:** ${{ steps.deploy.outputs.dispatcher-url }}
+          **Deployment URL:** ${{ steps.deploy.outputs['dispatcher-url'] }}
           EOF
 
   production-deployment:
@@ -356,10 +355,6 @@ jobs:
     needs: [contract-splitting-validation, factory-prediction]
     if: github.event.inputs.deploy_mode == 'production' && github.ref == 'refs/heads/main'
     timeout-minutes: 60
-
-    environment:
-      name: production
-      url: ${{ steps.deploy.outputs.dispatcher-url }}
 
     env:
       NETWORK: ${{ github.event.inputs.network || 'mainnet' }}
@@ -491,7 +486,7 @@ jobs:
           - ✅ Orchestration successful
           - ✅ Post-deployment validation passed
 
-          **Etherscan URL:** ${{ steps.deploy.outputs.dispatcher-url }}
+          **Etherscan URL:** ${{ steps.deploy.outputs['dispatcher-url'] }}
 
           🚀 **PayRox Contract Splitting system is now live in production!**
           EOF

@@ -7,15 +7,15 @@ describe('Diamond Compliance Epoch Rules Tests', function() {
             const _currentEpoch = 1;
             const _nextEpoch = 2;
 
-            expect(nextEpoch).to.be.greaterThan(currentEpoch);
-            expect(nextEpoch - currentEpoch).to.equal(1);
+            expect(_nextEpoch).to.be.greaterThan(_currentEpoch);
+            expect(_nextEpoch - _currentEpoch).to.equal(1);
         });
 
         it('should enforce activation delay', function() {
             const _activationDelay = 86400; // 24 hours in seconds
             const _minimumDelay = 3600; // 1 hour minimum
 
-            expect(activationDelay).to.be.at.least(minimumDelay);
+            expect(_activationDelay).to.be.at.least(_minimumDelay);
         });
 
         it('should validate frozen state transitions', function() {
@@ -24,9 +24,9 @@ describe('Diamond Compliance Epoch Rules Tests', function() {
             const _pendingEpoch = 2;
 
             // Valid state: not frozen, has active epoch, pending epoch is greater
-            expect(frozenState).to.be.false;
-            expect(activeEpoch).to.be.at.least(0);
-            expect(pendingEpoch).to.be.greaterThan(activeEpoch);
+            expect(_frozenState).to.be.false;
+            expect(_activeEpoch).to.be.at.least(0);
+            expect(_pendingEpoch).to.be.greaterThan(_activeEpoch);
         });
     });
 
@@ -34,11 +34,11 @@ describe('Diamond Compliance Epoch Rules Tests', function() {
         it('should validate root commitment process', async function() {
             // Simulate commitRoot(root, activeEpoch+1) process
             const _activeEpoch = 1;
-            const _commitEpoch = activeEpoch + 1;
+            const _commitEpoch = _activeEpoch + 1;
             const _mockRoot = ethers.keccak256(ethers.toUtf8Bytes('test-root'));
 
-            expect(commitEpoch).to.equal(2);
-            expect(mockRoot).to.match(/^0x[a-f0-9]{64}$/);
+            expect(_commitEpoch).to.equal(2);
+            expect(_mockRoot).to.match(/^0x[a-f0-9]{64}$/);
         });
 
         it('should validate route application with proofs', function() {
@@ -46,17 +46,17 @@ describe('Diamond Compliance Epoch Rules Tests', function() {
             const _hasValidProofs = true; // Simulated
             const _routesApplied = true; // Simulated
 
-            expect(hasValidProofs).to.be.true;
-            expect(routesApplied).to.be.true;
+            expect(_hasValidProofs).to.be.true;
+            expect(_routesApplied).to.be.true;
         });
 
         it('should enforce activation delay waiting period', function() {
             const _commitTimestamp = Math.floor(Date.now() / 1000);
             const _activationDelay = 86400; // 24 hours
-            const _earliestActivation = commitTimestamp + activationDelay;
-            const _currentTime = commitTimestamp + 100; // 100 seconds later
+            const _earliestActivation = _commitTimestamp + _activationDelay;
+            const _currentTime = _commitTimestamp + 100; // 100 seconds later
 
-            expect(currentTime).to.be.lessThan(earliestActivation);
+            expect(_currentTime).to.be.lessThan(_earliestActivation);
         });
     });
 

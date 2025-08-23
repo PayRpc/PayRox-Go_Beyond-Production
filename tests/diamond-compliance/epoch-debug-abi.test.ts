@@ -11,25 +11,25 @@ async function deployEpochSystemFixture() {
   }
 
   const _EpochManager = await ethers.getContractFactory("EpochManager");
-  const _epochManager = await EpochManager.deploy();
-  await epochManager.waitForDeployment();
+  const _epochManager = await _EpochManager.deploy();
+  await _epochManager.waitForDeployment();
 
   const _FacetA = await ethers.getContractFactory("FacetA");
-  const _facetA = await FacetA.deploy();
-  await facetA.waitForDeployment();
+  const _facetA = await _FacetA.deploy();
+  await _facetA.waitForDeployment();
 
   const _FacetB = await ethers.getContractFactory("FacetB");
-  const _facetB = await FacetB.deploy();
-  await facetB.waitForDeployment();
+  const _facetB = await _FacetB.deploy();
+  await _facetB.waitForDeployment();
 
   const _DiamondWithEpoch = await ethers.getContractFactory("DiamondWithEpoch");
-  const diamond = await DiamondWithEpoch.deploy(
+  const diamond = await _DiamondWithEpoch.deploy(
     await owner.getAddress(),
-    epochManager.target,
+    _epochManager.target,
   );
   await diamond.waitForDeployment();
 
-  return { diamond, epochManager, facetA, facetB };
+  return { diamond, epochManager: _epochManager, facetA: _facetA, facetB: _facetB };
 }
 
 describe("Epoch debug ABI", function () {
@@ -38,7 +38,7 @@ describe("Epoch debug ABI", function () {
     // Print ABI function names
     const _iface = diamond.interface as any;
     console.log("--- Diamond ABI functions ---");
-    for (const f of Object.values(iface?.functions || {})) {
+    for (const f of Object.values(_iface?.functions || {})) {
       try {
         console.log((f as any).format());
       } catch (e) {

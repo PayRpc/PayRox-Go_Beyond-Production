@@ -5,9 +5,9 @@ import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 describe("RefactorSafetyFacet", function () {
   async function deployFacet() {
     const _Facet = await ethers.getContractFactory("RefactorSafetyFacet");
-    const _facet = await Facet.deploy();
-    await facet.waitForDeployment();
-    return { facet };
+    const _facet = await _Facet.deploy();
+    await _facet.waitForDeployment();
+    return { facet: _facet };
   }
 
   it("emergencyRefactorValidation() returns true", async () => {
@@ -42,12 +42,12 @@ describe("RefactorSafetyFacet", function () {
       .filter((fr: any) => fr.type === "function")
       .map((fr: any) => {
         const _inputs = (fr.inputs || []).map((i: any) => i.type).join(",");
-        const _sig = `${fr.name}(${inputs})`;
-        return selectorOf(sig);
+        const _sig = `${fr.name}(${_inputs})`;
+        return selectorOf(_sig);
       });
 
     for (const s of facetSelectors) {
-      expect(bannedSelectors.has(s)).to.equal(
+      expect(_bannedSelectors.has(s)).to.equal(
         false,
         `Facet exposes banned selector ${s}`,
       );

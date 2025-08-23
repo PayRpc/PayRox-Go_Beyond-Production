@@ -4,6 +4,8 @@ on:
   push:
     branches: [main, release/**]
     tags: [v*]
+  pull_request:
+    branches: [main, release/**]
   workflow_dispatch:
 
 jobs:
@@ -14,11 +16,42 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 20 }
       - run: npm ci
+
+      - name: Pull pinned Mythril
+        run: docker pull mythril/myth:0.24.6
+
+      - name: Set Fast PR mode for pull requests
+        if: github.event_name == 'pull_request'
+        run: echo "MYTH_FAIL_ON=high" >> $GITHUB_ENV
+
       - run: npm run pipeline:predictive
+      - name: Mythril (predictive, sources)
+        run: npm run sec:myth:src
+        env:
+          MYTH_CMD: docker
+
+      - name: Convert Mythril to SARIF
+        if: always()
+        run: |
+          if [ -f split-output/mythril-src.latest.json ]; then
+            npx ts-node tools/mythril-to-sarif.ts split-output/mythril-src.latest.json split-output/mythril-src.sarif
+          fi
+
+      - name: Upload SARIF
+        if: always() && hashFiles('split-output/mythril-src.sarif') != ''
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: split-output/mythril-src.sarif
+
       - run: npm run pipeline:observed || true
+      - name: Mythril (observed, on-chain bytecode)
+        if: ${{ always() && hashFiles('split-output/deployed-addresses.json') != '' }}
+        run: npm run sec:myth:addr
+        env:
+          MYTH_CMD: docker
 
   sign-manifest:
-    if: ${{ (github.ref == 'refs/heads/main' || startsWith(github.ref,'refs/heads/release/') || startsWith(github.ref,'refs/tags/v')) && secrets.SIGNER_KEY != '' && secrets.DISPATCHER_ADDR != '' }}
+    if: ${{ github.ref == 'refs/heads/main' || startsWith(github.ref,'refs/heads/release/') || startsWith(github.ref,'refs/tags/v') }}
     needs: [selfcheck]
     runs-on: ubuntu-latest
     env:
@@ -26,6 +59,13 @@ jobs:
       DISPATCHER_ADDR: ${{ secrets.DISPATCHER_ADDR }}
       CHAIN_ID: ${{ vars.CHAIN_ID || '1' }}
     steps:
+      - name: Check required secrets
+        run: |
+          if [ -z "$SIGNER_KEY" ] || [ -z "$DISPATCHER_ADDR" ]; then
+            echo "Missing required secrets: SIGNER_KEY and/or DISPATCHER_ADDR"
+            exit 1
+          fi
+
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: 20 }
