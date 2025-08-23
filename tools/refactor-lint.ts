@@ -1,18 +1,17 @@
 // Minimal refactor-lint skeleton to keep the repo TypeScript-clean.
 import fs from "fs";
-import path from "path";
 import { program } from "commander";
 
 interface LintResult { success: boolean; errors: any[]; warnings: any[]; summary: Record<string, any> }
 
 class PayRoxRefactorLinter {
-  constructor(private facetsDir = "./facets", private manifestPath = "./payrox-manifest.json") {}
+  constructor(private _facetsDir = "./facets", private _manifestPath = "./payrox-manifest.json") {}
 
   async lint(): Promise<LintResult> {
     // Keep behaviour intentionally small: detect missing facets directory, otherwise report success.
     const errors: any[] = [];
-    if (!fs.existsSync(this.facetsDir)) {
-      errors.push({ type: "SIZE_LIMIT", message: `Facets directory not found: ${this.facetsDir}` });
+    if (!fs.existsSync(this._facetsDir)) {
+      errors.push({ type: "SIZE_LIMIT", message: `Facets directory not found: ${this._facetsDir}` });
     }
 
     const summary = { facetsChecked: 0 };

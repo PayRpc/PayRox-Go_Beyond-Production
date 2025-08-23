@@ -1,6 +1,4 @@
 import { ethers } from "hardhat";
-import * as dotenv from "dotenv";
-dotenv.config();
 
 async function main() {
   const FACTORY = process.env.FACTORY_ADDRESS || "";
@@ -21,7 +19,7 @@ async function main() {
   if (DISPATCHER) {
     try {
       const code = await ethers.provider.getCode(DISPATCHER);
-      const hash = ethers.utils.keccak256(code);
+      const hash = ethers.keccak256(code);
       console.log("On-chain EXTCODEHASH(dispatcher):", hash);
       if (CODEHASH && CODEHASH !== "0x0" && CODEHASH !== hash) {
         console.warn("DISPATCHER_CODEHASH mismatch vs on-chain code. Ensure you're pointing at correct dispatcher or update DISPATCHER_CODEHASH.");

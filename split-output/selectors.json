@@ -1,6 +1,6 @@
 {
-  "timestamp": "2025-08-22T19:10:34.446Z",
-  "totalSelectors": 84,
+  "timestamp": "2025-08-23T01:11:31.652Z",
+  "totalSelectors": 71,
   "totalConflicts": 0,
   "selectors": [
     {
@@ -17,14 +17,6 @@
       "facet": "ChunkFactoryFacet",
       "contractName": "ChunkFactoryFacet",
       "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "signature": "ensureBuybackAllowed()",
-      "selector": "0x0d2644d2",
-      "facet": "IAntiBotFacet",
-      "contractName": "IAntiBotFacet",
-      "stateMutability": "view",
       "type": "function"
     },
     {
@@ -124,14 +116,6 @@
       "type": "function"
     },
     {
-      "signature": "setEnabled(bool)",
-      "selector": "0x328d8f72",
-      "facet": "IAntiBotFacet",
-      "contractName": "IAntiBotFacet",
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
       "signature": "exists(bytes32)",
       "selector": "0x38a699a4",
       "facet": "ChunkFactoryFacet",
@@ -212,22 +196,6 @@
       "type": "function"
     },
     {
-      "signature": "MONITOR_ROLE()",
-      "selector": "0x4d9b47e2",
-      "facet": "IAntiBotFacet",
-      "contractName": "IAntiBotFacet",
-      "stateMutability": "pure",
-      "type": "function"
-    },
-    {
-      "signature": "setBuybackPaused(bool)",
-      "selector": "0x527555da",
-      "facet": "IAntiBotFacet",
-      "contractName": "IAntiBotFacet",
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
       "signature": "version()",
       "selector": "0x54fd4d50",
       "facet": "VersionFacet",
@@ -284,14 +252,6 @@
       "type": "function"
     },
     {
-      "signature": "setThrottleBlocks(uint256)",
-      "selector": "0x75b9f5b2",
-      "facet": "IAntiBotFacet",
-      "contractName": "IAntiBotFacet",
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
       "signature": "getFacetInfo()",
       "selector": "0x7ab7b94b",
       "facet": "PaymentsFacet",
@@ -340,14 +300,6 @@
       "type": "function"
     },
     {
-      "signature": "reportMarketMove(int256)",
-      "selector": "0x88ded880",
-      "facet": "IAntiBotFacet",
-      "contractName": "IAntiBotFacet",
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
       "signature": "owner()",
       "selector": "0x8da5cb5b",
       "facet": "ChunkFactoryFacet",
@@ -377,14 +329,6 @@
       "facet": "ChunkFactoryFacet",
       "contractName": "ChunkFactoryFacet",
       "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "signature": "validateTransaction(address)",
-      "selector": "0x8fa3a84c",
-      "facet": "IAntiBotFacet",
-      "contractName": "IAntiBotFacet",
-      "stateMutability": "nonpayable",
       "type": "function"
     },
     {
@@ -432,14 +376,6 @@
       "selector": "0x96a95086",
       "facet": "RewardsFacet",
       "contractName": "RewardsFacet",
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "signature": "isTrusted(address)",
-      "selector": "0x96d64879",
-      "facet": "IAntiBotFacet",
-      "contractName": "IAntiBotFacet",
       "stateMutability": "view",
       "type": "function"
     },
@@ -540,26 +476,10 @@
       "type": "function"
     },
     {
-      "signature": "addTrusted(address)",
-      "selector": "0xd4d0d6e6",
-      "facet": "IAntiBotFacet",
-      "contractName": "IAntiBotFacet",
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
       "signature": "revokeRole(bytes32,address)",
       "selector": "0xd547741f",
       "facet": "AccessControlFacet",
       "contractName": "AccessControlFacet",
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "signature": "removeTrusted(address)",
-      "selector": "0xd55e62a0",
-      "facet": "IAntiBotFacet",
-      "contractName": "IAntiBotFacet",
       "stateMutability": "nonpayable",
       "type": "function"
     },
@@ -569,22 +489,6 @@
       "facet": "PaymentsFacet",
       "contractName": "PaymentsFacet",
       "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "signature": "resetCircuitBreaker()",
-      "selector": "0xde5f8d93",
-      "facet": "IAntiBotFacet",
-      "contractName": "IAntiBotFacet",
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "signature": "setThresholds(uint256,uint256)",
-      "selector": "0xe3064a77",
-      "facet": "IAntiBotFacet",
-      "contractName": "IAntiBotFacet",
-      "stateMutability": "nonpayable",
       "type": "function"
     },
     {
@@ -649,14 +553,6 @@
       "facet": "ChunkFactoryFacet",
       "contractName": "ChunkFactoryFacet",
       "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "signature": "GOVERNANCE_ROLE()",
-      "selector": "0xf36c8f5c",
-      "facet": "IAntiBotFacet",
-      "contractName": "IAntiBotFacet",
-      "stateMutability": "pure",
       "type": "function"
     },
     {

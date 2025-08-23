@@ -17,7 +17,7 @@ import path from 'path';
  */
 
 const hre: any = require('hardhat')
-import type { Contract, ContractFactory } from 'ethers'
+import type { ContractFactory } from 'ethers'
 
 // ══════════════════════════════════════════════════════════════════════
 // INTERFACES & TYPES
@@ -190,7 +190,6 @@ class EnhancedCrossChainDeployer {
 
     // Step 1: Deploy DeterministicDeploymentManager
     console.log('  📋 Deploying DeterministicDeploymentManager...')
-    const provider = overrides?.provider ?? hre.ethers.provider
     const wallet = overrides?.wallet
 
     const DeploymentManagerFactory = this.artifacts.get('DeterministicDeploymentManager')

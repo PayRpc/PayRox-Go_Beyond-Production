@@ -1,0 +1,89 @@
+{
+  "timestamp": "2025-08-23T01:11:31.651Z",
+  "mode": "observed",
+  "buildHash": "0x8f4982c9289a44652bbb51f532ec3f328a94d463bb3bc994d3b28bc50551b073",
+  "config": {
+    "solcVersion": "0.8.30",
+    "optimizer": {
+      "enabled": true,
+      "runs": 200
+    },
+    "evmVersion": "cancun",
+    "viaIR": true,
+    "metadataBytecodeHash": "none"
+  },
+  "codehashes": [
+    {
+      "name": "AccessControlFacet",
+      "facetAddress": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+      "codehash": "0x7087915d16c08c1c13957801d166ad5e014e04dd5d60249961b7f0dddd4030ab",
+      "buildHash": "0x8f4982c9289a44652bbb51f532ec3f328a94d463bb3bc994d3b28bc50551b073"
+    },
+    {
+      "name": "ChunkFactoryFacet",
+      "facetAddress": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
+      "codehash": "0x4d4dda8ffc977b0244c94501ad49ec79f135e3eff5445052d48da9b212cf5bda",
+      "buildHash": "0x8f4982c9289a44652bbb51f532ec3f328a94d463bb3bc994d3b28bc50551b073"
+    },
+    {
+      "name": "ERC165Facet",
+      "facetAddress": "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
+      "codehash": "0xcb6cc4ffa40a041b1d206b8f7eb5b092263ce7a64440d3aa07b548142ecf87ff",
+      "buildHash": "0x8f4982c9289a44652bbb51f532ec3f328a94d463bb3bc994d3b28bc50551b073"
+    },
+    {
+      "name": "PauseFacet",
+      "facetAddress": "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
+      "codehash": "0xbb30032645c5d4ee6a8c33b97ab270e5c9673ae0b147d54bd1d0febc555d51b8",
+      "buildHash": "0x8f4982c9289a44652bbb51f532ec3f328a94d463bb3bc994d3b28bc50551b073"
+    },
+    {
+      "name": "PaymentsFacet",
+      "facetAddress": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
+      "codehash": "0xf0bae8dc6558ea30cb37e10e5bb07e94bad806ea6e61dd28c0d9ff7db81ddf7b",
+      "buildHash": "0x8f4982c9289a44652bbb51f532ec3f328a94d463bb3bc994d3b28bc50551b073"
+    },
+    {
+      "name": "PayRoxAdminFacet",
+      "facetAddress": "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707",
+      "codehash": "0xe763f7d775fd96773bfbf6c43818d3e63ffe5aa5648620b4675ff87fa64686f7",
+      "buildHash": "0x8f4982c9289a44652bbb51f532ec3f328a94d463bb3bc994d3b28bc50551b073"
+    },
+    {
+      "name": "PayRoxPaymentsFacet",
+      "facetAddress": "0x0165878A594ca255338adfa4d48449f69242Eb8F",
+      "codehash": "0x8bac1c13de4a5957c260783c4770837f7227c0124783d6160f722c3bd12f5009",
+      "buildHash": "0x8f4982c9289a44652bbb51f532ec3f328a94d463bb3bc994d3b28bc50551b073"
+    },
+    {
+      "name": "RefactorSafetyFacet",
+      "facetAddress": "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853",
+      "codehash": "0x9008fdec1e7694c4aca35350e4090466ed52a1180559b3c8a030e0728a87d79f",
+      "buildHash": "0x8f4982c9289a44652bbb51f532ec3f328a94d463bb3bc994d3b28bc50551b073"
+    },
+    {
+      "name": "RewardsFacet",
+      "facetAddress": "0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6",
+      "codehash": "0xae6003692275bde13292c9758a2421e081da361183158a467a7aaa279744258b",
+      "buildHash": "0x8f4982c9289a44652bbb51f532ec3f328a94d463bb3bc994d3b28bc50551b073"
+    },
+    {
+      "name": "SaltViewFacet",
+      "facetAddress": "0x8A791620dd6260079BF849Dc5567aDC3F2FdC318",
+      "codehash": "0xb34553c8ef06c4232127405af73be6bbd6e52929456ff06710653547d356f75f",
+      "buildHash": "0x8f4982c9289a44652bbb51f532ec3f328a94d463bb3bc994d3b28bc50551b073"
+    },
+    {
+      "name": "SecurityFacet",
+      "facetAddress": "0x610178dA211FEF7D417bC0e6FeD39F05609AD788",
+      "codehash": "0x2697c51b0db4ab42a829d38a118c82ab6a1b0d4523507e883519339dfb83a0cf",
+      "buildHash": "0x8f4982c9289a44652bbb51f532ec3f328a94d463bb3bc994d3b28bc50551b073"
+    },
+    {
+      "name": "VersionFacet",
+      "facetAddress": "0xB7f8BC63BbcaD18155201308C8f3540b07f84F5e",
+      "codehash": "0x239c23d1f4b65168a18cd4395a6e34ce7ca8526717d20c96532889b7d8d3c3d8",
+      "buildHash": "0x8f4982c9289a44652bbb51f532ec3f328a94d463bb3bc994d3b28bc50551b073"
+    }
+  ]
+}

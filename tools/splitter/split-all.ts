@@ -24,18 +24,14 @@
 
 import fs from "fs";
 import path from "path";
-import crypto from "crypto";
-import { fileURLToPath } from "url";
 import process from "process";
 
 // Prefer the maintained fork; fallback to the older name if needed.
 let SolidityParser: any;
 try {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
   SolidityParser = require("@solidity-parser/parser");
 } catch (_e) {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     SolidityParser = require("solidity-parser-antlr");
   } catch (e2) {
     console.error(
@@ -50,7 +46,6 @@ function keccak256Hex(inputUtf8: string): string {
   // Using a pure JS keccak lib would be ideal; Node crypto does not ship keccak.
   // For broad compatibility we include a tiny fallback via 'keccak' if installed.
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const Keccak = require("keccak");
     const hash = new Keccak("keccak256").update(Buffer.from(inputUtf8, "utf8")).digest("hex");
     return "0x" + hash;
@@ -481,7 +476,7 @@ ${selectors}
 // ---------- Main Splitter ----------
 
 class ContractSplitter {
-  constructor(private cfg: SplitConfig) {}
+  constructor(private _cfg: SplitConfig) {}
 
   splitAll = async (directory: string) => {
     console.log(`🔧 Scanning: ${directory}`);
@@ -496,23 +491,23 @@ class ContractSplitter {
 
     const manifest: ManifestEntry[] = [];
     const diamond: DiamondCutPreview = { name: path.basename(directory), facets: [] };
-    ensureDir(this.cfg.outputDirectory);
+    ensureDir(this._cfg.outputDirectory);
 
     for (const file of files) {
       const source = fs.readFileSync(file, "utf8");
       const contractInfos = analyzeContract(file, source);
       for (const ci of contractInfos) {
-        const needsSplit = ci.sourceBytes > this.cfg.maxContractSourceBytes || ci.functions.length > 0;
+        const needsSplit = ci.sourceBytes > this._cfg.maxContractSourceBytes || ci.functions.length > 0;
         if (!needsSplit) continue;
 
-        const packs = packFunctionsIntoFacets(ci, this.cfg.targetFacetSourceBytes);
+        const packs = packFunctionsIntoFacets(ci, this._cfg.targetFacetSourceBytes);
 
-        const outDirForContract = path.join(this.cfg.outputDirectory, ci.contractName);
+        const outDirForContract = path.join(this._cfg.outputDirectory, ci.contractName);
         ensureDir(outDirForContract);
         const libDir = path.join(outDirForContract, "libraries");
         const ifaceDir = path.join(outDirForContract, "interfaces");
-        if (this.cfg.generateStorageLib) ensureDir(libDir);
-        if (this.cfg.generateInterfaces) ensureDir(ifaceDir);
+        if (this._cfg.generateStorageLib) ensureDir(libDir);
+        if (this._cfg.generateInterfaces) ensureDir(ifaceDir);
 
         for (const p of packs) {
           const facetPath = path.join(outDirForContract, `${p.facetName}.sol`);
@@ -520,32 +515,32 @@ class ContractSplitter {
             ci,
             p.facetName,
             p.funcs,
-            this.cfg.versionTag,
-            this.cfg.pragma,
-            this.cfg.generateStorageLib,
+            this._cfg.versionTag,
+            this._cfg.pragma,
+            this._cfg.generateStorageLib,
           );
-          safeWriteFileSync(facetPath, facetSrc, this.cfg.forceOverwrite);
+          safeWriteFileSync(facetPath, facetSrc, this._cfg.forceOverwrite);
 
-          if (this.cfg.generateInterfaces) {
-            const iSrc = genInterface(p.facetName, p.funcs, this.cfg.pragma);
+          if (this._cfg.generateInterfaces) {
+            const iSrc = genInterface(p.facetName, p.funcs, this._cfg.pragma);
             const iPath = path.join(ifaceDir, `I${p.facetName}.sol`);
-            safeWriteFileSync(iPath, iSrc, this.cfg.forceOverwrite);
+            safeWriteFileSync(iPath, iSrc, this._cfg.forceOverwrite);
           }
 
-          if (this.cfg.generateStorageLib) {
-            const sSrc = genStorageLib(ci, p.facetName, this.cfg.pragma);
+          if (this._cfg.generateStorageLib) {
+            const sSrc = genStorageLib(ci, p.facetName, this._cfg.pragma);
             const sPath = path.join(libDir, `${p.facetName}Storage.sol`);
-            safeWriteFileSync(sPath, sSrc, this.cfg.forceOverwrite);
+            safeWriteFileSync(sPath, sSrc, this._cfg.forceOverwrite);
           }
 
           // Manifest aggregation
           const selectors = p.funcs.map((f) => f.selector);
-          diamond.facets.push({ facet: p.facetName, file: path.relative(this.cfg.outputDirectory, facetPath), selectors });
+          diamond.facets.push({ facet: p.facetName, file: path.relative(this._cfg.outputDirectory, facetPath), selectors });
           for (const f of p.funcs) {
             manifest.push({
               contract: ci.contractName,
               facet: p.facetName,
-              file: path.relative(this.cfg.outputDirectory, facetPath),
+              file: path.relative(this._cfg.outputDirectory, facetPath),
               signature: f.signature,
               selector: f.selector,
             });
@@ -557,10 +552,10 @@ class ContractSplitter {
     }
 
     // Write manifest files at output root
-    const manifestPath = path.join(this.cfg.outputDirectory, "manifest.json");
-    const diamondPath = path.join(this.cfg.outputDirectory, "diamondCut.preview.json");
-    safeWriteFileSync(manifestPath, JSON.stringify(manifest, null, 2), this.cfg.forceOverwrite);
-    safeWriteFileSync(diamondPath, JSON.stringify(diamond, null, 2), this.cfg.forceOverwrite);
+    const manifestPath = path.join(this._cfg.outputDirectory, "manifest.json");
+    const diamondPath = path.join(this._cfg.outputDirectory, "diamondCut.preview.json");
+    safeWriteFileSync(manifestPath, JSON.stringify(manifest, null, 2), this._cfg.forceOverwrite);
+    safeWriteFileSync(diamondPath, JSON.stringify(diamond, null, 2), this._cfg.forceOverwrite);
     console.log(`\n✅ Done. Manifest: ${manifestPath}`);
   };
 }
@@ -581,7 +576,6 @@ async function main() {
 
 if (process.argv[1] && path.basename(process.argv[1]).includes("split-all")) {
   // run only when executed as a script (keeps exportable for tests)
-  // eslint-disable-next-line @typescript-eslint/no-floating-promises
   main();
 }
 

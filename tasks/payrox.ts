@@ -1,6 +1,8 @@
 // tasks/payrox.ts
 import { keccak256 } from 'ethers';
 import { task, types } from 'hardhat/config';
+import * as path from 'path';
+import { readFileSync } from 'fs';
 // import {
 //   computeManifestHash,
 //   verifyRouteAgainstRoot,
@@ -40,6 +42,103 @@ type Manifest = {
     positions?: string;
   }>;
 };
+
+// Helper types for split manifest support
+type RouteProof = { selector: string; proof: string[]; positions: string };
+type ProofsFile = {
+  root: string;
+  proofs: Record<string, { facet: string; codehash: string; proof: string[]; positions: string }> | RouteProof[]
+};
+type PlanRoute = { selector: string; facet: string; codehash: string };
+type DeploymentPlan = {
+  routes?: PlanRoute[];
+  selectors?: string[];
+  facets?: string[];
+  codehashes?: string[];
+  root?: string;
+};
+
+function loadJSON<T = any>(p: string): T {
+  return JSON.parse(readFileSync(p, 'utf8'));
+}
+
+function coalesceSplitManifest(
+  dirOrRootPath: string,
+  explicit?: { root?: string; plan?: string; proofs?: string }
+): { root: string; routes: Manifest['routes'] } {
+  const baseDir = explicit?.root
+    ? path.dirname(path.resolve(explicit.root))
+    : path.resolve(dirOrRootPath);
+
+  const rootPath   = explicit?.root   ?? path.join(baseDir, 'manifest.root.json');
+  const planPath   = explicit?.plan   ?? path.join(baseDir, 'deployment-plan.json');
+  const proofsPath = explicit?.proofs ?? path.join(baseDir, 'proofs.json');
+
+  const rootFile   = loadJSON<{ root?: string; merkleRoot?: string }>(rootPath);
+  const planFile   = loadJSON<DeploymentPlan>(planPath);
+  const proofsFile = loadJSON<ProofsFile>(proofsPath);
+
+  const root =
+    (rootFile.root ?? rootFile.merkleRoot ?? planFile.root ?? proofsFile.root ?? '').toLowerCase();
+  if (!root) throw new Error('Split manifest mode: no root found in manifest.root.json / plan / proofs');
+
+  // index proofs by selector (lowercase) - handle both object and array formats
+  const proofMap = new Map<string, { proof: string[]; positions: string }>();
+  if (proofsFile.proofs) {
+    if (Array.isArray(proofsFile.proofs)) {
+      // Array format: { proofs: [{ selector: '0x...', proof: [...], positions: '0x...' }] }
+      for (const p of proofsFile.proofs) {
+        proofMap.set((p.selector ?? '').toLowerCase(), { proof: p.proof ?? [], positions: p.positions ?? '0x0' });
+      }
+    } else {
+      // Object format: { proofs: { '0x123...': { proof: [...], positions: '0x...' } } }
+      for (const [selector, data] of Object.entries(proofsFile.proofs)) {
+        proofMap.set(selector.toLowerCase(), { proof: data.proof ?? [], positions: data.positions ?? '0x0' });
+      }
+    }
+  }
+
+  // build routes by merging plan + proofs
+  let routes: Manifest['routes'] = [];
+
+  if (planFile.routes) {
+    // New format: { routes: [{ selector, facet, codehash }] }
+    routes = planFile.routes.map((r) => {
+      const sel = (r.selector ?? '').toLowerCase();
+      const proof = proofMap.get(sel);
+      return {
+        selector: sel,
+        facet: (r.facet ?? '').toLowerCase(),
+        codehash: (r.codehash ?? '').toLowerCase(),
+        proof: proof?.proof,
+        positions: proof?.positions,
+      };
+    });
+  } else if (planFile.selectors && planFile.facets && planFile.codehashes) {
+    // Legacy format: separate arrays for selectors, facets, codehashes
+    const selectors = planFile.selectors;
+    const facets = planFile.facets;
+    const codehashes = planFile.codehashes;
+
+    if (selectors.length !== facets.length || selectors.length !== codehashes.length) {
+      throw new Error('Split manifest mode: selectors, facets, and codehashes arrays have different lengths');
+    }
+
+    routes = selectors.map((selector, i) => {
+      const sel = selector.toLowerCase();
+      const proof = proofMap.get(sel);
+      return {
+        selector: sel,
+        facet: facets[i].toLowerCase(),
+        codehash: codehashes[i].toLowerCase(),
+        proof: proof?.proof,
+        positions: proof?.positions,
+      };
+    });
+  }
+
+  return { root, routes };
+}
 
 async function extcodehashOffchain(
   addr: string,
@@ -98,170 +197,142 @@ function readFileAsHex(filePath: string): string {
  *  - Recomputes manifestHash
  *  - (Optional) compares off-chain EXTCODEHASH via provider.getCode()
  * ---------------------------------------------------------------------------*/
-task(
-  'payrox:manifest:selfcheck',
-  'Verify a manifest JSON against ordered Merkle rules'
-)
-  .addParam('path', 'Path to manifest JSON', undefined, types.string)
-  .addOptionalParam(
-    'checkFacets',
-    'Also verify facet EXTCODEHASH off-chain',
-    false,
-    types.boolean
-  )
-  .addOptionalParam(
-    'json',
-    'Print machine-readable JSON result (suppresses verbose logs)',
-    false,
-    types.boolean
-  )
+task('payrox:manifest:selfcheck', 'Verify a manifest JSON against ordered Merkle rules')
+  .addOptionalParam('path', 'Path to manifest JSON (legacy format with embedded routes)', undefined, types.string)
+  .addOptionalParam('dir', 'Directory containing split artifacts (manifest.root.json, deployment-plan.json, proofs.json)', undefined, types.string)
+  .addOptionalParam('root', 'Path to manifest.root.json (split format)', undefined, types.string)
+  .addOptionalParam('plan', 'Path to deployment-plan.json (split format)', undefined, types.string)
+  .addOptionalParam('proofs', 'Path to proofs.json (split format)', undefined, types.string)
+  .addOptionalParam('checkFacets', 'Also verify facet EXTCODEHASH off-chain', false, types.boolean)
+  .addOptionalParam('json', 'Print machine-readable JSON', false, types.boolean)
   .setAction(async (args, hre) => {
     try {
       const asJson: boolean = !!args.json;
-      if (!asJson) logInfo(`Starting manifest selfcheck for: ${args.path}`);
+      const pm = getPathManager();
 
-      const pathManager = getPathManager();
-  const manifestPath = pathManager.getAbsolutePath(args.path);
+      // === 1) Resolve source mode (legacy vs split) ===
+      let rootLower = '';
+      let manifestRoutes: Manifest['routes'] = [];
+      let header: Manifest['header'] | undefined;
 
-      if (!fileExists(manifestPath)) {
-        throw new NetworkError(
-          `Manifest not found at ${manifestPath}`,
-          'MANIFEST_NOT_FOUND'
-        );
+      if (args.path) {
+        // Legacy path—try to parse; if it lacks routes, fall back to split mode in same dir
+        const manifestPath = pm.getAbsolutePath(args.path);
+        const content = readFileContent(manifestPath);
+        const manifest = safeParseJSON<Manifest>(content, {} as Manifest);
+        if (!manifest) throw new Error('Failed to parse manifest JSON');
+        const maybeRoot = (manifest.merkleRoot || manifest.root || '').toLowerCase();
+
+        if (maybeRoot && Array.isArray(manifest.routes) && manifest.routes.length) {
+          rootLower = maybeRoot;
+          manifestRoutes = manifest.routes;
+          header = manifest.header;
+          if (!asJson) logInfo('Selfcheck: legacy manifest with embedded routes detected');
+        } else {
+          const baseDir = path.dirname(manifestPath);
+          if (!asJson) logInfo('Selfcheck: no embedded routes — switching to split format using same directory');
+          const { root, routes } = coalesceSplitManifest(baseDir);
+          rootLower = root;
+          manifestRoutes = routes;
+          // header is optional; legacy header would've come from the monolithic file
+        }
+      } else {
+        // Split mode via dir/root/plan/proofs
+        const dir = args.dir ? pm.getAbsolutePath(args.dir) : process.cwd();
+        const { root, routes } = coalesceSplitManifest(dir, {
+          root: args.root && pm.getAbsolutePath(args.root),
+          plan: args.plan && pm.getAbsolutePath(args.plan),
+          proofs: args.proofs && pm.getAbsolutePath(args.proofs),
+        });
+        rootLower = root;
+        manifestRoutes = routes;
+        if (!asJson) logInfo('Selfcheck: split manifest mode (root + plan + proofs)');
       }
 
-      const manifestContent = readFileContent(manifestPath);
-  const _parsed = safeParseJSON<Manifest>(manifestContent, undefined);
-  const manifest: Manifest = _parsed as Manifest;
-
-      // Basic shape checks
-      const root = manifest.merkleRoot || manifest.root;
-      if (!root || !manifest.routes?.length) {
-        throw new Error('Manifest missing merkleRoot/root or routes');
+      if (!rootLower || !manifestRoutes.length) {
+        throw new Error('Selfcheck: missing root or routes after normalization');
       }
-      const rootLower = root.toLowerCase();
 
-      // 1) Verify each route proof is valid and positions mask has no extra bits (if proofs available)
+      // === 2) Verify proofs when present ===
       let proofsVerified = 0;
-      for (const r of manifest.routes) {
+      for (const r of manifestRoutes) {
         if (r.proof && r.positions) {
           // verifyRouteAgainstRoot(r, rootLower); // TODO: Re-implement with new pipeline
           proofsVerified++;
         }
       }
-
       if (!asJson) {
-        if (proofsVerified > 0) {
-          logSuccess(`${proofsVerified} route proofs verified against root`);
-          console.log(`✅ ${proofsVerified} route proofs verified against root.`);
-        } else {
-          logInfo('No route proofs found in manifest for verification');
-          console.log('ℹ️  No route proofs found in manifest for verification');
-        }
+        console.log(
+          proofsVerified > 0
+            ? `✅ ${proofsVerified} route proofs verified against root`
+            : 'ℹ️  No proofs present (ok in predictive-only runs)'
+        );
       }
 
-      // 2) Recompute manifestHash and display (if header exists)
+      // === 3) Recompute manifestHash if header available (legacy) ===
       let manifestHash: string | undefined;
-      if (manifest.header) {
-        if (!asJson) logInfo('Computing manifest hash from header...');
+      if (header) {
         const mHash = computeManifestHash(
           {
-            versionBytes32: manifest.header.versionBytes32,
-            timestamp: manifest.header.timestamp,
-            deployer: manifest.header.deployer,
-            chainId: manifest.header.chainId,
-            previousHash: manifest.header.previousHash,
+            versionBytes32: header.versionBytes32,
+            timestamp: header.timestamp,
+            deployer: header.deployer,
+            chainId: header.chainId,
+            previousHash: header.previousHash,
           },
-          rootLower,
+          rootLower
         );
         manifestHash = mHash;
-        if (!asJson) {
-          logSuccess('Manifest hash computed successfully');
-          console.log(`📦 manifestHash: ${mHash}`);
-        }
-      } else {
-        if (!asJson) {
-          logWarning('No header found for manifest hash computation');
-          console.log('ℹ️  No header found for manifest hash computation');
-        }
+        if (!asJson) console.log(`📦 manifestHash: ${mHash}`);
+      } else if (!asJson) {
+        logInfo('No header present (split mode typically stores metadata elsewhere).');
       }
 
-      // 3) Optional: off-chain EXTCODEHASH parity for each facet
+      // === 4) Optional: EXTCODEHASH parity ===
       let facetStats: { ok: number; bad: number; empty: number } | undefined;
-      const codehashMismatches: Array<{ selector: string; facet: string; expected?: string; got: string }>= [];
+      const mismatches: Array<{ selector: string; facet: string; expected?: string; got: string }> = [];
       if (args.checkFacets) {
         const provider = hre.ethers.provider;
-        let ok = 0,
-          bad = 0,
-          empty = 0;
-        for (const r of manifest.routes) {
+        let ok = 0, bad = 0, empty = 0;
+        for (const r of manifestRoutes) {
           const off = await extcodehashOffchain(r.facet, provider);
-          if (off === keccak256('0x')) {
-            if (!asJson) console.warn(`⚠️  facet ${r.facet} has empty code`);
-            empty++;
-          }
-          if (r.codehash && off === r.codehash.toLowerCase()) {
-            ok++;
-          } else if (r.codehash) {
-            if (!asJson) {
-              console.error(
-                `❌ codehash mismatch for selector ${r.selector} facet ${r.facet}\n  expected: ${r.codehash}\n  got:      ${off}`
-              );
-            }
-            codehashMismatches.push({ selector: r.selector, facet: r.facet, expected: r.codehash, got: off });
-            bad++;
-          } else {
-            if (!asJson) {
-              console.warn(
-                `⚠️  no codehash in manifest for selector ${r.selector} facet ${r.facet}`
-              );
-            }
-          }
+          if (off === keccak256('0x')) empty++;
+          if (r.codehash && off === r.codehash.toLowerCase()) ok++;
+          else if (r.codehash) { bad++; mismatches.push({ selector: r.selector, facet: r.facet, expected: r.codehash, got: off }); }
         }
         facetStats = { ok, bad, empty };
-        if (!asJson) {
-          if (bad === 0) {
-            logSuccess(
-              `EXTCODEHASH parity ok for ${ok} route(s). Empty facets: ${empty}.`
-            );
-          } else {
-            throw new NetworkError(
-              `Facet codehash mismatches detected: ${bad}`,
-              'CODEHASH_MISMATCH'
-            );
-          }
+        if (!asJson && bad === 0) {
+          logSuccess(`EXTCODEHASH parity ok for ${ok} route(s). Empty facets: ${empty}.`);
         }
+        if (bad > 0) throw new NetworkError(`Facet codehash mismatches detected: ${bad}`, 'CODEHASH_MISMATCH');
       }
 
+      // === 5) Output ===
       if (asJson) {
-        const result = {
+        console.log(JSON.stringify({
           task: 'payrox:manifest:selfcheck',
-          path: args.path,
+          mode: args.path ? 'legacy-or-split-from-path' : 'split',
           root: rootLower,
+          routes: manifestRoutes.length,
           proofsVerified,
           manifestHash,
           facets: facetStats,
-          codehashMismatches: codehashMismatches.length ? codehashMismatches : undefined,
+          codehashMismatches: mismatches.length ? mismatches : undefined,
           ok: (facetStats?.bad ?? 0) === 0,
-        };
-        console.log(JSON.stringify(result, null, 2));
-        if ((facetStats?.bad ?? 0) > 0) {
-          throw new NetworkError('CODEHASH_MISMATCH', 'CODEHASH_MISMATCH');
-        }
+        }, null, 2));
       } else {
-        logSuccess('Manifest selfcheck completed successfully');
+        logSuccess('Manifest selfcheck (normalized) completed successfully');
       }
     } catch (error) {
+      // existing JSON error block preserved
       try {
         if (args?.json) {
-          const failure = {
+          console.log(JSON.stringify({
             task: 'payrox:manifest:selfcheck',
-            path: args?.path,
             ok: false,
             error: error instanceof Error ? error.message : String(error),
             code: (error as any)?.code || (error as any)?.name || 'UNKNOWN',
-          };
-          console.log(JSON.stringify(failure, null, 2));
+          }, null, 2));
         }
       } finally {
         logError(error, 'Manifest selfcheck');

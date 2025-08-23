@@ -72,9 +72,8 @@ function maybeSignAndVerify(manifestPath: string) {
   run('npx', [
     'hardhat',
     'payrox:manifest:selfcheck',
-    '--path',
-    join(OUT, 'manifest.root.json'),
-    '--json'
+    '--dir',
+    OUT
   ])
 
   // 3.1) Optional signing + verification (guarded by env)
@@ -88,8 +87,7 @@ function maybeSignAndVerify(manifestPath: string) {
       'hardhat',
       'payrox:codehash:diff',
       '--predictive', pred,
-      '--observed', obs,
-      '--json'
+      '--observed', obs
     ])
   } else {
     console.log('ℹ️  Skipping codehash diff (need both predictive & observed snapshots).')

@@ -30,7 +30,7 @@ function latestSnapshot(dir: string, prefix: string): string | undefined {
     return m ? Number(m[1]) : statSync(join(dir, f)).mtimeMs
   }
   files.sort((a, b) => ts(b) - ts(a))
-  return join(dir, files[0])
+  return files.length > 0 ? join(dir, files[0]!) : undefined
 }
 
 function maybeSignAndVerify(manifestPath: string) {
@@ -70,9 +70,8 @@ function maybeSignAndVerify(manifestPath: string) {
   run('npx', [
     'hardhat',
     'payrox:manifest:selfcheck',
-    '--path',
-    join(OUT, 'manifest.root.json'),
-    '--json'
+    '--dir',
+    OUT
   ])
 
   // 2.1) Optional signing + verification (guarded by env)
@@ -86,8 +85,7 @@ function maybeSignAndVerify(manifestPath: string) {
       'hardhat',
       'payrox:codehash:diff',
       '--predictive', pred,
-      '--observed', obs,
-      '--json'
+      '--observed', obs
     ])
   } else {
     console.log('ℹ️  Skipping codehash diff (need both predictive & observed snapshots).')
