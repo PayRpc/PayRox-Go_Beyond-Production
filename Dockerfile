@@ -50,7 +50,7 @@ RUN pip install --upgrade pip setuptools wheel \
     && pip install -r requirements.txt \
     && pip install -r requirements-prod.txt \
     && pip install -e .[prod] \
-    && pip cache purge
+    && (pip cache purge || true)
 
 # Copy application code
 COPY . .
