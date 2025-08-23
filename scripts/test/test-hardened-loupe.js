@@ -1,26 +1,55 @@
 // scripts/test/test-hardened-loupe.js
 // Quick test to demonstrate hardened loupe features
 
-const { ethers } = require("hardhat");
+const { ethers, artifacts } = require("hardhat");
 
 async function testHardenedLoupe() {
   console.log("🧪 Testing Hardened Loupe Features...\n");
 
   // Mock addresses for testing
-  const mockDispatcher = "0x1234567890123456789012345678901234567890";
-  const mockFacet = "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef";
+  const mockDispatcher = "0x1234567890123456789012345678901234567890"; // 20-byte valid
+  const mockFacet = "0x1111111111111111111111111111111111111111"; // 20-byte valid
 
   try {
     // Test 1: Interface ID calculation
     console.log("1️⃣ Testing Interface ID Calculation:");
 
-    // Get interface from artifacts
-    const loupeArtifact = await hre.artifacts.readArtifact("IDiamondLoupe");
-    const loupeExArtifact = await hre.artifacts.readArtifact("IDiamondLoupeEx");
+    // Get interface from artifacts (use fully-qualified names to avoid ambiguity)
+    const loupeArtifact = await artifacts.readArtifact(
+      "contracts/interfaces/IDiamondLoupe.sol:IDiamondLoupe"
+    );
+    const loupeExArtifact = await artifacts.readArtifact(
+      "contracts/interfaces/IDiamondLoupeEx.sol:IDiamondLoupeEx"
+    );
 
-    // Calculate interface IDs
-    const loupeId = ethers.Interface.from(loupeArtifact.abi).getInterfaceId();
-    const loupeExId = ethers.Interface.from(loupeExArtifact.abi).getInterfaceId();
+    // Calculate interface IDs (EIP-165) as XOR of function selectors
+    const renderParam = (p) => {
+      const t = p.type;
+      if (t.startsWith("tuple")) {
+        const arraySuffix = t.slice("tuple".length); // e.g., "[]" or "[2]" or ""
+        const inner = (p.components || []).map(renderParam).join(",");
+        return `(${inner})${arraySuffix}`;
+      }
+      return t;
+    };
+    const fnSelector = (item) => {
+      const sig = `${item.name}(${(item.inputs || []).map(renderParam).join(",")})`;
+      return ethers.id(sig).slice(0, 10); // bytes4
+    };
+    const ifaceId = (abi) => {
+      let acc = 0n;
+      for (const item of abi) {
+        if (item?.type === "function") {
+          const sel = fnSelector(item);
+          acc ^= BigInt(sel);
+        }
+      }
+      const hex = acc.toString(16).padStart(8, "0");
+      return `0x${hex}`;
+    };
+
+    const loupeId = ifaceId(loupeArtifact.abi);
+    const loupeExId = ifaceId(loupeExArtifact.abi);
 
     console.log(`   IDiamondLoupe interface ID: ${loupeId}`);
     console.log(`   IDiamondLoupeEx interface ID: ${loupeExId}`);
