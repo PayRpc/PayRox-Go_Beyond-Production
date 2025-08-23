@@ -33,6 +33,23 @@ function latestSnapshot(dir: string, prefix: string): string | undefined {
   return join(dir, files[0])
 }
 
+function maybeSignAndVerify(manifestPath: string) {
+  const key = process.env.SIGNER_KEY
+  const dispatcher = process.env.DISPATCHER_ADDR
+  const chainId = process.env.CHAIN_ID
+  if (!key || !dispatcher) {
+    console.log('ℹ️  Skipping manifest signing (need SIGNER_KEY and DISPATCHER_ADDR).')
+    return
+  }
+  console.log('✍️  Signing manifest...')
+  const signArgs = ['hardhat', 'payrox:manifest:sign', '--path', manifestPath, '--dispatcher', dispatcher, '--key', key, '--json']
+  if (chainId) signArgs.push('--chain-id', chainId)
+  run('npx', signArgs)
+
+  console.log('🔎 Verifying signature...')
+  run('npx', ['hardhat', 'payrox:manifest:verify', '--path', manifestPath, '--dispatcher', dispatcher, '--json'])
+}
+
 (async () => {
   const OUT = 'split-output'
   const ADDR = join(OUT, 'deployed-addresses.json')
@@ -57,6 +74,9 @@ function latestSnapshot(dir: string, prefix: string): string | undefined {
     join(OUT, 'manifest.root.json'),
     '--json'
   ])
+
+  // 2.1) Optional signing + verification (guarded by env)
+  maybeSignAndVerify(join(OUT, 'manifest.root.json'))
 
   // Auto codehash diff (fail on drift)
   const pred = latestSnapshot(OUT, 'codehashes-predictive-')
