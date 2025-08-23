@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PayRox Refactor Studio</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .progress-bar {
+            transition: width 0.3s ease;
+        }
+        .job-card {
+            transition: all 0.3s ease;
+        }
+        .job-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .log-container {
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+        .log-container::-webkit-scrollbar {
+            width: 6px;
+        }
+        .log-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+        .log-container::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 3px;
+        }
+        .animate-pulse-slow {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        .status-pending { color: #fbbf24; }
+        .status-running { color: #3b82f6; }
+        .status-completed { color: #10b981; }
+        .status-failed { color: #ef4444; }
+        .status-cancelled { color: #6b7280; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // Utility Functions
+        const formatTime = (timestamp) => {
+            return new Date(timestamp * 1000).toLocaleString();
+        };
+
+        const formatDuration = (start, end) => {
+            if (!start) return '-';
+            const duration = (end || Date.now() / 1000) - start;
+            if (duration < 60) return `${Math.round(duration)}s`;
+            if (duration < 3600) return `${Math.round(duration / 60)}m`;
+            return `${Math.round(duration / 3600)}h`;
+        };
+
+        const getStatusColor = (status) => {
+            const colors = {
+                pending: 'text-yellow-500',
+                running: 'text-blue-500',
+                completed: 'text-green-500',
+                failed: 'text-red-500',
+                cancelled: 'text-gray-500'
+            };
+            return colors[status] || 'text-gray-500';
+        };
+
+        const getStatusIcon = (status) => {
+            const icons = {
+                pending: 'fas fa-clock',
+                running: 'fas fa-spinner fa-spin',
+                completed: 'fas fa-check-circle',
+                failed: 'fas fa-exclamation-circle',
+                cancelled: 'fas fa-times-circle'
+            };
+            return icons[status] || 'fas fa-question-circle';
+        };
+
+        // API Service
+        class ApiService {
+            static async startJob(type, inputData) {
+                const response = await fetch('/jobs/start', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type, input_data: inputData })
+                });
+                return response.json();
+            }
+
+            static async getJob(jobId) {
+                const response = await fetch(`/jobs/${jobId}`);
+                return response.json();
+            }
+
+            static async listJobs() {
+                const response = await fetch('/jobs');
+                return response.json();
+            }
+
+            static async cancelJob(jobId) {
+                const response = await fetch(`/jobs/${jobId}/cancel`, { method: 'POST' });
+                return response.json();
+            }
+        }
+
+        // WebSocket Hook
+        const useWebSocket = (jobId) => {
+            const [job, setJob] = useState(null);
+            const [isConnected, setIsConnected] = useState(false);
+            const ws = useRef(null);
+
+            useEffect(() => {
+                if (!jobId) return;
+
+                const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+                const wsUrl = `${protocol}//${window.location.host}/ws/jobs/${jobId}`;
+
+                ws.current = new WebSocket(wsUrl);
+
+                ws.current.onopen = () => setIsConnected(true);
+                ws.current.onclose = () => setIsConnected(false);
+                ws.current.onmessage = (event) => {
+                    const data = JSON.parse(event.data);
+                    if (data.error) {
+                        console.error('WebSocket error:', data.error);
+                    } else {
+                        setJob(data);
+                    }
+                };
+
+                return () => {
+                    if (ws.current) {
+                        ws.current.close();
+                    }
+                };
+            }, [jobId]);
+
+            return { job, isConnected };
+        };
+
+        // Job Progress Component
+        const JobProgress = ({ job }) => {
+            if (!job || !job.progress) return null;
+
+            const { current_step, total_steps, step_name, progress_percent } = job.progress;
+
+            return (
+                <div className="mb-4">
+                    <div className="flex justify-between items-center mb-2">
+                        <span className="text-sm font-medium text-gray-700">
+                            {step_name || 'Processing...'}
+                        </span>
+                        <span className="text-sm text-gray-500">
+                            {current_step}/{total_steps} ({Math.round(progress_percent)}%)
+                        </span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div
+                            className="bg-blue-600 h-2 rounded-full progress-bar"
+                            style={{ width: `${progress_percent}%` }}
+                        ></div>
+                    </div>
+                </div>
+            );
+        };
+
+        // Job Logs Component
+        const JobLogs = ({ logs }) => {
+            const logsEndRef = useRef(null);
+
+            useEffect(() => {
+                logsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+            }, [logs]);
+
+            if (!logs || logs.length === 0) {
+                return (
+                    <div className="text-center text-gray-500 py-4">
+                        No logs available
+                    </div>
+                );
+            }
+
+            return (
+                <div className="log-container bg-gray-900 text-green-400 p-3 rounded">
+                    {logs.map((log, index) => (
+                        <div key={index} className="mb-1">
+                            {log}
+                        </div>
+                    ))}
+                    <div ref={logsEndRef} />
+                </div>
+            );
+        };
+
+        // Job Card Component
+        const JobCard = ({ job, onSelect, isSelected }) => {
+            const duration = formatDuration(job.started_at, job.completed_at);
+
+            return (
+                <div
+                    className={`job-card p-4 bg-white rounded-lg shadow-md cursor-pointer border-l-4 ${
+                        isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
+                    }`}
+                    onClick={() => onSelect(job)}
+                >
+                    <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center">
+                            <i className={`${getStatusIcon(job.status)} ${getStatusColor(job.status)} mr-2`}></i>
+                            <span className="font-semibold text-gray-800">
+                                {job.type.charAt(0).toUpperCase() + job.type.slice(1)}
+                            </span>
+                        </div>
+                        <span className={`text-sm font-medium ${getStatusColor(job.status)}`}>
+                            {job.status.toUpperCase()}
+                        </span>
+                    </div>
+
+                    <div className="text-sm text-gray-600 mb-2">
+                        Created: {formatTime(job.created_at)}
+                    </div>
+
+                    {job.started_at && (
+                        <div className="text-sm text-gray-600 mb-2">
+                            Duration: {duration}
+                        </div>
+                    )}
+
+                    {job.progress && (
+                        <div className="mt-2">
+                            <div className="flex justify-between text-xs text-gray-500 mb-1">
+                                <span>{job.progress.step_name}</span>
+                                <span>{Math.round(job.progress.progress_percent)}%</span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-1">
+                                <div
+                                    className="bg-blue-600 h-1 rounded-full progress-bar"
+                                    style={{ width: `${job.progress.progress_percent}%` }}
+                                ></div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        // Job Details Component
+        const JobDetails = ({ jobId }) => {
+            const { job, isConnected } = useWebSocket(jobId);
+            const [activeTab, setActiveTab] = useState('progress');
+
+            if (!job) {
+                return (
+                    <div className="text-center py-8">
+                        <i className="fas fa-spinner fa-spin text-4xl text-gray-400 mb-4"></i>
+                        <p className="text-gray-500">Loading job details...</p>
+                    </div>
+                );
+            }
+
+            const handleCancel = async () => {
+                if (confirm('Are you sure you want to cancel this job?')) {
+                    try {
+                        await ApiService.cancelJob(jobId);
+                    } catch (error) {
+                        alert('Failed to cancel job: ' + error.message);
+                    }
+                }
+            };
+
+            const handleDownload = (content, filename) => {
+                const blob = new Blob([JSON.stringify(content, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                a.click();
+                URL.revokeObjectURL(url);
+            };
+
+            return (
+                <div className="bg-white rounded-lg shadow-lg p-6">
+                    <div className="flex items-center justify-between mb-6">
+                        <div className="flex items-center">
+                            <i className={`${getStatusIcon(job.status)} ${getStatusColor(job.status)} text-2xl mr-3`}></i>
+                            <div>
+                                <h2 className="text-xl font-bold text-gray-800">
+                                    {job.type.charAt(0).toUpperCase() + job.type.slice(1)} Job
+                                </h2>
+                                <p className="text-sm text-gray-500">
+                                    ID: {job.id}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center space-x-2">
+                            <div className={`flex items-center text-sm ${isConnected ? 'text-green-600' : 'text-red-600'}`}>
+                                <i className={`fas fa-circle text-xs mr-1 ${isConnected ? 'text-green-500' : 'text-red-500'}`}></i>
+                                {isConnected ? 'Live' : 'Disconnected'}
+                            </div>
+
+                            {job.status === 'running' && (
+                                <button
+                                    onClick={handleCancel}
+                                    className="px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700"
+                                >
+                                    Cancel
+                                </button>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Job Info */}
+                    <div className="grid grid-cols-2 gap-4 mb-6 p-4 bg-gray-50 rounded">
+                        <div>
+                            <span className="text-sm font-medium text-gray-600">Status:</span>
+                            <span className={`ml-2 font-medium ${getStatusColor(job.status)}`}>
+                                {job.status.toUpperCase()}
+                            </span>
+                        </div>
+                        <div>
+                            <span className="text-sm font-medium text-gray-600">Created:</span>
+                            <span className="ml-2 text-sm">{formatTime(job.created_at)}</span>
+                        </div>
+                        {job.started_at && (
+                            <div>
+                                <span className="text-sm font-medium text-gray-600">Started:</span>
+                                <span className="ml-2 text-sm">{formatTime(job.started_at)}</span>
+                            </div>
+                        )}
+                        {job.completed_at && (
+                            <div>
+                                <span className="text-sm font-medium text-gray-600">Duration:</span>
+                                <span className="ml-2 text-sm">{formatDuration(job.started_at, job.completed_at)}</span>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Progress */}
+                    {job.status === 'running' && <JobProgress job={job} />}
+
+                    {/* Error */}
+                    {job.error && (
+                        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded">
+                            <h3 className="font-medium text-red-800 mb-2">Error</h3>
+                            <pre className="text-sm text-red-700 whitespace-pre-wrap">{job.error}</pre>
+                        </div>
+                    )}
+
+                    {/* Tabs */}
+                    <div className="border-b border-gray-200 mb-4">
+                        <nav className="-mb-px flex space-x-8">
+                            {['progress', 'logs', 'result'].map((tab) => (
+                                <button
+                                    key={tab}
+                                    onClick={() => setActiveTab(tab)}
+                                    className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                                        activeTab === tab
+                                            ? 'border-blue-500 text-blue-600'
+                                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                    }`}
+                                >
+                                    {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                                </button>
+                            ))}
+                        </nav>
+                    </div>
+
+                    {/* Tab Content */}
+                    <div className="min-h-[200px]">
+                        {activeTab === 'progress' && (
+                            <div>
+                                <JobProgress job={job} />
+                                {job.progress && job.progress.step_name && (
+                                    <div className="mt-4 p-3 bg-blue-50 rounded">
+                                        <p className="text-blue-800">
+                                            <i className="fas fa-info-circle mr-2"></i>
+                                            Currently: {job.progress.step_name}
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {activeTab === 'logs' && (
+                            <JobLogs logs={job.progress?.logs || []} />
+                        )}
+
+                        {activeTab === 'result' && (
+                            <div>
+                                {job.result ? (
+                                    <div>
+                                        <div className="flex justify-between items-center mb-4">
+                                            <h3 className="font-medium text-gray-800">Job Result</h3>
+                                            <button
+                                                onClick={() => handleDownload(job.result, `job-${job.id}-result.json`)}
+                                                className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
+                                            >
+                                                <i className="fas fa-download mr-1"></i>
+                                                Download
+                                            </button>
+                                        </div>
+                                        <pre className="bg-gray-100 p-4 rounded text-sm overflow-auto max-h-96">
+                                            {JSON.stringify(job.result, null, 2)}
+                                        </pre>
+                                    </div>
+                                ) : (
+                                    <div className="text-center text-gray-500 py-8">
+                                        <i className="fas fa-file-code text-4xl mb-4"></i>
+                                        <p>No result available yet</p>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        // New Job Form Component
+        const NewJobForm = ({ onSubmit, onCancel }) => {
+            const [jobType, setJobType] = useState('refactor');
+            const [inputFile, setInputFile] = useState('contracts/PayRoxMonolith.sol');
+            const [customParams, setCustomParams] = useState('{}');
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+
+                let inputData = {};
+                try {
+                    inputData = JSON.parse(customParams);
+                } catch (error) {
+                    alert('Invalid JSON in custom parameters');
+                    return;
+                }
+
+                inputData.input_file = inputFile;
+
+                onSubmit(jobType, inputData);
+            };
+
+            return (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg p-6 w-full max-w-md">
+                        <h2 className="text-xl font-bold mb-4">Start New Job</h2>
+
+                        <form onSubmit={handleSubmit}>
+                            <div className="mb-4">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Job Type
+                                </label>
+                                <select
+                                    value={jobType}
+                                    onChange={(e) => setJobType(e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                >
+                                    <option value="refactor">Refactor</option>
+                                </select>
+                            </div>
+
+                            <div className="mb-4">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Input File
+                                </label>
+                                <input
+                                    type="text"
+                                    value={inputFile}
+                                    onChange={(e) => setInputFile(e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    placeholder="contracts/PayRoxMonolith.sol"
+                                />
+                            </div>
+
+                            <div className="mb-6">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Custom Parameters (JSON)
+                                </label>
+                                <textarea
+                                    value={customParams}
+                                    onChange={(e) => setCustomParams(e.target.value)}
+                                    rows={3}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    placeholder="{}"
+                                />
+                            </div>
+
+                            <div className="flex justify-end space-x-3">
+                                <button
+                                    type="button"
+                                    onClick={onCancel}
+                                    className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                                >
+                                    Start Job
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            );
+        };
+
+        // Main App Component
+        const App = () => {
+            const [jobs, setJobs] = useState([]);
+            const [selectedJobId, setSelectedJobId] = useState(null);
+            const [showNewJobForm, setShowNewJobForm] = useState(false);
+            const [loading, setLoading] = useState(true);
+
+            // Load jobs on mount and refresh periodically
+            useEffect(() => {
+                loadJobs();
+                const interval = setInterval(loadJobs, 5000); // Refresh every 5 seconds
+                return () => clearInterval(interval);
+            }, []);
+
+            const loadJobs = async () => {
+                try {
+                    const response = await ApiService.listJobs();
+                    setJobs(response.jobs || []);
+                    setLoading(false);
+                } catch (error) {
+                    console.error('Failed to load jobs:', error);
+                    setLoading(false);
+                }
+            };
+
+            const handleStartJob = async (type, inputData) => {
+                try {
+                    const response = await ApiService.startJob(type, inputData);
+                    setShowNewJobForm(false);
+                    setSelectedJobId(response.job_id);
+                    loadJobs(); // Refresh job list
+                } catch (error) {
+                    alert('Failed to start job: ' + error.message);
+                }
+            };
+
+            const handleSelectJob = (job) => {
+                setSelectedJobId(job.id);
+            };
+
+            if (loading) {
+                return (
+                    <div className="min-h-screen gradient-bg flex items-center justify-center">
+                        <div className="text-white text-center">
+                            <i className="fas fa-spinner fa-spin text-4xl mb-4"></i>
+                            <p>Loading PayRox Refactor Studio...</p>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="min-h-screen gradient-bg">
+                    {/* Header */}
+                    <header className="glass-effect text-white p-4">
+                        <div className="container mx-auto flex items-center justify-between">
+                            <div className="flex items-center">
+                                <i className="fas fa-code-branch text-2xl mr-3"></i>
+                                <h1 className="text-2xl font-bold">PayRox Refactor Studio</h1>
+                            </div>
+                            <button
+                                onClick={() => setShowNewJobForm(true)}
+                                className="px-4 py-2 bg-white bg-opacity-20 rounded hover:bg-opacity-30 transition-all"
+                            >
+                                <i className="fas fa-plus mr-2"></i>
+                                New Job
+                            </button>
+                        </div>
+                    </header>
+
+                    <div className="container mx-auto p-4">
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            {/* Jobs List */}
+                            <div className="lg:col-span-1">
+                                <div className="bg-white rounded-lg shadow-lg p-4">
+                                    <h2 className="text-lg font-semibold mb-4 text-gray-800">
+                                        Recent Jobs ({jobs.length})
+                                    </h2>
+
+                                    {jobs.length === 0 ? (
+                                        <div className="text-center text-gray-500 py-8">
+                                            <i className="fas fa-tasks text-4xl mb-4"></i>
+                                            <p>No jobs yet</p>
+                                            <button
+                                                onClick={() => setShowNewJobForm(true)}
+                                                className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                                            >
+                                                Start Your First Job
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-3 max-h-96 overflow-y-auto">
+                                            {jobs.map((job) => (
+                                                <JobCard
+                                                    key={job.id}
+                                                    job={job}
+                                                    onSelect={handleSelectJob}
+                                                    isSelected={selectedJobId === job.id}
+                                                />
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Job Details */}
+                            <div className="lg:col-span-2">
+                                {selectedJobId ? (
+                                    <JobDetails jobId={selectedJobId} />
+                                ) : (
+                                    <div className="bg-white rounded-lg shadow-lg p-8 text-center">
+                                        <i className="fas fa-arrow-left text-4xl text-gray-400 mb-4"></i>
+                                        <h2 className="text-xl font-semibold text-gray-600 mb-2">
+                                            Select a Job
+                                        </h2>
+                                        <p className="text-gray-500">
+                                            Choose a job from the list to view its details and progress
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* New Job Modal */}
+                    {showNewJobForm && (
+                        <NewJobForm
+                            onSubmit={handleStartJob}
+                            onCancel={() => setShowNewJobForm(false)}
+                        />
+                    )}
+                </div>
+            );
+        };
+
+        // Render the app
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>

@@ -9,7 +9,7 @@ from typing import List, Dict, Any, Optional, Tuple
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import subprocess
 
-from fastapi import FastAPI, HTTPException, Query, Body
+from fastapi import FastAPI, HTTPException, Query, Body, WebSocket, WebSocketDisconnect
 import hashlib
 from pydantic import BaseModel
 from typing import Any
@@ -28,6 +28,9 @@ try:
     from prometheus_fastapi_instrumentator import Instrumentator
 except Exception:
     Instrumentator = None
+
+# Import job system
+from jobs import job_manager, refactor_job_handler, to_dict, Job, JobStatus
 
 # -----------------------------------------------------------------------------
 # App
@@ -398,6 +401,131 @@ class FactsUpgradeResponse(BaseModel):
     missing_keys: List[str]
     facts: Dict[str, Any]
 # --- END ADD -------------------------------------------------
+
+# -----------------------------------------------------------------------------
+# Job System API Endpoints
+# -----------------------------------------------------------------------------
+
+class StartJobRequest(BaseModel):
+    type: str = Field(..., description="Job type (e.g., 'refactor')")
+    input_data: Dict[str, Any] = Field(default_factory=dict, description="Job input parameters")
+
+class JobResponse(BaseModel):
+    job: Dict[str, Any]
+
+class JobListResponse(BaseModel):
+    jobs: List[Dict[str, Any]]
+
+@app.post('/jobs/start', response_model=Dict[str, str])
+def start_job(request: StartJobRequest):
+    """Start a new background job."""
+    job_id = job_manager.create_job(request.type, request.input_data)
+
+    # Start the job based on type
+    if request.type == "refactor":
+        success = job_manager.start_job(job_id, refactor_job_handler)
+        if not success:
+            raise HTTPException(status_code=400, detail="Failed to start job")
+    else:
+        raise HTTPException(status_code=400, detail=f"Unknown job type: {request.type}")
+
+    return {"job_id": job_id, "status": "started"}
+
+@app.get('/jobs/{job_id}', response_model=JobResponse)
+def get_job_status(job_id: str):
+    """Get job status and progress."""
+    job = job_manager.get_job(job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+
+    return JobResponse(job=to_dict(job))
+
+@app.get('/jobs', response_model=JobListResponse)
+def list_jobs(limit: int = Query(50, ge=1, le=100)):
+    """List recent jobs."""
+    jobs = job_manager.list_jobs(limit)
+    return JobListResponse(jobs=[to_dict(job) for job in jobs])
+
+@app.post('/jobs/{job_id}/cancel')
+def cancel_job(job_id: str):
+    """Cancel a running job."""
+    success = job_manager.cancel_job(job_id)
+    if not success:
+        raise HTTPException(status_code=400, detail="Cannot cancel job")
+
+    return {"status": "cancelled"}
+
+# WebSocket endpoint for real-time job updates
+@app.websocket("/ws/jobs/{job_id}")
+async def job_websocket(websocket: WebSocket, job_id: str):
+    """WebSocket endpoint for real-time job progress updates."""
+    await websocket.accept()
+
+    try:
+        last_progress = -1
+        while True:
+            job = job_manager.get_job(job_id)
+            if not job:
+                await websocket.send_json({"error": "Job not found"})
+                break
+
+            # Send updates when progress changes
+            current_progress = job.progress.current_step
+            if current_progress != last_progress or job.status in [JobStatus.COMPLETED, JobStatus.FAILED, JobStatus.CANCELLED]:
+                await websocket.send_json(to_dict(job))
+                last_progress = current_progress
+
+                # Close connection when job is done
+                if job.status in [JobStatus.COMPLETED, JobStatus.FAILED, JobStatus.CANCELLED]:
+                    break
+
+            await asyncio.sleep(1)  # Poll every second
+
+    except WebSocketDisconnect:
+        pass
+    except Exception as e:
+        await websocket.send_json({"error": str(e)})
+
+# Legacy one-click endpoint (now async)
+@app.post('/refactor/oneclick')
+def refactor_oneclick_async(req: Dict[str, Any] = Body(...)):
+    """Start an async refactor job (replaces synchronous oneclick)."""
+    job_id = job_manager.create_job("refactor", req)
+    success = job_manager.start_job(job_id, refactor_job_handler)
+
+    if not success:
+        raise HTTPException(status_code=400, detail="Failed to start refactor job")
+
+    return {
+        "job_id": job_id,
+        "status": "started",
+        "message": "Refactor job started. Use /jobs/{job_id} to track progress."
+    }
+
+# -----------------------------------------------------------------------------
+# Static File Serving for Web UI
+# -----------------------------------------------------------------------------
+
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+
+# Create web-ui directory if it doesn't exist
+WEB_UI_DIR = Path("web-ui")
+WEB_UI_DIR.mkdir(exist_ok=True)
+
+# Serve static files
+app.mount("/static", StaticFiles(directory=str(WEB_UI_DIR)), name="static")
+
+@app.get("/")
+async def serve_index():
+    """Serve the main UI page."""
+    index_path = WEB_UI_DIR / "index.html"
+    if index_path.exists():
+        return FileResponse(str(index_path))
+    else:
+        return {"message": "PayRox Refactor API", "ui": "Web UI not yet built", "docs": "/docs"}
+
+# -----------------------------------------------------------------------------
 
 
 @app.post("/transform/apply", response_model=TransformApplyResponse)
@@ -999,7 +1127,7 @@ def _json_or_repair(client: Client, model: str, raw_text: str, schema_txt: str) 
         return json.loads(raw_text)
     except Exception:
         # Ask model to output valid JSON only
-        repair_prompt = f"The following output should be valid JSON matching this schema:\n{schema_txt}\n\nInvalid output:\n{raw_text}\n\nPlease output only valid JSON." 
+        repair_prompt = f"The following output should be valid JSON matching this schema:\n{schema_txt}\n\nInvalid output:\n{raw_text}\n\nPlease output only valid JSON."
         resp = client.generate(model=model, prompt=repair_prompt, options={"temperature": 0.0, "num_predict": 512})
         repaired = resp.get("response", "").strip()
         return json.loads(repaired)
