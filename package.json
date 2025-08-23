@@ -128,7 +128,18 @@
     "facets:compile": "npx hardhat compile",
     "facets:check:size": "node scripts/check-contract-sizes.js",
     "facets:check:parity": "node scripts/check-selector-parity.js",
-    "facets:gate": "npm run facets:compile && npm run facets:check:size && npm run facets:check:parity"
+    "facets:gate": "npm run facets:compile && npm run facets:check:size && npm run facets:check:parity",
+    "loupe:parity": "node scripts/ci/validate-loupe-parity.js",
+    "loupe:validate:ex": "node scripts/ci/validate-loupe-ex.js",
+    "loupe:gates": "node scripts/ci/loupe-gates.js",
+    "ci:loupe": "npm run loupe:gates",
+    "ci:production": "npm run ci:selfcheck && npm run loupe:gates && npm run facets:gate",
+    "loupe:validate": "ts-node scripts/ci/validate-loupe.ts",
+    "loupe:validate:strict": "ts-node scripts/ci/validate-loupe.ts --strict --extended",
+    "libraries:validate": "ts-node scripts/ci/validate-libraries.ts",
+    "libraries:validate:strict": "ts-node scripts/ci/validate-libraries.ts --strict",
+    "ci:loupe-gates": "npm run libraries:validate:strict && npm run loupe:validate:strict",
+    "ci:production-gates": "npm run ci:selfcheck && npm run ci:loupe-gates && npm run facets:gate"
   },
   "ci": {
     "codehash-diff": "npx hardhat payrox:codehash:diff --predictive split-output/codehashes-predictive-*.json --observed split-output/codehashes-observed-*.json --json"

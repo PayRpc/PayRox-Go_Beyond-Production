@@ -8,7 +8,7 @@ function* walk(dir) {
   for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
     const p = path.join(dir, e.name);
     if (e.isDirectory()) yield* walk(p);
-    else yield p;
+    else if (e.name !== 'SHA256SUMS') yield p;  // Exclude SHA256SUMS file itself
   }
 }
 for (const fp of walk(root)) {

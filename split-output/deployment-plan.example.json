@@ -1,0 +1,132 @@
+{
+  "planId": "payrox-production-v1.2.0",
+  "merkleRoot": "0x0000000000000000000000000000000000000000000000000000000000000000",
+  "timestamp": "2025-08-23T00:00:00.000Z",
+  "deployer": "0x0000000000000000000000000000000000000000",
+  "network": "localhost",
+  "facets": [
+    {
+      "facet": "0x0000000000000000000000000000000000000000",
+      "name": "CustomerFacet",
+      "selectors": [
+        "0xdbaab50b",
+        "0x893bcfbe",
+        "0xc3f909d4",
+        "0x1865c57d",
+        "0x7ab7b94b",
+        "0x01ffc9a7",
+        "0xf5b541a6"
+      ],
+      "codehash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+      "versionTag": "0x76312e302e30000000000000000000000000000000000000000000000000000000",
+      "securityLevel": 2,
+      "metadata": {
+        "category": "business-logic",
+        "dependencies": ["AccessControlFacet", "PauseFacet"],
+        "isUpgradeable": true
+      }
+    },
+    {
+      "facet": "0x0000000000000000000000000000000000000000",
+      "name": "LoupeFacet",
+      "selectors": [
+        "0x7a0ed627",
+        "0xadfca15e",
+        "0x52ef6b2c",
+        "0xcdffacc6",
+        "0x01ffc9a7"
+      ],
+      "codehash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+      "versionTag": "0x76312e302e30000000000000000000000000000000000000000000000000000000",
+      "securityLevel": 3,
+      "metadata": {
+        "category": "infrastructure",
+        "dependencies": [],
+        "isUpgradeable": false
+      }
+    },
+    {
+      "facet": "0x0000000000000000000000000000000000000000",
+      "name": "PaymentsFacet",
+      "selectors": [
+        "0xa9059cbb",
+        "0x095ea7b3",
+        "0x70a08231"
+      ],
+      "codehash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+      "versionTag": "0x76312e302e30000000000000000000000000000000000000000000000000000000",
+      "securityLevel": 3,
+      "metadata": {
+        "category": "payments",
+        "dependencies": ["AccessControlFacet"],
+        "isUpgradeable": true
+      }
+    },
+    {
+      "facet": "0x0000000000000000000000000000000000000000",
+      "name": "AccessControlFacet",
+      "selectors": [
+        "0x248a9ca3",
+        "0x9010d07c",
+        "0xca15c873"
+      ],
+      "codehash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+      "versionTag": "0x76312e302e30000000000000000000000000000000000000000000000000000000",
+      "securityLevel": 3,
+      "metadata": {
+        "category": "security",
+        "dependencies": [],
+        "isUpgradeable": false
+      }
+    }
+  ],
+  "libraries": [
+    {
+      "name": "OrderedMerkle",
+      "purpose": "utility",
+      "internal": true,
+      "description": "Merkle tree utilities for manifest verification"
+    },
+    {
+      "name": "CustomerStorage",
+      "purpose": "storage",
+      "internal": true,
+      "description": "Diamond storage layout for CustomerFacet"
+    },
+    {
+      "name": "PayRoxAccessControlStorage",
+      "purpose": "storage",
+      "internal": true,
+      "description": "Access control storage layout"
+    },
+    {
+      "name": "PayRoxPauseStorage",
+      "purpose": "storage",
+      "internal": true,
+      "description": "Pause functionality storage layout"
+    },
+    {
+      "name": "ManifestDispatcherLib",
+      "purpose": "utility",
+      "internal": true,
+      "description": "Helper functions for dispatcher operations"
+    },
+    {
+      "name": "RefactorSafetyLib",
+      "purpose": "utility",
+      "internal": true,
+      "description": "Upgrade safety validation utilities"
+    }
+  ],
+  "security": {
+    "mythrilScanCompleted": true,
+    "auditRequired": true,
+    "minimumSecurityLevel": 2
+  },
+  "validation": {
+    "selectorCount": 71,
+    "facetCount": 4,
+    "libraryCount": 6,
+    "checksumAlgorithm": "SHA256"
+  }
+}

@@ -166,15 +166,55 @@ const shouldFail = (results) => {
 
 ## Artifact Verification
 
-The system includes comprehensive artifact checking with the `tools/show-artifacts.ps1` script:
+The system includes multiple levels of artifact validation:
+
+### Basic Validation
 
 ```powershell
-# Quick check of all artifacts
+# Local, permissive (just show, don't fail)
 .\tools\show-artifacts.ps1
+
+# CI, strict (fail on missing core files + checksum drift)
+.\tools\show-artifacts.ps1 -Strict -VerifySums
 
 # Custom output directory
 .\tools\show-artifacts.ps1 -OutDir "./custom-output"
 ```
+
+### Advanced Validation
+
+```powershell
+# Comprehensive validation with all checks
+.\tools\validate-artifacts-advanced.ps1 -Strict -ValidateSchemas -CheckConsistency -CheckSelectors
+
+# Individual validation components
+.\tools\validate-artifacts-advanced.ps1 -CheckSelectors    # Selector parity check
+.\tools\validate-artifacts-advanced.ps1 -CheckConsistency  # Plan/manifest consistency
+```
+
+### Validation Features
+
+**Core File Verification**: Ensures all required deployment artifacts are present
+
+**SHA256SUMS Verification**: Validates integrity of all artifacts using checksums
+
+**Schema Validation** (optional): JSON schema validation for manifest and deployment plan files
+
+**Plan Consistency**: Verifies Plan ID and Merkle root consistency between manifest and deployment plan
+
+**Selector Parity**: Confirms selector count matches proof count and expected function count (71)
+
+**Signature Verification** (planned): EIP-712 signature validation for governance files
+
+## Release Pipeline Output
+
+```text
+🚀 PayRox Production Release Pipeline
+====================================
+Network: mainnet
+Mode: LIVE
+
+📦 Step 1: Building Predictive Artifacts...
 
 ### Artifact Categories
 

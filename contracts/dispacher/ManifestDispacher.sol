@@ -198,6 +198,40 @@ contract ManifestDispatcher is
         return devRegistrarEnabled;
     }
 
+    // ───────────────────────────────────────────────────────────────────────────
+    // IDispatcherIndexView implementation (for LoupeFacet)
+    // ───────────────────────────────────────────────────────────────────────────
+
+    function listFacets() external view returns (address[] memory) {
+        return _facetAddresses;
+    }
+
+    function listSelectors(address facet) external view returns (bytes4[] memory) {
+        return facetSelectors[facet];
+    }
+
+    function route(bytes4 sel) external view returns (address facet, bytes32 codehash) {
+        IManifestDispatcher.Route storage r = _routes[sel];
+        return (r.facet, r.codehash);
+    }
+
+    function facetProvenanceOf(address facet) external view returns (address deployer, uint256 timestamp) {
+        return (_facetDeployer[facet], _facetDeployedAt[facet]);
+    }
+
+    function facetMetadataOf(address /*facet*/) external pure returns (
+        string memory name,
+        string memory category,
+        string[] memory dependencies,
+        bool isUpgradeable
+    ) {
+        // Return empty metadata - can be extended with on-chain metadata storage if needed
+        name = "";
+        category = "";
+        dependencies = new string[](0);
+        isUpgradeable = true;
+    }
+
     function getManifestInfo()
         external
         view
@@ -253,7 +287,7 @@ contract ManifestDispatcher is
         if (n == 0) return;
         if (n != facetAddrs.length || n != codehashes.length || n != proofs.length || n != isRight.length)
             revert LenMismatch();
-        
+
         // Use library for batch validation
         ManifestDispatcherLib.boundBatch(n, MAX_BATCH);
         ManifestDispatcherLib.requireNoDuplicateSelectors(selectors);
@@ -262,7 +296,7 @@ contract ManifestDispatcher is
         for (uint256 i = 0; i < n; i++) {
             address facet = facetAddrs[i];
             if (facet == address(this)) revert FacetIsSelf();
-            
+
             // Use library for facet integrity verification
             ManifestDispatcherLib.verifyFacetIntegrity(facet, codehashes[i], MAX_FACET_CODE);
 
@@ -662,15 +696,15 @@ contract ManifestDispatcher is
         uint256 n = facets_.length;
         if (n == 0) return;
         if (n != selectors_.length) revert LenMismatch();
-        
+
         // Use library for batch validation
         ManifestDispatcherLib.boundBatch(n, MAX_BATCH);
 
         for (uint256 i = 0; i < n; i++) {
             address facet = facets_[i];
             if (facet == address(this)) revert FacetIsSelf();
-            
-            // Use library for facet integrity verification  
+
+            // Use library for facet integrity verification
             (bytes32 ch, ) = ManifestDispatcherLib.verifyFacetIntegrity(facet, bytes32(0), MAX_FACET_CODE);
 
             bytes4[] calldata sels = selectors_[i];

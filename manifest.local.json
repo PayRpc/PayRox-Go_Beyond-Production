@@ -83,6 +83,13 @@
       "selector": "0x392e53cd",
       "facet": "<fill-facet-address>",
       "functionName": "isInitialized"
+    },
+    {
+      "name": "initializeCustomer",
+      "path": "/initializeCustomer",
+      "selector": "0xdbaab50b",
+      "facet": "0x1234567890123456789012345678901234567890",
+      "functionName": "initializeCustomer"
     }
   ]
 }
